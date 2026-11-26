@@ -1,23 +1,34 @@
 //! Ribbon layouts for presentation features without a desktop authoring command.
 use super::*;
+use crate::l10n::{t, tf};
 use crate::viewer::chrome::{RIBBON_HEIGHT, col, group, row, small, tool};
 use gpui_kit::component::{Icon, Sizable, button::ButtonVariants, popover::Popover};
-use joyoffice_ui::IconName as I;
+use joyoffice_ui::{IconName as I, UiLocale};
 
 pub(super) const BLUE: u32 = 0x326797;
 pub(super) const GREEN: u32 = 0x25805d;
 
-pub(super) fn unavailable(id: &'static str, icon: I, label: &'static str) -> Button {
+pub(super) fn unavailable(
+    locale: UiLocale,
+    id: &'static str,
+    icon: I,
+    label: &'static str,
+) -> Button {
+    let flat = label.replace('\n', " ");
     tool(id, icon, label, 0x969ca4)
-        .accessibility_label(format!("{}（暂不支持）", label.replace('\n', "")))
+        .accessibility_label(tf(
+            locale,
+            "common.unsupported_suffix",
+            &[("label", flat.trim())],
+        ))
         .disabled(true)
 }
 
-pub(super) fn unavailable_row(items: &[(&'static str, I, &'static str)]) -> Div {
+pub(super) fn unavailable_row(locale: UiLocale, items: &[(&'static str, I, &'static str)]) -> Div {
     row().children(
         items
             .iter()
-            .map(|(id, icon, label)| unavailable(id, *icon, label)),
+            .map(|(id, icon, label)| unavailable(locale, id, *icon, label)),
     )
 }
 
@@ -32,6 +43,7 @@ pub(super) fn gallery(p: joyoffice_ui::Palette) -> Div {
 }
 
 fn effect_tile(
+    locale: UiLocale,
     id: &'static str,
     icon: I,
     label: &'static str,
@@ -47,9 +59,13 @@ fn effect_tile(
         .rounded(px(2.))
         .when(selected, |b| b.border_1().border_color(rgb(p.accent)))
         .accessibility_label(if selected {
-            format!("{label}（当前效果，暂不支持编辑）")
+            tf(
+                locale,
+                "common.current_readonly_suffix",
+                &[("label", label)],
+            )
         } else {
-            format!("{label}（暂不支持）")
+            tf(locale, "common.unsupported_suffix", &[("label", label)])
         })
         .disabled(true)
         .child(
@@ -62,19 +78,20 @@ fn effect_tile(
 }
 
 fn effects(
+    locale: UiLocale,
     p: joyoffice_ui::Palette,
     items: &[(&'static str, I, &'static str)],
     tint: u32,
     current: &str,
 ) -> Div {
     gallery(p).children(
-        items
-            .iter()
-            .map(|(id, icon, label)| effect_tile(id, *icon, label, tint, *id == current, p)),
+        items.iter().map(|(id, icon, label)| {
+            effect_tile(locale, id, *icon, label, tint, *id == current, p)
+        }),
     )
 }
 
-pub(super) fn ribbon_checks(items: &[(&'static str, bool)]) -> Div {
+pub(super) fn ribbon_checks(locale: UiLocale, items: &[(&'static str, bool)]) -> Div {
     col()
         .gap(px(2.))
         .children(items.iter().map(|(label, checked)| {
@@ -86,10 +103,11 @@ pub(super) fn ribbon_checks(items: &[(&'static str, bool)]) -> Div {
                 .justify_start()
                 .icon(if *checked { I::SquareCheck } else { I::Square })
                 .label(*label)
-                .accessibility_label(format!(
-                    "{label}（{}，暂不支持编辑）",
-                    if *checked { "已选中" } else { "未选中" }
-                ))
+                .accessibility_label(if *checked {
+                    tf(locale, "common.checked_readonly", &[("label", label)])
+                } else {
+                    tf(locale, "common.unchecked_readonly", &[("label", label)])
+                })
                 .disabled(true)
         }))
 }
@@ -107,38 +125,56 @@ impl Viewer {
 
     #[inline(never)]
     pub(super) fn ribbon_draw(&self, _: &mut Context<Self>) -> Div {
+        let locale = self.locale;
         let pens = gallery(self.palette()).children(
             [
-                ("ink-black", I::PenLine, "黑色笔", 0x53575d),
-                ("ink-red", I::PenLine, "红色笔", 0xc77d7d),
-                ("ink-pencil", I::Pencil, "铅笔", 0x8b9ba5),
-                ("ink-highlight", I::Highlighter, "荧光笔", 0xada051),
+                (
+                    "ink-black",
+                    I::PenLine,
+                    t(locale, "draw.pen_black"),
+                    0x53575d,
+                ),
+                ("ink-red", I::PenLine, t(locale, "draw.pen_red"), 0xc77d7d),
+                ("ink-pencil", I::Pencil, t(locale, "draw.pencil"), 0x8b9ba5),
+                (
+                    "ink-highlight",
+                    I::Highlighter,
+                    t(locale, "draw.highlighter"),
+                    0xada051,
+                ),
             ]
             .into_iter()
             .map(|(id, icon, label, tint)| {
-                effect_tile(id, icon, label, tint, false, self.palette())
+                effect_tile(locale, id, icon, label, tint, false, self.palette())
             }),
         );
         row()
             .h(px(RIBBON_HEIGHT))
             .child(group(
-                "绘图工具",
-                unavailable_row(&[
-                    ("ink-draw", I::PenLine, "绘图"),
-                    ("ink-erase", I::Eraser, "橡皮擦"),
-                    ("ink-lasso", I::Lasso, "套索\n选择"),
-                ]),
+                t(locale, "draw.group.tools"),
+                unavailable_row(
+                    locale,
+                    &[
+                        ("ink-draw", I::PenLine, t(locale, "draw.draw")),
+                        ("ink-erase", I::Eraser, t(locale, "draw.eraser")),
+                        ("ink-lasso", I::Lasso, t(locale, "draw.lasso")),
+                    ],
+                ),
             ))
             .child(group(
-                "笔",
-                row()
-                    .child(pens)
-                    .child(unavailable("ink-add", I::Plus, "添加")),
+                t(locale, "draw.group.pens"),
+                row().child(pens).child(unavailable(
+                    locale,
+                    "ink-add",
+                    I::Plus,
+                    t(locale, "draw.add"),
+                )),
             ))
     }
 
     #[inline(never)]
     pub(super) fn ribbon_transitions(&self, cx: &mut Context<Self>) -> Div {
+        let locale = self.locale;
         let p = self.palette();
         let disabled = self.editor.is_none() || self.loading || self.composing();
         let transition = self.current_slide().and_then(|s| s.transition.as_ref());
@@ -146,42 +182,55 @@ impl Viewer {
         let current_opt = transition.map_or("", |t| t.option.as_str());
         let on_click = transition.is_none_or(|t| t.advance_on_click);
         let advance = transition.and_then(|t| t.advance_after_ms);
-        let duration_label = transition.map_or("—".into(), |t| {
-            format!("{:.2} 秒", f64::from(t.duration_ms) / 1000.)
+        let duration_label = transition.map_or("—".into(), |tr| {
+            let secs = format!("{:.2}", f64::from(tr.duration_ms) / 1000.);
+            tf(locale, "trans.duration_sec", &[("seconds", &secs)])
         });
-        let after_label = advance.map_or("自动换片：关".into(), |ms| {
-            format!("自动换片：{:.1} 秒", f64::from(ms) / 1000.)
-        });
+        let after_label = advance.map_or_else(
+            || t(locale, "trans.auto_advance_off").to_owned(),
+            |ms| {
+                let secs = format!("{:.1}", f64::from(ms) / 1000.);
+                tf(locale, "trans.auto_advance_sec", &[("seconds", &secs)])
+            },
+        );
         let primary: &[(&'static str, I, &'static str)] = &[
-            ("none", I::PanelTop, "无"),
-            ("morph", I::Layers2, "平滑"),
-            ("fade", I::Blend, "淡入/淡出"),
-            ("push", I::ArrowUpToLine, "推入"),
-            ("wipe", I::PanelLeft, "擦除"),
-            ("split", I::Columns2, "分割"),
-            ("reveal", I::SquareSplitHorizontal, "显示"),
-            ("cut", I::Layers, "切入"),
-            ("randomBar", I::ChartNoAxesColumn, "随机线条"),
-            ("shape", I::Shapes, "形状"),
-            ("uncover", I::ArrowLeftToLine, "揭开"),
+            ("none", I::PanelTop, t(locale, "trans.none")),
+            ("morph", I::Layers2, t(locale, "trans.morph")),
+            ("fade", I::Blend, t(locale, "trans.fade")),
+            ("push", I::ArrowUpToLine, t(locale, "trans.push")),
+            ("wipe", I::PanelLeft, t(locale, "trans.wipe")),
+            ("split", I::Columns2, t(locale, "trans.split")),
+            (
+                "reveal",
+                I::SquareSplitHorizontal,
+                t(locale, "trans.reveal"),
+            ),
+            ("cut", I::Layers, t(locale, "trans.cut")),
+            (
+                "randomBar",
+                I::ChartNoAxesColumn,
+                t(locale, "trans.random_bar"),
+            ),
+            ("shape", I::Shapes, t(locale, "trans.shape")),
+            ("uncover", I::ArrowLeftToLine, t(locale, "trans.uncover")),
         ];
-        let extra: &[(&'static str, &'static str)] = &[
-            ("cover", "覆盖"),
-            ("flash", "闪光"),
-            ("dissolve", "溶解"),
-            ("blinds", "百叶窗"),
-            ("clock", "时钟"),
-            ("checker", "棋盘"),
-            ("zoom", "缩放"),
-            ("cube", "立方体"),
-            ("flip", "翻转"),
-            ("orbit", "轨道旋转"),
-            ("wheel", "轮子"),
-            ("comb", "梳理"),
-            ("curtains", "帘式"),
-            ("doors", "门"),
-            ("origami", "折纸"),
-            ("vortex", "漩涡"),
+        let extra: Vec<(&'static str, &'static str)> = vec![
+            ("cover", t(locale, "trans.cover")),
+            ("flash", t(locale, "trans.flash")),
+            ("dissolve", t(locale, "trans.dissolve")),
+            ("blinds", t(locale, "trans.blinds")),
+            ("clock", t(locale, "trans.clock")),
+            ("checker", t(locale, "trans.checker")),
+            ("zoom", t(locale, "trans.zoom")),
+            ("cube", t(locale, "trans.cube")),
+            ("flip", t(locale, "trans.flip")),
+            ("orbit", t(locale, "trans.orbit")),
+            ("wheel", t(locale, "trans.wheel")),
+            ("comb", t(locale, "trans.comb")),
+            ("curtains", t(locale, "trans.curtains")),
+            ("doors", t(locale, "trans.doors")),
+            ("origami", t(locale, "trans.origami")),
+            ("vortex", t(locale, "trans.vortex")),
         ];
         let tiles =
             gallery(p).children(primary.iter().enumerate().map(|(i, (id, icon, label))| {
@@ -195,7 +244,7 @@ impl Viewer {
                     .rounded(px(2.))
                     .disabled(disabled)
                     .when(selected, |b| b.border_1().border_color(rgb(p.accent)))
-                    .accessibility_label(format!("切换效果：{label}"))
+                    .accessibility_label(tf(locale, "trans.aria_effect", &[("label", label)]))
                     .child(
                         col()
                             .items_center()
@@ -212,9 +261,14 @@ impl Viewer {
         let current_owned = current.to_string();
         let more_btn = Popover::new("transition-more")
             .trigger(
-                tool("transition-more-btn", I::Sparkles, "更多", 0x698eb4)
-                    .dropdown_caret(true)
-                    .disabled(disabled),
+                tool(
+                    "transition-more-btn",
+                    I::Sparkles,
+                    t(locale, "common.more"),
+                    0x698eb4,
+                )
+                .dropdown_caret(true)
+                .disabled(disabled),
             )
             .content(move |_, _, cx| {
                 let popup = cx.entity().downgrade();
@@ -258,9 +312,14 @@ impl Viewer {
         let current_opt_owned = current_opt.to_string();
         let options_btn = Popover::new("transition-options-pop")
             .trigger(
-                tool("transition-options", I::SlidersHorizontal, "效果选项", BLUE)
-                    .dropdown_caret(true)
-                    .disabled(disabled || options.is_empty()),
+                tool(
+                    "transition-options",
+                    I::SlidersHorizontal,
+                    t(locale, "trans.effect_options"),
+                    BLUE,
+                )
+                .dropdown_caret(true)
+                .disabled(disabled || options.is_empty()),
             )
             .content(move |_, _, cx| {
                 let popup = cx.entity().downgrade();
@@ -294,7 +353,11 @@ impl Viewer {
                     .ghost()
                     .xsmall()
                     .h(px(23.))
-                    .label(format!("持续时间  {duration_label}"))
+                    .label(tf(
+                        locale,
+                        "trans.duration_label",
+                        &[("duration", &duration_label)],
+                    ))
                     .disabled(disabled || current == "none"),
             )
             .content(move |_, _, cx| {
@@ -305,23 +368,23 @@ impl Viewer {
                     .gap_1()
                     .children(
                         [
-                            (300u32, "0.30 秒"),
-                            (500, "0.50 秒"),
-                            (700, "0.70 秒"),
-                            (1000, "1.00 秒"),
-                            (1500, "1.50 秒"),
-                            (2000, "2.00 秒"),
-                            (3000, "3.00 秒"),
+                            (300u32, "0.30"),
+                            (500, "0.50"),
+                            (700, "0.70"),
+                            (1000, "1.00"),
+                            (1500, "1.50"),
+                            (2000, "2.00"),
+                            (3000, "3.00"),
                         ]
                         .into_iter()
-                        .map(|(ms, text)| {
+                        .map(|(ms, secs)| {
                             let view = dur_view.clone();
                             let popup = popup.clone();
                             Button::new(("trans-dur", ms))
                                 .ghost()
                                 .xsmall()
                                 .h(px(22.))
-                                .label(text)
+                                .label(tf(locale, "trans.duration_sec", &[("seconds", secs)]))
                                 .on_click(move |_, w, cx| {
                                     let _ = popup.update(cx, |p, cx| p.dismiss(w, cx));
                                     let _ = view.update(cx, |s, cx| {
@@ -330,14 +393,19 @@ impl Viewer {
                                 })
                         }),
                     )
-                    .child(small("trans-dur-custom", I::Timer, "自定义时长…").on_click(
-                        move |_, w, cx| {
+                    .child(
+                        small(
+                            "trans-dur-custom",
+                            I::Timer,
+                            t(locale, "trans.duration_custom"),
+                        )
+                        .on_click(move |_, w, cx| {
                             let _ = custom_popup.update(cx, |p, cx| p.dismiss(w, cx));
                             let _ = custom_view.update(cx, |s, cx| {
                                 s.content_form(content_ui::Form::TransitionDuration, w, cx);
                             });
-                        },
-                    ))
+                        }),
+                    )
             });
 
         let after_view = cx.entity().downgrade();
@@ -354,11 +422,23 @@ impl Viewer {
                 let popup = cx.entity().downgrade();
                 col().gap_1().children(
                     [
-                        (None, "关闭自动换片"),
-                        (Some(2000u32), "2 秒后换片"),
-                        (Some(3000), "3 秒后换片"),
-                        (Some(5000), "5 秒后换片"),
-                        (Some(10000), "10 秒后换片"),
+                        (None, t(locale, "trans.auto_advance_disable").to_owned()),
+                        (
+                            Some(2000u32),
+                            tf(locale, "trans.auto_advance_after", &[("seconds", "2")]),
+                        ),
+                        (
+                            Some(3000),
+                            tf(locale, "trans.auto_advance_after", &[("seconds", "3")]),
+                        ),
+                        (
+                            Some(5000),
+                            tf(locale, "trans.auto_advance_after", &[("seconds", "5")]),
+                        ),
+                        (
+                            Some(10000),
+                            tf(locale, "trans.auto_advance_after", &[("seconds", "10")]),
+                        ),
                     ]
                     .into_iter()
                     .enumerate()
@@ -383,17 +463,22 @@ impl Viewer {
         row()
             .h(px(RIBBON_HEIGHT))
             .child(group(
-                "预览",
-                tool("transition-preview", I::MonitorPlay, "预览", GREEN)
-                    .disabled(disabled)
-                    .on_click(cx.listener(|s, _, _, cx| s.start_show(false, false, cx))),
+                t(locale, "trans.group.preview"),
+                tool(
+                    "transition-preview",
+                    I::MonitorPlay,
+                    t(locale, "trans.preview"),
+                    GREEN,
+                )
+                .disabled(disabled)
+                .on_click(cx.listener(|s, _, _, cx| s.start_show(false, false, cx))),
             ))
             .child(group(
-                "切换样式",
+                t(locale, "trans.group.style"),
                 row().child(tiles).child(more_btn).child(options_btn),
             ))
             .child(group(
-                "计时",
+                t(locale, "trans.group.timing"),
                 row()
                     .gap_2()
                     .child(
@@ -404,9 +489,9 @@ impl Viewer {
                                 .h(px(23.))
                                 .disabled(disabled)
                                 .label(if on_click {
-                                    "☑ 单击鼠标时"
+                                    t(locale, "trans.on_click_checked")
                                 } else {
-                                    "☐ 单击鼠标时"
+                                    t(locale, "trans.on_click_unchecked")
                                 })
                                 .on_click(cx.listener(|s, _, w, cx| {
                                     s.toggle_transition_on_click(w, cx);
@@ -415,35 +500,43 @@ impl Viewer {
                     )
                     .child(col().child(after_btn))
                     .child(
-                        tool("transition-apply-all", I::Layers, "应用到\n所有", BLUE)
-                            .disabled(disabled)
-                            .on_click(cx.listener(|s, _, w, cx| s.apply_transition_all(w, cx))),
+                        tool(
+                            "transition-apply-all",
+                            I::Layers,
+                            t(locale, "trans.apply_all"),
+                            BLUE,
+                        )
+                        .disabled(disabled)
+                        .on_click(cx.listener(|s, _, w, cx| s.apply_transition_all(w, cx))),
                     ),
             ))
     }
 
     #[inline(never)]
     pub(super) fn ribbon_animations(&self, _: &mut Context<Self>) -> Div {
+        let locale = self.locale;
         let entrance = effects(
+            locale,
             self.palette(),
             &[
-                ("anim-appear", I::Star, "出现"),
-                ("anim-fly-in", I::ArrowUp, "飞入"),
-                ("anim-blinds", I::TextAlignJustify, "百叶窗"),
-                ("anim-checker", I::Grid2x2, "棋盘"),
-                ("anim-dissolve", I::Sparkles, "向内溶解"),
+                ("anim-appear", I::Star, t(locale, "anim.appear")),
+                ("anim-fly-in", I::ArrowUp, t(locale, "anim.fly_in")),
+                ("anim-blinds", I::TextAlignJustify, t(locale, "anim.blinds")),
+                ("anim-checker", I::Grid2x2, t(locale, "anim.checker")),
+                ("anim-dissolve", I::Sparkles, t(locale, "anim.dissolve_in")),
             ],
             0x73927b,
             "",
         );
         let emphasis = effects(
+            locale,
             self.palette(),
             &[
-                ("anim-fill", I::PaintBucket, "填充颜色"),
-                ("anim-scale", I::MoveDiagonal, "放大/缩小"),
-                ("anim-line-color", I::PenLine, "线条颜色"),
-                ("anim-spin", I::RotateCw, "陀螺旋"),
-                ("anim-opacity", I::Blend, "透明"),
+                ("anim-fill", I::PaintBucket, t(locale, "anim.fill_color")),
+                ("anim-scale", I::MoveDiagonal, t(locale, "anim.grow_shrink")),
+                ("anim-line-color", I::PenLine, t(locale, "anim.line_color")),
+                ("anim-spin", I::RotateCw, t(locale, "anim.spin")),
+                ("anim-opacity", I::Blend, t(locale, "anim.transparency")),
             ],
             0xa08a58,
             "",
@@ -451,62 +544,107 @@ impl Viewer {
         row()
             .h(px(RIBBON_HEIGHT))
             .child(group(
-                "预览",
-                unavailable("animation-preview", I::MonitorPlay, "预览"),
+                t(locale, "anim.group.preview"),
+                unavailable(
+                    locale,
+                    "animation-preview",
+                    I::MonitorPlay,
+                    t(locale, "trans.preview"),
+                ),
             ))
-            .child(group("进入效果", entrance))
-            .child(group("强调效果", emphasis))
+            .child(group(t(locale, "anim.group.entrance"), entrance))
+            .child(group(t(locale, "anim.group.emphasis"), emphasis))
             .child(group(
-                "其他效果",
-                unavailable_row(&[
-                    ("anim-exit", I::Star, "退出效果"),
-                    ("anim-path", I::Spline, "路径动画"),
-                ]),
+                t(locale, "anim.group.other"),
+                unavailable_row(
+                    locale,
+                    &[
+                        ("anim-exit", I::Star, t(locale, "anim.exit")),
+                        ("anim-path", I::Spline, t(locale, "anim.path")),
+                    ],
+                ),
             ))
             .child(group(
-                "高级动画",
-                unavailable_row(&[
-                    ("anim-options", I::SlidersHorizontal, "效果选项"),
-                    ("anim-pane", I::PanelRight, "动画\n窗格"),
-                    ("anim-trigger", I::Zap, "触发器"),
-                    ("anim-painter", I::Paintbrush, "动画刷"),
-                ]),
+                t(locale, "anim.group.advanced"),
+                unavailable_row(
+                    locale,
+                    &[
+                        (
+                            "anim-options",
+                            I::SlidersHorizontal,
+                            t(locale, "anim.options"),
+                        ),
+                        ("anim-pane", I::PanelRight, t(locale, "anim.pane")),
+                        ("anim-trigger", I::Zap, t(locale, "anim.trigger")),
+                        ("anim-painter", I::Paintbrush, t(locale, "anim.painter")),
+                    ],
+                ),
             ))
             .child(group(
-                "计时",
+                t(locale, "anim.group.timing"),
                 col()
-                    .child(small_unavailable("anim-start", I::Play, "开始"))
-                    .child(small_unavailable("anim-duration", I::Timer, "持续时间")),
+                    .child(small_unavailable(
+                        locale,
+                        "anim-start",
+                        I::Play,
+                        t(locale, "anim.start"),
+                    ))
+                    .child(small_unavailable(
+                        locale,
+                        "anim-duration",
+                        I::Timer,
+                        t(locale, "anim.duration"),
+                    )),
             ))
     }
 
     #[inline(never)]
     pub(super) fn ribbon_record(&self, _: &mut Context<Self>) -> Div {
+        let locale = self.locale;
         row()
             .h(px(RIBBON_HEIGHT))
             .child(group(
-                "摄像头",
-                unavailable("record-cameo", I::Camera, "Cameo"),
+                t(locale, "record.group.camera"),
+                unavailable(locale, "record-cameo", I::Camera, "Cameo"),
             ))
             .child(group(
-                "录制",
-                unavailable_row(&[
-                    ("record-start", I::Presentation, "从头\n开始"),
-                    ("record-current", I::MonitorPlay, "从当前\n幻灯片开始"),
-                ]),
+                t(locale, "record.group.record"),
+                unavailable_row(
+                    locale,
+                    &[
+                        (
+                            "record-start",
+                            I::Presentation,
+                            t(locale, "record.from_beginning"),
+                        ),
+                        (
+                            "record-current",
+                            I::MonitorPlay,
+                            t(locale, "record.from_current"),
+                        ),
+                    ],
+                ),
             ))
             .child(group(
-                "管理录制",
-                unavailable_row(&[
-                    ("record-clear", I::Film, "清除录制"),
-                    ("record-reset", I::RotateCw, "重置为\nCameo"),
-                ]),
+                t(locale, "record.group.manage"),
+                unavailable_row(
+                    locale,
+                    &[
+                        ("record-clear", I::Film, t(locale, "record.clear")),
+                        ("record-reset", I::RotateCw, t(locale, "record.reset_cameo")),
+                    ],
+                ),
             ))
     }
 }
 
-pub(super) fn small_unavailable(id: &'static str, icon: I, label: &'static str) -> Button {
+pub(super) fn small_unavailable(
+    locale: UiLocale,
+    id: &'static str,
+    icon: I,
+    label: &'static str,
+) -> Button {
     chrome::small(id, icon, label)
-        .accessibility_label(format!("{label}（暂不支持）"))
+        .accessibility_label(tf(locale, "common.unsupported_suffix", &[("label", label)]))
         .disabled(true)
 }

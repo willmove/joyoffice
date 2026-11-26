@@ -485,8 +485,11 @@ impl Desktop {
     pub fn selection(&self) -> Selection {
         self.local_selection.clone().or_else(|| self.view().map(|v| v.selection.clone())).unwrap_or_default()
     }
+    pub fn locale(&self) -> joyoffice_ui::UiLocale {
+        self.preferences.ui_locale()
+    }
     pub fn chinese(&self) -> bool {
-        self.preferences.language == "zh"
+        self.locale().is_zh_cn()
     }
     pub fn label(&self, zh: &str, en: &str) -> String {
         if self.chinese() { zh.into() } else { en.into() }

@@ -127,14 +127,14 @@ impl Viewer {
             })
             .collect();
         let colors = [
-            ("浅蓝", 0xdce6f1),
-            ("浅橙", 0xfce4d6),
-            ("浅绿", 0xe2efda),
-            ("浅黄", 0xfff2cc),
-            ("白色", 0xffffff),
-            ("蓝色", 0x4472c4),
-            ("橙色", 0xed7d31),
-            ("灰色", 0xa5a5a5),
+            (self.t("table.color.light_blue"), 0xdce6f1),
+            (self.t("table.color.light_orange"), 0xfce4d6),
+            (self.t("table.color.light_green"), 0xe2efda),
+            (self.t("table.color.light_yellow"), 0xfff2cc),
+            (self.t("table.color.white"), 0xffffff),
+            (self.t("table.color.blue"), 0x4472c4),
+            (self.t("table.color.orange"), 0xed7d31),
+            (self.t("table.color.gray"), 0xa5a5a5),
         ];
         let mut fills: Vec<_> = colors
             .into_iter()
@@ -152,7 +152,7 @@ impl Viewer {
             })
             .collect();
         fills.push((
-            "恢复样式底色".into(),
+            self.t("table.reset_fill").into(),
             TableAction::Format {
                 range,
                 format: CellFormat {
@@ -162,21 +162,37 @@ impl Viewer {
             },
         ));
         bar = bar.child(chrome::group(
-            "表格样式",
+            self.t("table.group.styles"),
             div()
                 .flex()
                 .flex_col()
                 .gap_1()
-                .child(self.table_menu("table-styles", "表格样式", styles, cx))
-                .child(self.table_menu("table-shading", "底纹", fills, cx)),
+                .child(self.table_menu("table-styles", self.t("table.group.styles"), styles, cx))
+                .child(self.table_menu("table-shading", self.t("table.shading"), fills, cx)),
         ));
         let borders = [
-            ("所有边框", [true; 4], false),
-            ("无边框", [true; 4], true),
-            ("下边框", [false, false, false, true], false),
-            ("上边框", [false, false, true, false], false),
-            ("左边框", [true, false, false, false], false),
-            ("右边框", [false, true, false, false], false),
+            (self.t("table.border_all"), [true; 4], false),
+            (self.t("table.border_none"), [true; 4], true),
+            (
+                self.t("table.border_bottom"),
+                [false, false, false, true],
+                false,
+            ),
+            (
+                self.t("table.border_top"),
+                [false, false, true, false],
+                false,
+            ),
+            (
+                self.t("table.border_left"),
+                [true, false, false, false],
+                false,
+            ),
+            (
+                self.t("table.border_right"),
+                [false, true, false, false],
+                false,
+            ),
         ]
         .into_iter()
         .map(|(label, sides, remove)| {
@@ -198,17 +214,17 @@ impl Viewer {
         })
         .collect();
         bar = bar.child(chrome::group(
-            "边框",
+            self.t("table.group.borders"),
             div()
                 .flex()
                 .flex_col()
                 .gap_1()
-                .child(self.table_menu("table-borders", "边框", borders, cx))
+                .child(self.table_menu("table-borders", self.t("table.group.borders"), borders, cx))
                 .child(
                     Button::new("table-border-settings")
                         .ghost()
                         .xsmall()
-                        .label("边框设置…")
+                        .label(self.t("table.border_settings_btn"))
                         .h(px(25.))
                         .disabled(disabled)
                         .on_click(cx.listener(|s, _, w, cx| s.table_border_dialog(w, cx))),
@@ -244,9 +260,10 @@ impl Viewer {
         .enumerate()
         {
             let label = if i == 0 {
-                "中等样式 2".into()
+                self.t("table.style_medium2").to_owned()
             } else {
-                format!("中等样式 2 · 强调色 {i}")
+                let acc_s = i.to_string();
+                self.tf("table.style_medium2_accent", &[("accent", &acc_s)])
             };
             let name = if i == 0 {
                 "medium2-tx1".into()
@@ -303,21 +320,39 @@ impl Viewer {
         }
         chrome::row()
             .child(chrome::group(
-                "表格样式选项",
+                self.t("table.group.style_options"),
                 chrome::row()
                     .gap_3()
-                    .child(ribbon_checks(&[
-                        ("标题行", first_row),
-                        ("汇总行", table.is_some_and(|t| t.last_row)),
-                        ("镶边行", band_row),
-                    ]))
-                    .child(ribbon_checks(&[
-                        ("第一列", table.is_some_and(|t| t.first_col)),
-                        ("最后一列", table.is_some_and(|t| t.last_col)),
-                        ("镶边列", table.is_some_and(|t| t.band_col)),
-                    ])),
+                    .child(ribbon_checks(
+                        self.locale,
+                        &[
+                            (self.t("table.opt_header_row"), first_row),
+                            (
+                                self.t("table.opt_total_row"),
+                                table.is_some_and(|t| t.last_row),
+                            ),
+                            (self.t("table.opt_banded_rows"), band_row),
+                        ],
+                    ))
+                    .child(ribbon_checks(
+                        self.locale,
+                        &[
+                            (
+                                self.t("table.opt_first_col"),
+                                table.is_some_and(|t| t.first_col),
+                            ),
+                            (
+                                self.t("table.opt_last_col"),
+                                table.is_some_and(|t| t.last_col),
+                            ),
+                            (
+                                self.t("table.opt_banded_cols"),
+                                table.is_some_and(|t| t.band_col),
+                            ),
+                        ],
+                    )),
             ))
-            .child(chrome::group("样式图库", tiles))
+            .child(chrome::group(self.t("table.group.gallery"), tiles))
     }
 
     #[inline(never)]
@@ -337,7 +372,7 @@ impl Viewer {
         }
         let mut bar = chrome::row().h(px(chrome::RIBBON_HEIGHT));
         bar = bar.child(chrome::group(
-            "选择",
+            self.t("table.group.select"),
             div()
                 .flex()
                 .flex_col()
@@ -346,7 +381,7 @@ impl Viewer {
                     Button::new("table-select-range")
                         .ghost()
                         .xsmall()
-                        .label("选择区域…")
+                        .label(self.t("table.select_range_btn"))
                         .h(px(25.))
                         .disabled(disabled)
                         .on_click(cx.listener(|s, _, w, cx| s.table_range_dialog(w, cx))),
@@ -355,7 +390,7 @@ impl Viewer {
                     Button::new("table-select-all")
                         .ghost()
                         .xsmall()
-                        .label("选择全表")
+                        .label(self.t("table.select_all"))
                         .h(px(25.))
                         .disabled(disabled)
                         .on_click(cx.listener(|s, _, w, cx| {
@@ -369,85 +404,95 @@ impl Viewer {
         ));
         let row_ops = vec![
             (
-                "在上方插入行".into(),
+                self.t("table.insert_row_above").into(),
                 TableAction::InsertRow { at: range.row },
             ),
             (
-                "在下方插入行".into(),
+                self.t("table.insert_row_below").into(),
                 TableAction::InsertRow {
                     at: range.end_row + 1,
                 },
             ),
             (
-                "删除当前行".into(),
+                self.t("table.delete_row").into(),
                 TableAction::DeleteRow { at: range.row },
             ),
         ];
         let col_ops = vec![
             (
-                "在左侧插入列".into(),
+                self.t("table.insert_col_left").into(),
                 TableAction::InsertCol { at: range.col },
             ),
             (
-                "在右侧插入列".into(),
+                self.t("table.insert_col_right").into(),
                 TableAction::InsertCol {
                     at: range.end_col + 1,
                 },
             ),
             (
-                "删除当前列".into(),
+                self.t("table.delete_col").into(),
                 TableAction::DeleteCol { at: range.col },
             ),
         ];
         bar = bar.child(chrome::group(
-            "行和列",
+            self.t("table.group.rows_cols"),
             div()
                 .flex()
                 .flex_col()
                 .gap_1()
-                .child(self.table_menu("table-rows", "行", row_ops, cx))
-                .child(self.table_menu("table-columns", "列", col_ops, cx)),
+                .child(self.table_menu("table-rows", self.t("table.rows"), row_ops, cx))
+                .child(self.table_menu("table-columns", self.t("table.cols"), col_ops, cx)),
         ));
         bar = bar.child(chrome::group(
-            "合并",
+            self.t("table.group.merge"),
             chrome::row()
                 .child(
-                    chrome::tool("merge-cells", I::TableCellsMerge, "合并\n单元格", 0x326797)
-                        .disabled(
-                            disabled || (range.row == range.end_row && range.col == range.end_col),
+                    chrome::tool(
+                        "merge-cells",
+                        I::TableCellsMerge,
+                        self.t("table.merge_cells"),
+                        0x326797,
+                    )
+                    .disabled(
+                        disabled || (range.row == range.end_row && range.col == range.end_col),
+                    )
+                    .on_click(cx.listener(move |s, _, w, cx| {
+                        s.table_action(
+                            TableAction::Merge {
+                                row: range.row,
+                                col: range.col,
+                                end_row: range.end_row,
+                                end_col: range.end_col,
+                            },
+                            w,
+                            cx,
                         )
-                        .on_click(cx.listener(move |s, _, w, cx| {
-                            s.table_action(
-                                TableAction::Merge {
-                                    row: range.row,
-                                    col: range.col,
-                                    end_row: range.end_row,
-                                    end_col: range.end_col,
-                                },
-                                w,
-                                cx,
-                            )
-                        })),
+                    })),
                 )
                 .child(
-                    chrome::tool("split-cell", I::TableCellsSplit, "拆分\n单元格", 0x326797)
-                        .disabled(disabled)
-                        .on_click(cx.listener(move |s, _, w, cx| {
-                            s.table_action(
-                                TableAction::Split {
-                                    row: range.row,
-                                    col: range.col,
-                                },
-                                w,
-                                cx,
-                            )
-                        })),
+                    chrome::tool(
+                        "split-cell",
+                        I::TableCellsSplit,
+                        self.t("table.split_cell"),
+                        0x326797,
+                    )
+                    .disabled(disabled)
+                    .on_click(cx.listener(move |s, _, w, cx| {
+                        s.table_action(
+                            TableAction::Split {
+                                row: range.row,
+                                col: range.col,
+                            },
+                            w,
+                            cx,
+                        )
+                    })),
                 ),
         ));
         let anchors = [
-            ("顶端对齐", Anchor::Top),
-            ("垂直居中", Anchor::Middle),
-            ("底端对齐", Anchor::Bottom),
+            (self.t("align.top"), Anchor::Top),
+            (self.t("align.middle_v"), Anchor::Middle),
+            (self.t("align.bottom"), Anchor::Bottom),
         ]
         .into_iter()
         .map(|(label, anchor)| {
@@ -464,10 +509,10 @@ impl Viewer {
         })
         .collect();
         let directions = [
-            ("水平文字", TextDir::Horizontal),
-            ("旋转 90°", TextDir::Vertical),
-            ("旋转 270°", TextDir::Vertical270),
-            ("中文竖排", TextDir::EaVertical),
+            (self.t("text_dir.horizontal"), TextDir::Horizontal),
+            (self.t("text_dir.rot90"), TextDir::Vertical),
+            (self.t("text_dir.rot270"), TextDir::Vertical270),
+            (self.t("text_dir.ea_vertical"), TextDir::EaVertical),
         ]
         .into_iter()
         .map(|(label, vertical)| {
@@ -484,16 +529,16 @@ impl Viewer {
         })
         .collect();
         bar = bar.child(chrome::group(
-            "对齐",
+            self.t("table.group.align"),
             div()
                 .flex()
                 .flex_col()
                 .gap_1()
-                .child(self.table_menu("cell-anchor", "垂直对齐", anchors, cx))
-                .child(self.table_menu("cell-direction", "文字方向", directions, cx)),
+                .child(self.table_menu("cell-anchor", self.t("table.v_align"), anchors, cx))
+                .child(self.table_menu("cell-direction", self.t("table.text_dir"), directions, cx)),
         ));
         bar = bar.child(chrome::group(
-            "大小",
+            self.t("table.group.size"),
             div()
                 .flex()
                 .flex_col()
@@ -502,7 +547,7 @@ impl Viewer {
                     Button::new("table-cell-size")
                         .ghost()
                         .xsmall()
-                        .label("行高和列宽…")
+                        .label(self.t("table.size_btn"))
                         .h(px(25.))
                         .disabled(disabled)
                         .on_click(cx.listener(|s, _, w, cx| s.table_size_dialog(w, cx))),
@@ -511,14 +556,14 @@ impl Viewer {
                     Button::new("table-cell-margins")
                         .ghost()
                         .xsmall()
-                        .label("单元格边距…")
+                        .label(self.t("table.margins_btn"))
                         .h(px(25.))
                         .disabled(disabled)
                         .on_click(cx.listener(|s, _, w, cx| s.table_margins_dialog(w, cx))),
                 ),
         ));
         bar = bar.child(chrome::group(
-            "编辑",
+            self.t("table.group.edit"),
             div()
                 .flex()
                 .flex_col()
@@ -527,7 +572,7 @@ impl Viewer {
                     Button::new("table-edit-text")
                         .ghost()
                         .xsmall()
-                        .label("编辑文字")
+                        .label(self.t("ctx.edit_text"))
                         .h(px(25.))
                         .disabled(disabled)
                         .on_click(cx.listener(Self::begin_inline)),
@@ -536,7 +581,7 @@ impl Viewer {
                     Button::new("table-copy-text")
                         .ghost()
                         .xsmall()
-                        .label("复制文字／表格")
+                        .label(self.t("table.copy_tsv"))
                         .h(px(25.))
                         .disabled(disabled)
                         .on_click(cx.listener(|s, _, _, cx| s.copy_grid(cx))),
@@ -550,12 +595,12 @@ impl Viewer {
         };
         let (rows, cols) = (t.n_rows(), t.n_cols());
         self.fields_dialog(
-            "选择单元格区域",
+            self.t("table.range_title"),
             vec![
-                ("起始行", (range.row + 1).to_string()),
-                ("起始列", (range.col + 1).to_string()),
-                ("结束行", (range.end_row + 1).to_string()),
-                ("结束列", (range.end_col + 1).to_string()),
+                (self.t("table.start_row"), (range.row + 1).to_string()),
+                (self.t("table.start_col"), (range.col + 1).to_string()),
+                (self.t("table.end_row"), (range.end_row + 1).to_string()),
+                (self.t("table.end_col"), (range.end_col + 1).to_string()),
             ],
             w,
             cx,
@@ -565,7 +610,7 @@ impl Viewer {
                         .parse::<usize>()
                         .ok()
                         .and_then(|n| n.checked_sub(1))
-                        .ok_or("行列号从 1 开始")
+                        .ok_or(s.t("table.err_one_based"))
                 };
                 let range = CellRange {
                     row: parse(0)?,
@@ -578,7 +623,7 @@ impl Viewer {
                     || range.end_row >= rows
                     || range.end_col >= cols
                 {
-                    return Err("选区超出表格或起止顺序错误".into());
+                    return Err(s.t("table.err_range").into());
                 }
                 s.end_inline(cx);
                 s.cell = None;
@@ -594,19 +639,22 @@ impl Viewer {
             return;
         };
         self.fields_dialog(
-            "边框设置",
+            self.t("table.border_settings_title"),
             vec![
-                ("颜色（六位 RGB）", "404040".into()),
-                ("线宽（磅）", "1".into()),
+                (self.t("table.border_color_field"), "404040".into()),
+                (self.t("table.border_width_field"), "1".into()),
             ],
             w,
             cx,
             move |s, v, w, cx| {
-                let c = format_ui::parse_rgb(&v[0])?;
+                let c = format_ui::parse_rgb_for(s.locale, &v[0])?;
                 let c = c.resolve(&joydeck_model::Theme::default().colors, None);
-                let width: f64 = v[1].trim().parse().map_err(|_| "请输入有效线宽")?;
+                let width: f64 = v[1]
+                    .trim()
+                    .parse()
+                    .map_err(|_| s.t("table.err_border_width"))?;
                 if !width.is_finite() || !(0.1..=100.).contains(&width) {
-                    return Err("线宽范围 0.1–100 磅".into());
+                    return Err(s.t("table.err_border_width_range").into());
                 }
                 s.table_action(
                     TableAction::Format {
@@ -656,10 +704,10 @@ impl Viewer {
         let original = [common(&heights), common(&widths)];
         let initial = original.clone();
         self.fields_dialog(
-            "行高和列宽（留空保持原值）",
+            self.t("table.size_title"),
             vec![
-                ("行高（磅）", initial[0].clone()),
-                ("列宽（磅）", initial[1].clone()),
+                (self.t("table.row_height_field"), initial[0].clone()),
+                (self.t("table.col_width_field"), initial[1].clone()),
             ],
             w,
             cx,
@@ -667,12 +715,12 @@ impl Viewer {
                 let height = if v[0] == original[0] {
                     None
                 } else {
-                    paragraph_ui::optional_number(&v[0], 4., 4000.)?
+                    paragraph_ui::optional_number(s.locale, &v[0], 4., 4000.)?
                 };
                 let width = if v[1] == original[1] {
                     None
                 } else {
-                    paragraph_ui::optional_number(&v[1], 4., 4000.)?
+                    paragraph_ui::optional_number(s.locale, &v[1], 4., 4000.)?
                 };
                 let mut commands = vec![];
                 if let Some(height) = height {
@@ -719,12 +767,12 @@ impl Viewer {
         }
         let initial = original.clone();
         self.fields_dialog(
-            "单元格边距（留空保持原值）",
+            self.t("table.margins_title"),
             [
-                "左边距（磅）",
-                "右边距（磅）",
-                "上边距（磅）",
-                "下边距（磅）",
+                self.t("table.margin_left"),
+                self.t("table.margin_right"),
+                self.t("table.margin_top"),
+                self.t("table.margin_bottom"),
             ]
             .into_iter()
             .zip(initial)
@@ -735,7 +783,7 @@ impl Viewer {
                 let mut patch = [None; 4];
                 for i in 0..4 {
                     if v[i] != original[i] {
-                        patch[i] = paragraph_ui::optional_number(&v[i], 0., 720.)?;
+                        patch[i] = paragraph_ui::optional_number(s.locale, &v[i], 0., 720.)?;
                     }
                 }
                 if patch.iter().any(Option::is_some) {

@@ -100,6 +100,14 @@ impl Preferences {
         self.dark = theme.is_dark();
     }
 
+    pub fn ui_locale(&self) -> joyoffice_l10n::UiLocale {
+        joyoffice_l10n::UiLocale::from_tag(&self.language).unwrap_or_default()
+    }
+
+    pub fn set_locale(&mut self, locale: joyoffice_l10n::UiLocale) {
+        self.language = locale.tag().into();
+    }
+
     pub fn load() -> Self {
         let mut prefs: Self =
             std::fs::read(config_dir().join("preferences.json")).ok().and_then(|bytes| serde_json::from_slice(&bytes).ok()).unwrap_or_default();

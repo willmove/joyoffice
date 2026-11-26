@@ -1,7 +1,9 @@
 //! Contextual R5 controls, using JoyOffice shared palette and GPUI Kit inputs/dialogs.
 use super::*;
+use crate::l10n::{presentation_theme_name, t, tf};
 use joydeck_engine::{AlignEdge, Command, ContentAction, DistributeAxis};
 use joydeck_model::{ShapeKind, resolve};
+use joyoffice_ui::UiLocale;
 
 #[derive(Clone, Copy)]
 pub(super) enum Form {
@@ -22,6 +24,7 @@ pub(super) enum Form {
 }
 impl Viewer {
     pub(super) fn content_inspector(&self, cx: &mut Context<Self>) -> AnyElement {
+        let locale = self.locale;
         let p = self.palette();
         let mut panel = div()
             .id("content-inspector")
@@ -42,11 +45,11 @@ impl Viewer {
                 .flex()
                 .items_center()
                 .justify_between()
-                .child(div().text_lg().child("选择与格式"))
+                .child(div().text_lg().child(t(locale, "pane.title")))
                 .child(
                     Button::new("close-inspector")
                         .label("×")
-                        .accessibility_label("关闭选择窗格")
+                        .accessibility_label(t(locale, "pane.close_aria"))
                         .on_click(cx.listener(|s, _, _, cx| {
                             s.inspector = false;
                             cx.notify();
@@ -78,7 +81,7 @@ impl Viewer {
             }
             panel = panel.child(
                 Button::new("object-geometry")
-                    .label("大小和位置…")
+                    .label(t(locale, "pane.size_pos_btn"))
                     .disabled(e.session.selection().shapes.is_empty())
                     .on_click(cx.listener(|s, _, w, cx| s.geometry_dialog(w, cx))),
             );
@@ -93,44 +96,83 @@ impl Viewer {
                 ))
                 .child(layout);
             if let Some((m, _)) = pres.master_for(slide) {
+                let theme_name = presentation_theme_name(locale, &m.theme.name);
                 panel = panel
-                    .child(format!("主题：{}", m.theme.name))
-                    .child(format!("标题字体：{}", m.theme.fonts.major.latin))
-                    .child(format!("正文字体：{}", m.theme.fonts.minor.latin));
+                    .child(tf(locale, "pane.theme", &[("name", &theme_name)]))
+                    .child(tf(
+                        locale,
+                        "pane.major_font",
+                        &[("font", &m.theme.fonts.major.latin)],
+                    ))
+                    .child(tf(
+                        locale,
+                        "pane.minor_font",
+                        &[("font", &m.theme.fonts.minor.latin)],
+                    ));
             }
             for id in &e.session.selection().shapes {
                 if let Some(s) = slide.shape(*id) {
                     panel = panel.child(div().font_weight(FontWeight::BOLD).child(s.name.clone()));
                     if let Some(ctx) = resolve::Ctx::for_slide(pres, slide) {
                         let x = resolve::xfrm(&ctx, s);
-                        panel = panel.child(format!(
-                            "位置 {:.1}, {:.1}\n大小 {:.1} × {:.1}\n旋转 {:.1}°",
-                            x.x, x.y, x.w, x.h, x.rot
+                        let x_str = format!("{:.1}", x.x);
+                        let y_str = format!("{:.1}", x.y);
+                        let w_str = format!("{:.1}", x.w);
+                        let h_str = format!("{:.1}", x.h);
+                        let rot_str = format!("{:.1}", x.rot);
+                        panel = panel.child(tf(
+                            locale,
+                            "pane.geom_summary",
+                            &[
+                                ("x", &x_str),
+                                ("y", &y_str),
+                                ("w", &w_str),
+                                ("h", &h_str),
+                                ("rot", &rot_str),
+                            ],
                         ));
                     }
                     let detail = match &s.kind {
-                        ShapeKind::Picture { fill } => format!(
-                            "图片 · media {}\n裁剪 {:?}\n透明度 {:.0}%",
-                            fill.media.0,
-                            fill.crop,
-                            (1. - fill.alpha.unwrap_or(1.)) * 100.
-                        ),
-                        ShapeKind::Chart(c) => format!(
-                            "图表 {}\n{} 个系列 / {} 个分类",
-                            c.kind.label(),
-                            c.series.len(),
-                            c.categories.len()
-                        ),
-                        ShapeKind::Table(t) => {
-                            format!("表格 {} 行 × {} 列", t.rows.len(), t.cols.len())
+                        ShapeKind::Picture { fill } => {
+                            let media = fill.media.0.to_string();
+                            let crop = format!("{:?}", fill.crop);
+                            let alpha = format!("{:.0}", (1. - fill.alpha.unwrap_or(1.)) * 100.);
+                            tf(
+                                locale,
+                                "pane.picture_summary",
+                                &[("media", &media), ("crop", &crop), ("alpha", &alpha)],
+                            )
+                        }
+                        ShapeKind::Chart(c) => {
+                            let series = c.series.len().to_string();
+                            let cats = c.categories.len().to_string();
+                            tf(
+                                locale,
+                                "pane.chart_summary",
+                                &[
+                                    ("kind", c.kind.label()),
+                                    ("series", &series),
+                                    ("cats", &cats),
+                                ],
+                            )
+                        }
+                        ShapeKind::Table(tbl) => {
+                            let rows = tbl.rows.len().to_string();
+                            let cols = tbl.cols.len().to_string();
+                            tf(
+                                locale,
+                                "pane.table_summary",
+                                &[("rows", &rows), ("cols", &cols)],
+                            )
                         }
                         ShapeKind::Opaque { label, .. } => {
-                            format!("复杂内容：{label}\n保留原始部件；当前只读")
+                            tf(locale, "pane.complex_summary", &[("label", label)])
                         }
                         ShapeKind::Group { children, .. } => {
-                            format!("组合 · {} 个子对象", children.len())
+                            let count = children.len().to_string();
+                            tf(locale, "pane.group_summary", &[("count", &count)])
                         }
-                        _ => "形状 / 文字".into(),
+                        _ => t(locale, "pane.shape_text").into(),
                     };
                     panel = panel.child(detail);
                 }
@@ -144,13 +186,13 @@ impl Viewer {
                     .is_some_and(|s| matches!(s.kind, ShapeKind::Shape));
             panel = panel.child(
                 Button::new("shape-fill-form")
-                    .label("形状填充颜色")
+                    .label(t(locale, "pane.shape_fill_color"))
                     .disabled(!shape_selected)
                     .on_click(cx.listener(|s, _, w, cx| s.content_form(Form::ShapeFill, w, cx))),
             );
             panel = panel.child(
                 Button::new("shape-gradient-form")
-                    .label("渐变填充")
+                    .label(t(locale, "shape.gradient_fill"))
                     .disabled(!shape_selected)
                     .on_click(
                         cx.listener(|s, _, w, cx| s.content_form(Form::ShapeGradient, w, cx)),
@@ -158,16 +200,16 @@ impl Viewer {
             );
             panel = panel.child(
                 Button::new("shape-line-form")
-                    .label("形状轮廓")
+                    .label(t(locale, "home.shape_outline"))
                     .disabled(!self.can_edit_outline())
                     .on_click(cx.listener(|s, _, w, cx| s.content_form(Form::ShapeLine, w, cx))),
             );
             for (name, label) in [
-                ("rect", "矩形"),
-                ("roundRect", "圆角矩形"),
-                ("ellipse", "椭圆"),
-                ("triangle", "三角形"),
-                ("chevron", "燕尾形"),
+                ("rect", t(locale, "shapes.rect")),
+                ("roundRect", t(locale, "shapes.round_rect")),
+                ("ellipse", t(locale, "shapes.ellipse")),
+                ("triangle", t(locale, "shapes.triangle_short")),
+                ("chevron", t(locale, "shapes.chevron")),
             ] {
                 panel = panel.child(
                     Button::new(name)
@@ -186,7 +228,7 @@ impl Viewer {
             }
             panel = panel.child(
                 Button::new("shape-preset-more")
-                    .label("更多形状…")
+                    .label(t(locale, "shapes.more_btn"))
                     .disabled(!shape_selected)
                     .on_click(cx.listener(|s, _, w, cx| s.shape_preset_gallery(w, cx))),
             );
@@ -194,8 +236,9 @@ impl Viewer {
         panel.into_any_element()
     }
     pub(super) fn content_form(&mut self, form: Form, w: &mut Window, cx: &mut Context<Self>) {
+        let locale = self.locale;
         if self.composing() {
-            self.message = "请先结束组合输入".into();
+            self.message = t(locale, "msg.finish_ime_edit").into();
             cx.notify();
             return;
         }
@@ -210,9 +253,9 @@ impl Viewer {
                 multiple: false,
                 prompt: Some(
                     if replace {
-                        "替换图片"
+                        t(locale, "form.replace_picture")
                     } else {
-                        "插入图片"
+                        t(locale, "form.insert_picture")
                     }
                     .into(),
                 ),
@@ -251,17 +294,21 @@ impl Viewer {
             .shapes
             .first()
             .and_then(|id| slide.shape(*id));
-        let (title, fields): (String, Vec<(&str, String)>) = match form {
-            Form::Background => ("页面背景".into(), vec![("RGB 十六进制", "F4F7FB".into())]),
+        let preview_label = t(locale, "form.chart_data_preview");
+        let (title, fields): (String, Vec<(&'static str, String)>) = match form {
+            Form::Background => (
+                t(locale, "form.slide_bg").into(),
+                vec![(t(locale, "form.rgb_hex"), "F4F7FB".into())],
+            ),
             Form::MasterBackground => (
-                "母版背景（影响继承此背景的页面）".into(),
-                vec![("RGB 十六进制", "E8EFF8".into())],
+                t(locale, "form.master_bg").into(),
+                vec![(t(locale, "form.rgb_hex"), "E8EFF8".into())],
             ),
             Form::Accent => (
-                "当前母版的主题颜色".into(),
+                t(locale, "form.master_accent").into(),
                 vec![
-                    ("强调色编号 1–6", "1".into()),
-                    ("RGB 十六进制", "2678D0".into()),
+                    (t(locale, "form.accent_slot"), "1".into()),
+                    (t(locale, "form.rgb_hex"), "2678D0".into()),
                 ],
             ),
             Form::Fonts => {
@@ -269,34 +316,49 @@ impl Viewer {
                     return;
                 };
                 (
-                    "主题字体".into(),
+                    t(locale, "form.theme_fonts").into(),
                     vec![
-                        ("标题字体", m.theme.fonts.major.latin.clone()),
-                        ("正文字体", m.theme.fonts.minor.latin.clone()),
+                        (
+                            t(locale, "form.major_font_field"),
+                            m.theme.fonts.major.latin.clone(),
+                        ),
+                        (
+                            t(locale, "form.minor_font_field"),
+                            m.theme.fonts.minor.latin.clone(),
+                        ),
                     ],
                 )
             }
             Form::Size => (
-                "页面尺寸（不缩放现有对象）".into(),
+                t(locale, "form.slide_size").into(),
                 vec![
-                    ("宽度 pt", pres.slide_size.width.to_string()),
-                    ("高度 pt", pres.slide_size.height.to_string()),
+                    (
+                        t(locale, "form.width_pt"),
+                        pres.slide_size.width.to_string(),
+                    ),
+                    (
+                        t(locale, "form.height_pt"),
+                        pres.slide_size.height.to_string(),
+                    ),
                 ],
             ),
             Form::Metadata => (
-                "文稿属性".into(),
+                t(locale, "form.doc_props").into(),
                 vec![
-                    ("标题", pres.props.title.clone()),
-                    ("作者", pres.props.author.clone()),
+                    (t(locale, "form.prop_title"), pres.props.title.clone()),
+                    (t(locale, "form.prop_author"), pres.props.author.clone()),
                 ],
             ),
-            Form::ShapeFill => ("形状填充".into(), vec![("RGB 十六进制", "2678D0".into())]),
+            Form::ShapeFill => (
+                t(locale, "form.shape_fill").into(),
+                vec![(t(locale, "form.rgb_hex"), "2678D0".into())],
+            ),
             Form::ShapeGradient => (
-                "线性渐变填充".into(),
+                t(locale, "form.linear_gradient").into(),
                 vec![
-                    ("起点 RGB", "2678D0".into()),
-                    ("终点 RGB", "A8D8F0".into()),
-                    ("角度 −360–360°", "45".into()),
+                    (t(locale, "form.start_rgb"), "2678D0".into()),
+                    (t(locale, "form.end_rgb"), "A8D8F0".into()),
+                    (t(locale, "form.angle_deg"), "45".into()),
                 ],
             ),
             Form::ShapeLine => {
@@ -323,11 +385,11 @@ impl Viewer {
                     })
                     .unwrap_or_else(|| "solid".into());
                 (
-                    "形状轮廓（留空颜色即无轮廓）".into(),
+                    t(locale, "form.shape_outline_title").into(),
                     vec![
-                        ("轮廓 RGB（留空=无轮廓）", hex),
-                        ("线宽 pt（0–144）", width),
-                        ("线型（solid/dash/dot/dashDot）", dash),
+                        (t(locale, "form.outline_rgb"), hex),
+                        (t(locale, "form.outline_width"), width),
+                        (t(locale, "form.outline_dash"), dash),
                     ],
                 )
             }
@@ -337,18 +399,21 @@ impl Viewer {
                     .as_ref()
                     .map_or(1.0, |t| f64::from(t.duration_ms) / 1000.0);
                 (
-                    "切换持续时间".into(),
-                    vec![("持续时间（秒，0–60）", format!("{seconds:.2}"))],
+                    t(locale, "form.transition_duration").into(),
+                    vec![(
+                        t(locale, "form.duration_seconds_field"),
+                        format!("{seconds:.2}"),
+                    )],
                 )
             }
             Form::ImportPicture(replace) => (
                 if replace {
-                    "替换所选图片"
+                    t(locale, "form.replace_picture_title")
                 } else {
-                    "插入本地图片"
+                    t(locale, "form.insert_local_picture")
                 }
                 .into(),
-                vec![("图片文件路径（PNG / JPEG 等）", String::new())],
+                vec![(t(locale, "form.image_path_field"), String::new())],
             ),
             Form::Picture => {
                 let Some(joydeck_model::Shape {
@@ -356,20 +421,29 @@ impl Viewer {
                     ..
                 }) = shape
                 else {
-                    self.message = "请先选择图片".into();
+                    self.message = t(locale, "form.err_select_picture").into();
                     cx.notify();
                     return;
                 };
                 (
-                    "图片裁剪与调整".into(),
+                    t(locale, "form.picture_adjust_title").into(),
                     vec![
-                        ("左裁剪 0–0.95", fill.crop[0].to_string()),
-                        ("上裁剪 0–0.95", fill.crop[1].to_string()),
-                        ("右裁剪 0–0.95", fill.crop[2].to_string()),
-                        ("下裁剪 0–0.95", fill.crop[3].to_string()),
-                        ("不透明度 0–1", fill.alpha.unwrap_or(1.).to_string()),
-                        ("亮度 −1–1", fill.adjust.brightness.to_string()),
-                        ("对比度 −1–1", fill.adjust.contrast.to_string()),
+                        (t(locale, "form.crop_left"), fill.crop[0].to_string()),
+                        (t(locale, "form.crop_top"), fill.crop[1].to_string()),
+                        (t(locale, "form.crop_right"), fill.crop[2].to_string()),
+                        (t(locale, "form.crop_bottom"), fill.crop[3].to_string()),
+                        (
+                            t(locale, "form.opacity_field"),
+                            fill.alpha.unwrap_or(1.).to_string(),
+                        ),
+                        (
+                            t(locale, "form.brightness_field"),
+                            fill.adjust.brightness.to_string(),
+                        ),
+                        (
+                            t(locale, "form.contrast_field"),
+                            fill.adjust.contrast.to_string(),
+                        ),
                     ],
                 )
             }
@@ -379,13 +453,16 @@ impl Viewer {
                     ..
                 }) = shape
                 else {
-                    self.message = "请先选择图表".into();
+                    self.message = t(locale, "form.err_select_chart").into();
                     cx.notify();
                     return;
                 };
                 (
-                    "图表标题".into(),
-                    vec![("标题", c.title.clone().unwrap_or_default())],
+                    t(locale, "form.chart_title").into(),
+                    vec![(
+                        t(locale, "form.prop_title"),
+                        c.title.clone().unwrap_or_default(),
+                    )],
                 )
             }
             Form::ChartValue => {
@@ -394,35 +471,43 @@ impl Viewer {
                     ..
                 }) = shape
                 else {
-                    self.message = "请先选择图表".into();
+                    self.message = t(locale, "form.err_select_chart").into();
                     cx.notify();
                     return;
                 };
                 let mut grid = String::new();
+                let empty_label = t(locale, "common.empty");
                 for (i, s) in c.series.iter().enumerate().take(8) {
-                    grid.push_str(&format!(
-                        "系列 {} {}：{} · ",
-                        i + 1,
-                        s.name,
-                        s.values
-                            .iter()
-                            .take(8)
-                            .map(|v| v.map(|n| n.to_string()).unwrap_or_else(|| "空".into()))
-                            .collect::<Vec<_>>()
-                            .join(" / ")
+                    let num = (i + 1).to_string();
+                    let values = s
+                        .values
+                        .iter()
+                        .take(8)
+                        .map(|v| {
+                            v.map(|n| n.to_string())
+                                .unwrap_or_else(|| empty_label.into())
+                        })
+                        .collect::<Vec<_>>()
+                        .join(" / ");
+                    grid.push_str(&tf(
+                        locale,
+                        "form.chart_series_preview",
+                        &[("num", &num), ("name", &s.name), ("values", &values)],
                     ));
                 }
+                let series_count = c.series.len().to_string();
+                let cats_count = c.categories.len().to_string();
                 (
-                    format!(
-                        "图表数据 · {} 系列 / {} 分类",
-                        c.series.len(),
-                        c.categories.len()
+                    tf(
+                        locale,
+                        "form.chart_data_title",
+                        &[("series", &series_count), ("cats", &cats_count)],
                     ),
                     vec![
-                        ("系列编号（从 1 起）", "1".into()),
-                        ("分类编号（从 1 起）", "1".into()),
+                        (t(locale, "form.chart_series_idx"), "1".into()),
+                        (t(locale, "form.chart_cat_idx"), "1".into()),
                         (
-                            "新值",
+                            t(locale, "form.chart_new_val"),
                             c.series
                                 .first()
                                 .and_then(|s| s.values.first())
@@ -431,7 +516,7 @@ impl Viewer {
                                 .unwrap_or(0.)
                                 .to_string(),
                         ),
-                        ("数据预览（前 8 项）", grid),
+                        (preview_label, grid),
                     ],
                 )
             }
@@ -463,7 +548,7 @@ impl Viewer {
             for ((label, _), input) in fields.iter().zip(&inputs) {
                 content = content
                     .child(div().text_sm().child(*label))
-                    .child(Input::new(input).disabled(label.starts_with("数据预览")));
+                    .child(Input::new(input).disabled(*label == preview_label));
             }
             let error_label = error.read(cx).clone();
             let error = error.clone();
@@ -475,14 +560,14 @@ impl Viewer {
                 .child(div().text_sm().text_color(rgb(0xcc4433)).child(error_label))
                 .child(
                     Button::new("apply-content")
-                        .label("应用")
+                        .label(t(locale, "common.apply"))
                         .on_click(move |_, w, cx| {
                             if inputs
                                 .iter()
                                 .any(|i| i.update(cx, |s, cx| s.marked_text_range(w, cx).is_some()))
                             {
                                 error.update(cx, |s, cx| {
-                                    *s = "请先结束组合输入".into();
+                                    *s = t(locale, "msg.finish_ime_edit").into();
                                     cx.notify();
                                 });
                                 return;
@@ -491,7 +576,7 @@ impl Viewer {
                                 .iter()
                                 .map(|i| i.read(cx).value().to_string())
                                 .collect();
-                            let parsed = parse(form, &values);
+                            let parsed = parse(locale, form, &values);
                             let _ = view.update(cx, |s, cx| {
                                 if s.generation != generation
                                     || s.editor.as_ref().is_none_or(|e| {
@@ -893,28 +978,31 @@ impl Viewer {
         );
     }
 }
-fn parse(form: Form, v: &[String]) -> Result<Option<Command>, String> {
+fn parse(locale: UiLocale, form: Form, v: &[String]) -> Result<Option<Command>, String> {
     let n = |i: usize| {
         v[i].trim()
             .parse::<f64>()
-            .map_err(|_| "请输入有效数字".to_string())
+            .map_err(|_| t(locale, "form.err_valid_number").to_string())
     };
     let rgb = |i: usize| {
         u32::from_str_radix(v[i].trim().trim_start_matches('#'), 16)
-            .map_err(|_| "请输入 RGB 十六进制颜色".to_string())
+            .map_err(|_| t(locale, "form.err_valid_rgb").to_string())
     };
     let index = |i: usize| {
         v[i].trim()
             .parse::<usize>()
             .ok()
             .and_then(|n| n.checked_sub(1))
-            .ok_or_else(|| "编号从 1 起".to_string())
+            .ok_or_else(|| t(locale, "form.err_index_one").to_string())
     };
     let action = match form {
         Form::Background => ContentAction::Background { rgb: rgb(0)? },
         Form::MasterBackground => ContentAction::MasterBackground { rgb: rgb(0)? },
         Form::Accent => ContentAction::ThemeAccent {
-            slot: v[0].trim().parse().map_err(|_| "强调色编号为 1–6")?,
+            slot: v[0]
+                .trim()
+                .parse()
+                .map_err(|_| t(locale, "form.err_accent_slot"))?,
             rgb: rgb(1)?,
         },
         Form::Fonts => ContentAction::ThemeFonts {
@@ -959,7 +1047,7 @@ fn parse(form: Form, v: &[String]) -> Result<Option<Command>, String> {
         Form::TransitionDuration => {
             let seconds = n(0)?;
             if !(0.0..=60.0).contains(&seconds) {
-                return Err("持续时间需在 0 到 60 秒之间".into());
+                return Err(t(locale, "form.err_duration_range").into());
             }
             return Ok(None);
         }

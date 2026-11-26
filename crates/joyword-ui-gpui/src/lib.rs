@@ -180,6 +180,7 @@ impl JoyWord {
         }
         let shell = Shell::default();
         joyoffice_ui::apply_theme(shell.theme, Brand::Word, Some(window), cx);
+        joyoffice_ui::apply_locale(shell.locale, cx);
         JoyWord {
             shell,
             focus,
@@ -242,6 +243,22 @@ impl JoyWord {
             Ok(()) => {
                 self.shell.notice = None;
                 joyoffice_ui::apply_theme(theme, Brand::Word, Some(window), cx);
+            }
+            Err(error) => self.shell.notice = Some(error),
+        }
+        cx.notify();
+    }
+    fn select_locale(
+        &mut self,
+        locale: joyoffice_ui::UiLocale,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        match self.shell.set_locale(locale) {
+            Ok(()) => {
+                self.shell.notice = None;
+                joyoffice_ui::apply_locale(locale, cx);
+                window.set_window_title(&self.document_title());
             }
             Err(error) => self.shell.notice = Some(error),
         }
@@ -340,6 +357,9 @@ impl JoyWord {
                 self.shell.notice = None;
                 if id == "view.theme" {
                     joyoffice_ui::apply_theme(self.shell.theme, Brand::Word, Some(window), cx);
+                }
+                if id == "view.language" {
+                    joyoffice_ui::apply_locale(self.shell.locale, cx);
                 }
                 if id == "file.new" {
                     self.file_page = false;
@@ -464,7 +484,18 @@ impl JoyWord {
                         }
                     })),
             )
-            .child(self.button("language", tr("EN", "中文"), "view.language", cx))
+            .child({
+                let view = cx.entity().downgrade();
+                joyoffice_ui::language_menu(
+                    "language",
+                    self.shell.locale,
+                    p,
+                    joyoffice_ui::language_header_trigger("language-trigger", self.shell.locale, p),
+                    move |locale, w, cx| {
+                        let _ = view.update(cx, |v, cx| v.select_locale(locale, w, cx));
+                    },
+                )
+            })
             .child(self.button(
                 "theme",
                 if self.shell.dark { "☀" } else { "◐" },

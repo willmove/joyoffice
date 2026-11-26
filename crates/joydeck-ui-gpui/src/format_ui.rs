@@ -23,12 +23,15 @@ pub(super) fn font_size_direction(command: bool, shift: bool, key: &str) -> Opti
     }
 }
 
-pub(super) fn parse_rgb(value: &str) -> Result<ColorRef, String> {
+pub(super) fn parse_rgb_for(
+    locale: joyoffice_ui::UiLocale,
+    value: &str,
+) -> Result<ColorRef, String> {
     let value = value.trim().trim_start_matches('#');
     if value.len() != 6 || !value.bytes().all(|b| b.is_ascii_hexdigit()) {
-        return Err("请输入六位 RGB 颜色，例如 D95A1A".into());
+        return Err(crate::l10n::t(locale, "font.err_hex_example").into());
     }
-    let n = u32::from_str_radix(value, 16).map_err(|_| "请输入六位 RGB 颜色")?;
+    let n = u32::from_str_radix(value, 16).map_err(|_| crate::l10n::t(locale, "font.err_hex"))?;
     Ok(ColorRef::rgb(Rgba::rgb(
         (n >> 16) as u8,
         (n >> 8) as u8,
@@ -227,7 +230,11 @@ impl Viewer {
             }
             return;
         }
-        let family: SharedString = state.run.font.unwrap_or("主题字体".into()).into();
+        let family: SharedString = state
+            .run
+            .font
+            .unwrap_or_else(|| self.t("font.theme_font").into())
+            .into();
         if self.font_picker.read(cx).selected_value() == Some(&family) {
             return;
         }
@@ -257,7 +264,14 @@ impl Viewer {
         } else {
             format!("{current}⌄")
         };
+        let locale = self.locale;
         let view = cx.entity().downgrade();
+        let size_label = self.t("font.size");
+        let size_aria = if state.mixed.contains("size") {
+            self.tf("common.mixed_format_suffix", &[("label", size_label)])
+        } else {
+            size_label.to_owned()
+        };
         Popover::new("font-size-popup")
             .trigger(
                 Button::new("font-size")
@@ -265,11 +279,7 @@ impl Viewer {
                     .label(label)
                     .w(px(52.))
                     .h(px(23.))
-                    .accessibility_label(if state.mixed.contains("size") {
-                        "字号（混合格式）"
-                    } else {
-                        "字号"
-                    })
+                    .accessibility_label(size_aria)
                     .disabled(disabled),
             )
             .content(move |_, _, cx| {
@@ -280,12 +290,17 @@ impl Viewer {
                     for &size in row {
                         let view = view.clone();
                         let popup = popup.clone();
+                        let size_s = size.to_string();
                         line = line.child(
                             Button::new(("size-option", size as usize))
                                 .ghost()
                                 .xsmall()
-                                .label(size.to_string())
-                                .accessibility_label(format!("{size} 磅"))
+                                .label(size_s.clone())
+                                .accessibility_label(crate::l10n::tf(
+                                    locale,
+                                    "font.size_pt",
+                                    &[("size", &size_s)],
+                                ))
                                 .w(px(30.))
                                 .on_click(move |_, w, cx| {
                                     let _ = popup.update(cx, |s, cx| s.dismiss(w, cx));
@@ -302,20 +317,21 @@ impl Viewer {
                     Button::new("custom-size")
                         .ghost()
                         .xsmall()
-                        .label("其他字号…")
+                        .label(crate::l10n::t(locale, "font.more_sizes"))
                         .on_click(move |_, w, cx| {
                             let _ = popup.update(cx, |s, cx| s.dismiss(w, cx));
                             let _ = view.update(cx, |s, cx| {
                                 s.fields_dialog(
-                                    "字号",
-                                    vec![("字号（磅）", current.to_string())],
+                                    s.t("font.size"),
+                                    vec![(s.t("font.size_field"), current.to_string())],
                                     w,
                                     cx,
                                     |s, v, w, cx| {
-                                        let size: f64 =
-                                            v[0].parse().map_err(|_| "请输入有效字号")?;
+                                        let size: f64 = v[0]
+                                            .parse()
+                                            .map_err(|_| s.t("font.err_invalid_size"))?;
                                         if !size.is_finite() || !(1.0..=400.).contains(&size) {
-                                            return Err("字号须在 1–400 磅之间".into());
+                                            return Err(s.t("font.err_size_range").into());
                                         }
                                         s.format_runs(|p| p.size = Some(size), w, cx);
                                         Ok(())
@@ -332,6 +348,7 @@ impl Viewer {
         disabled: bool,
         cx: &mut Context<Self>,
     ) -> impl IntoElement {
+        let locale = self.locale;
         let view = cx.entity().downgrade();
         let context = self.editor.as_ref().and_then(|e| {
             let model = e.session.model();
@@ -352,6 +369,12 @@ impl Viewer {
             _ => Rgba::BLACK,
         };
         let rgb_value = |c: Rgba| (c.r as u32) << 16 | (c.g as u32) << 8 | c.b as u32;
+        let color_label = self.t("font.color");
+        let color_aria = if mixed {
+            self.tf("common.mixed_format_suffix", &[("label", color_label)])
+        } else {
+            color_label.to_owned()
+        };
         Popover::new("font-color-popup")
             .trigger(
                 Button::new("font-color")
@@ -364,18 +387,15 @@ impl Viewer {
                         rgb_value(indicator)
                     })))
                     .h(px(25.))
-                    .accessibility_label(if mixed {
-                        "字体颜色（混合格式）"
-                    } else {
-                        "字体颜色"
-                    })
-                    .tooltip("字体颜色")
+                    .accessibility_label(color_aria)
+                    .tooltip(color_label)
                     .disabled(disabled),
             )
             .content(move |_, _, cx| {
+                let t = |key: &'static str| crate::l10n::t(locale, key);
                 let popup = cx.entity().downgrade();
                 let mut panel = div().flex().flex_col().w(px(244.)).gap_2().text_sm();
-                panel = panel.child("主题颜色");
+                panel = panel.child(t("font.theme_colors"));
                 let slots = [
                     SchemeSlot::Bg1,
                     SchemeSlot::Tx1,
@@ -390,6 +410,7 @@ impl Viewer {
                 ];
                 for row in 0..6 {
                     let mut line = div().flex().gap_1();
+                    let row_s = row.to_string();
                     for (col, slot) in slots.into_iter().enumerate() {
                         let mut color = ColorRef::scheme(slot);
                         if row > 0 {
@@ -401,7 +422,11 @@ impl Viewer {
                                 _ => ColorTransform::Shade(50_000),
                             });
                         }
-                        let label = format!("主题色 {} 变体 {row}", slot.xml_name());
+                        let label = crate::l10n::tf(
+                            locale,
+                            "font.theme_color_variant",
+                            &[("slot", slot.xml_name()), ("row", &row_s)],
+                        );
                         line = line.child(color_button(
                             row * 10 + col,
                             &label,
@@ -413,19 +438,19 @@ impl Viewer {
                     }
                     panel = panel.child(line);
                 }
-                panel = panel.child("标准颜色");
+                panel = panel.child(t("font.standard_colors"));
                 let mut line = div().flex().gap_1();
-                for (index, (name, n)) in [
-                    ("深红", 0xc00000),
-                    ("红色", 0xff0000),
-                    ("橙色", 0xffc000),
-                    ("黄色", 0xffff00),
-                    ("浅绿", 0x92d050),
-                    ("绿色", 0x00b050),
-                    ("浅蓝", 0x00b0f0),
-                    ("蓝色", 0x0070c0),
-                    ("深蓝", 0x002060),
-                    ("紫色", 0x7030a0),
+                for (index, (key, n)) in [
+                    ("std_color.dark_red", 0xc00000),
+                    ("std_color.red", 0xff0000),
+                    ("std_color.orange", 0xffc000),
+                    ("std_color.yellow", 0xffff00),
+                    ("std_color.light_green", 0x92d050),
+                    ("std_color.green", 0x00b050),
+                    ("std_color.light_blue", 0x00b0f0),
+                    ("std_color.blue", 0x0070c0),
+                    ("std_color.dark_blue", 0x002060),
+                    ("std_color.purple", 0x7030a0),
                 ]
                 .into_iter()
                 .enumerate()
@@ -433,7 +458,7 @@ impl Viewer {
                     let color = ColorRef::rgb(Rgba::rgb((n >> 16) as u8, (n >> 8) as u8, n as u8));
                     line = line.child(color_button(
                         60 + index,
-                        name,
+                        t(key),
                         color,
                         &theme,
                         view.clone(),
@@ -445,17 +470,20 @@ impl Viewer {
                     Button::new("custom-font-color")
                         .ghost()
                         .small()
-                        .label("其他颜色…")
+                        .label(t("font.more_colors"))
                         .on_click(move |_, w, cx| {
                             let _ = popup.update(cx, |s, cx| s.dismiss(w, cx));
                             let _ = view.update(cx, |s, cx| {
                                 s.fields_dialog(
-                                    "字体颜色",
-                                    vec![("颜色（RGB）", format!("{:06X}", rgb_value(indicator)))],
+                                    s.t("font.color"),
+                                    vec![(
+                                        s.t("font.color_rgb_field"),
+                                        format!("{:06X}", rgb_value(indicator)),
+                                    )],
                                     w,
                                     cx,
                                     |s, v, w, cx| {
-                                        let color = parse_rgb(&v[0])?;
+                                        let color = parse_rgb_for(s.locale, &v[0])?;
                                         s.format_runs(
                                             |p| p.fill = Some(Fill::solid(color.clone())),
                                             w,

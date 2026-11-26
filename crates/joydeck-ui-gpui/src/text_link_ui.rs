@@ -7,10 +7,6 @@ use joydeck_model::{
     text::{Action, Hyperlink, safe_url},
 };
 
-const ADDRESS: &str = "链接地址（网页、邮件或 #页码）";
-const TOOLTIP: &str = "屏幕提示（可选）";
-const LABEL: &str = "显示文字";
-
 fn address(action: &Action, document: &Presentation) -> Option<String> {
     match action {
         Action::Url { url } => Some(url.clone()),
@@ -19,13 +15,17 @@ fn address(action: &Action, document: &Presentation) -> Option<String> {
     }
 }
 
-fn parse_address(value: &str, document: &Presentation) -> Result<Action, String> {
+fn parse_address(
+    value: &str,
+    document: &Presentation,
+    locale: joyoffice_ui::UiLocale,
+) -> Result<Action, String> {
     let value = value.trim();
     if let Some(page) = value.strip_prefix('#') {
         let index = page.parse::<usize>().ok().and_then(|n| n.checked_sub(1));
         let slide = index
             .and_then(|index| document.slides.get(index))
-            .ok_or("请输入有效页码，如 #2")?;
+            .ok_or_else(|| crate::l10n::t(locale, "link.err_page").to_owned())?;
         return Ok(Action::Slide { slide: slide.id });
     }
     if value.len() > 2048
@@ -33,7 +33,7 @@ fn parse_address(value: &str, document: &Presentation) -> Result<Action, String>
         || !safe_url(value)
         || url::Url::parse(value).is_err()
     {
-        return Err("请输入 HTTP／HTTPS、mailto 地址或 #页码".into());
+        return Err(crate::l10n::t(locale, "link.err_url").into());
     }
     Ok(Action::Url { url: value.into() })
 }
@@ -44,6 +44,7 @@ impl Viewer {
             || self.composing()
             || self.benchmark.is_some()
             || self.format_targets().len() != 1;
+        let locale = self.locale;
         let view = cx.entity().downgrade();
         chrome::row()
             .gap_0()
@@ -51,7 +52,7 @@ impl Viewer {
                 chrome::tool(
                     "insert-text-link",
                     joyoffice_ui::IconName::Link,
-                    "链接",
+                    self.t("link.btn"),
                     0x326797,
                 )
                 .disabled(disabled)
@@ -67,7 +68,7 @@ impl Viewer {
                             .w(px(14.))
                             .h(px(35.))
                             .icon(joyoffice_ui::IconName::ChevronDown)
-                            .accessibility_label("链接选项")
+                            .accessibility_label(self.t("link.options_aria"))
                             .disabled(disabled),
                     )
                     .content(move |_, _, cx| {
@@ -76,7 +77,7 @@ impl Viewer {
                         Button::new("remove-text-link")
                             .ghost()
                             .xsmall()
-                            .label("移除链接")
+                            .label(crate::l10n::t(locale, "link.remove"))
                             .on_click(move |_, w, cx| {
                                 let _ = popup.update(cx, |p, cx| p.dismiss(w, cx));
                                 let _ = view.update(cx, |s, cx| s.remove_text_link(w, cx));
@@ -107,7 +108,7 @@ impl Viewer {
             })
         });
         if scope.is_none() {
-            self.message = "请先选择需要链接的文字".into();
+            self.message = self.t("link.err_select_text").into();
             cx.notify();
         }
         scope
@@ -129,7 +130,7 @@ impl Viewer {
         let mut tooltip = String::new();
         if let Some(link) = &scope.common {
             let Some(initial) = address(&link.action, editor.session.model()) else {
-                self.message = "当前链接使用其他动作，可移除后重新设置".into();
+                self.message = self.t("link.err_other_action").into();
                 cx.notify();
                 return;
             };
@@ -141,12 +142,15 @@ impl Viewer {
         let page = self.page;
         let revision = editor.session.revision();
         let label = links::plain_label(&i.draft.body, scope.range.clone());
-        let mut fields = vec![(ADDRESS, original.clone()), (TOOLTIP, tooltip)];
+        let mut fields = vec![
+            (self.t("link.address_field"), original.clone()),
+            (self.t("link.tooltip_field"), tooltip),
+        ];
         if let Some(label) = &label {
-            fields.push((LABEL, label.clone()));
+            fields.push((self.t("link.label_field"), label.clone()));
         }
         self.fields_dialog(
-            "编辑文字链接",
+            self.t("link.dialog_title"),
             fields,
             w,
             cx,
@@ -160,11 +164,14 @@ impl Viewer {
                         .as_ref()
                         .is_some_and(|i| i.target == target && i.draft.selection == selection)
                 {
-                    return Err("文字选区已变化，请重新打开此对话框".into());
+                    return Err(s.t("link.err_selection_changed").into());
                 }
-                let editor = s.editor.as_ref().ok_or("文稿已关闭")?;
+                let editor = s
+                    .editor
+                    .as_ref()
+                    .ok_or_else(|| s.t("link.err_doc_closed").to_owned())?;
                 if editor.session.revision() != revision {
-                    return Err("文稿已变化，请重新打开此对话框".into());
+                    return Err(s.t("dialog.doc_changed").into());
                 }
                 let document = editor.session.model();
                 let action = if values[0] == original
@@ -172,10 +179,10 @@ impl Viewer {
                 {
                     link.action.clone()
                 } else {
-                    parse_address(&values[0], document)?
+                    parse_address(&values[0], document, s.locale)?
                 };
                 if values[1].len() > 1024 || values[1].chars().any(char::is_control) {
-                    return Err("屏幕提示超出长度或包含控制字符".into());
+                    return Err(s.t("link.err_tooltip_invalid").into());
                 }
                 let mut link = scope.common.clone().unwrap_or(Hyperlink {
                     action: action.clone(),
@@ -192,7 +199,7 @@ impl Viewer {
                 link.tooltip.clone_from(&values[1]);
                 let replacement = values.get(2).filter(|value| label.as_ref() != Some(value));
                 if scope.range.is_empty() && replacement.is_none() {
-                    return Err("请输入显示文字".into());
+                    return Err(s.t("link.err_label_empty").into());
                 }
                 s.apply_text_link(
                     scope.range.clone(),
@@ -223,12 +230,16 @@ impl Viewer {
         w: &mut Window,
         cx: &mut Context<Self>,
     ) -> Result<(), String> {
-        let i = self.inline.as_mut().ok_or("文字选区已关闭")?;
+        let locale = self.locale;
+        let i = self
+            .inline
+            .as_mut()
+            .ok_or_else(|| crate::l10n::t(locale, "link.err_selection_closed").to_owned())?;
         let mut draft = i.draft.clone();
         let range = if let Some(label) = replacement {
             if label.trim().is_empty() || label.len() > 4096 || label.chars().any(char::is_control)
             {
-                return Err("显示文字不能为空、超过 4096 字节或包含控制字符".into());
+                return Err(crate::l10n::t(locale, "link.err_label_invalid").into());
             }
             let start = range.start;
             draft.selection = range;

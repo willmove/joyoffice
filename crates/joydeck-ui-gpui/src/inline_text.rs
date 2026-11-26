@@ -185,8 +185,9 @@ impl Viewer {
                     Err(e) => self.message = e,
                 }
             }
-            if self.message.starts_with("原位输入") {
-                self.message = "就绪".into();
+            if self.message == self.t("inline.editing") || self.message.starts_with("原位输入")
+            {
+                self.message = self.t("msg.ready").into();
             }
             self.render_generation += 1;
             self.image = None;
@@ -226,21 +227,24 @@ impl Viewer {
         }
         self.end_inline(cx);
         let result = (|| {
-            let e = self.editor.as_ref().ok_or("请先打开文稿")?;
+            let e = self
+                .editor
+                .as_ref()
+                .ok_or_else(|| self.t("inline.err_open_doc").to_owned())?;
             let id = *e
                 .session
                 .selection()
                 .shapes
                 .first()
-                .ok_or("请先选中文字对象或表格")?;
+                .ok_or_else(|| self.t("inline.err_select_text").to_owned())?;
             let s = e.session.model().slides[self.page]
                 .shape(id)
-                .ok_or("对象不存在")?;
+                .ok_or_else(|| self.t("inline.err_missing_shape").to_owned())?;
             let ctx =
                 resolve::Ctx::for_slide(e.session.model(), &e.session.model().slides[self.page])
-                    .ok_or("缺少版式")?;
+                    .ok_or_else(|| self.t("inline.err_missing_layout").to_owned())?;
             if resolve::body(&ctx, s).warp.is_some() {
-                return Err("艺术字变形尚无原位编辑几何".into());
+                return Err(self.t("inline.err_wordart").into());
             }
             let target = if matches!(s.kind, ShapeKind::Table(_)) {
                 let (_, r, c) = self
@@ -261,14 +265,14 @@ impl Viewer {
             }
             text::validate(&body)?;
             if body.body.warp.is_some() {
-                return Err("艺术字变形尚无原位编辑几何".into());
+                return Err(self.t("inline.err_wordart").into());
             }
             if body.paragraphs.iter().flat_map(|p| &p.runs).any(|r| {
                 matches!(r.kind, RunKind::Math { .. })
                     || (matches!(r.kind, RunKind::Field { .. })
                         && (r.text.is_empty() || r.text.contains(['\n', '\r', '\u{b}'])))
             }) {
-                return Err("此文字框包含公式或无法原位编辑的字段".into());
+                return Err(self.t("inline.err_formula_or_field").into());
             }
             Ok((target, body))
         })();
@@ -290,7 +294,7 @@ impl Viewer {
                 }));
                 self.drag = None;
                 self.preview_inline(cx);
-                self.message = "原位输入 · Esc 取消组合/退出 · Ctrl+S 保存 · Tab 下一单元格".into();
+                self.message = self.t("inline.editing").into();
                 self.focus.focus(w, cx);
             }
             Err(e) => self.message = e,
@@ -433,7 +437,7 @@ impl Viewer {
         cx: &mut Context<Self>,
     ) {
         if adjusted && self.editor.as_ref().map(|e| e.session.revision()) != before {
-            self.message = "已粘贴。无法在目标文稿使用的链接或链接声音已移除".into();
+            self.message = self.t("inline.pasted_stripped_links").into();
             cx.notify();
         }
     }
@@ -459,7 +463,7 @@ impl Viewer {
         }) = rich
         {
             if body.is_empty() {
-                self.message = "剪贴板没有可见文字，未粘贴".into();
+                self.message = self.t("inline.clipboard_no_text").into();
                 cx.notify();
                 return;
             }
@@ -986,9 +990,9 @@ impl Viewer {
         {
             if body.is_empty() {
                 self.message = if self.cell.is_some() {
-                    "剪贴板含隐藏内容，无法安全粘贴到表格。请先在来源应用移除隐藏内容"
+                    self.t("inline.clipboard_hidden_table")
                 } else {
-                    "剪贴板没有可见文字，未粘贴"
+                    self.t("inline.clipboard_no_text")
                 }
                 .into();
                 cx.notify();
@@ -1000,7 +1004,7 @@ impl Viewer {
             }
         }
         let Some(value) = item.and_then(|i| i.text()) else {
-            self.message = "剪贴板没有可用的文字、图片或 JoyDeck 对象".into();
+            self.message = self.t("inline.clipboard_empty").into();
             cx.notify();
             return;
         };
@@ -1072,7 +1076,7 @@ impl Viewer {
                 if s.len() <= 32 * 1024 * 1024 {
                     Ok(s)
                 } else {
-                    Err("对象剪贴板超过 32 MiB".into())
+                    Err(self.t("inline.clipboard_too_large").into())
                 }
             }) {
             Ok(metadata) => {
@@ -1084,13 +1088,13 @@ impl Viewer {
                     }
                 }
                 cx.write_to_clipboard(ClipboardItem::new_string_with_metadata(
-                    "JoyDeck 对象".into(),
+                    self.t("inline.object_label").into(),
                     metadata,
                 ));
                 self.message = if cut {
-                    "已剪切对象"
+                    self.t("inline.cut_object")
                 } else {
-                    "已复制对象"
+                    self.t("inline.copied_object")
                 }
                 .into();
             }
@@ -1128,10 +1132,10 @@ impl Viewer {
             s.text.as_ref().map(|b| b.text()).unwrap_or_default()
         };
         if value.len() > 65536 {
-            self.message = "复制内容超过 64 KiB".into();
+            self.message = self.t("inline.copy_too_large").into();
         } else {
             cx.write_to_clipboard(ClipboardItem::new_string(value));
-            self.message = "已复制文字/表格 TSV 到系统剪贴板".into();
+            self.message = self.t("inline.copied_tsv").into();
         }
         cx.notify();
     }
@@ -1251,7 +1255,7 @@ impl EntityInputHandler for Viewer {
             && let Some(i) = &self.inline
         {
             let Some(absolute) = i.draft.marked_relative_range(relative.clone()) else {
-                self.message = "输入法替换范围超出文稿".into();
+                self.message = self.t("inline.ime_range_oob").into();
                 cx.notify();
                 return;
             };

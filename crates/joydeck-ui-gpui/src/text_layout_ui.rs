@@ -99,18 +99,36 @@ impl Viewer {
         let disabled = bodies.is_empty() || self.loading || self.composing();
         let direction = self.text_layout_menu(
             "text-direction",
-            "文字方向",
+            self.t("text_layout.direction"),
             &bodies,
             disabled,
             [
-                ("水平文字", LayoutChoice::Direction(TextDir::Horizontal)),
-                ("旋转 90°", LayoutChoice::Direction(TextDir::Vertical)),
-                ("旋转 270°", LayoutChoice::Direction(TextDir::Vertical270)),
-                ("中文竖排", LayoutChoice::Direction(TextDir::EaVertical)),
-                ("堆叠文字", LayoutChoice::Direction(TextDir::Stacked)),
-                ("从右到左堆叠", LayoutChoice::Direction(TextDir::StackedRtl)),
                 (
-                    "蒙古文竖排",
+                    self.t("text_dir.horizontal"),
+                    LayoutChoice::Direction(TextDir::Horizontal),
+                ),
+                (
+                    self.t("text_dir.rot90"),
+                    LayoutChoice::Direction(TextDir::Vertical),
+                ),
+                (
+                    self.t("text_dir.rot270"),
+                    LayoutChoice::Direction(TextDir::Vertical270),
+                ),
+                (
+                    self.t("text_dir.ea_vertical"),
+                    LayoutChoice::Direction(TextDir::EaVertical),
+                ),
+                (
+                    self.t("text_dir.stacked"),
+                    LayoutChoice::Direction(TextDir::Stacked),
+                ),
+                (
+                    self.t("text_dir.stacked_rtl"),
+                    LayoutChoice::Direction(TextDir::StackedRtl),
+                ),
+                (
+                    self.t("text_dir.mongolian"),
                     LayoutChoice::Direction(TextDir::MongolianVertical),
                 ),
             ],
@@ -118,54 +136,75 @@ impl Viewer {
         );
         let columns = self.text_layout_menu(
             "text-columns",
-            "分栏",
+            self.t("text_layout.columns"),
             &bodies,
             disabled,
             [
-                ("一栏", LayoutChoice::Columns(1)),
-                ("两栏", LayoutChoice::Columns(2)),
-                ("三栏", LayoutChoice::Columns(3)),
-                ("从左到右排列", LayoutChoice::ColumnOrder(false)),
-                ("从右到左排列", LayoutChoice::ColumnOrder(true)),
-                ("更多分栏…", LayoutChoice::ColumnSettings),
+                (self.t("text_layout.col1"), LayoutChoice::Columns(1)),
+                (self.t("text_layout.col2"), LayoutChoice::Columns(2)),
+                (self.t("text_layout.col3"), LayoutChoice::Columns(3)),
+                (
+                    self.t("text_layout.col_ltr"),
+                    LayoutChoice::ColumnOrder(false),
+                ),
+                (
+                    self.t("text_layout.col_rtl"),
+                    LayoutChoice::ColumnOrder(true),
+                ),
+                (
+                    self.t("text_layout.more_cols"),
+                    LayoutChoice::ColumnSettings,
+                ),
             ],
             cx,
         );
         let alignment = self.text_layout_menu(
             "text-anchor",
-            "文字对齐",
+            self.t("text_layout.align"),
             &bodies,
             disabled,
             [
-                ("顶端对齐", LayoutChoice::Anchor(Anchor::Top)),
-                ("垂直居中", LayoutChoice::Anchor(Anchor::Middle)),
-                ("底端对齐", LayoutChoice::Anchor(Anchor::Bottom)),
-                ("两端对齐", LayoutChoice::Anchor(Anchor::Justified)),
-                ("分散对齐", LayoutChoice::Anchor(Anchor::Distributed)),
+                (self.t("align.top"), LayoutChoice::Anchor(Anchor::Top)),
+                (
+                    self.t("align.middle_v"),
+                    LayoutChoice::Anchor(Anchor::Middle),
+                ),
+                (self.t("align.bottom"), LayoutChoice::Anchor(Anchor::Bottom)),
+                (
+                    self.t("para.align_justify"),
+                    LayoutChoice::Anchor(Anchor::Justified),
+                ),
+                (
+                    self.t("para.align_distribute"),
+                    LayoutChoice::Anchor(Anchor::Distributed),
+                ),
             ],
             cx,
         );
         let fit = self.text_layout_menu(
             "text-fit",
-            "自动调整",
+            self.t("text_layout.autofit"),
             &bodies,
             disabled,
             [
-                ("不自动调整", LayoutChoice::Fit(AutoFit::None)),
                 (
-                    "溢出时缩小文字",
+                    self.t("text_layout.autofit_none"),
+                    LayoutChoice::Fit(AutoFit::None),
+                ),
+                (
+                    self.t("text_layout.autofit_shrink"),
                     LayoutChoice::Fit(AutoFit::Shrink {
                         font_scale: Some(1.),
                         line_reduction: 0.,
                     }),
                 ),
-                ("形状内自动换行", LayoutChoice::Wrap(true)),
-                ("不自动换行", LayoutChoice::Wrap(false)),
+                (self.t("text_layout.wrap_on"), LayoutChoice::Wrap(true)),
+                (self.t("text_layout.wrap_off"), LayoutChoice::Wrap(false)),
             ],
             cx,
         );
         chrome::group(
-            "文字布局",
+            self.t("text_layout.group"),
             div()
                 .flex()
                 .flex_col()
@@ -179,7 +218,7 @@ impl Viewer {
                 )
                 .child(
                     div().flex().child(fit).child(
-                        layout_button("text-insets", "文字边距…", disabled)
+                        layout_button("text-insets", self.t("text_layout.insets_btn"), disabled)
                             .on_click(cx.listener(|s, _, w, cx| s.text_insets_dialog(w, cx))),
                     ),
                 ),
@@ -252,16 +291,16 @@ impl Viewer {
         let targets = self.format_targets();
         let page = self.page;
         self.fields_dialog(
-            "文字分栏（留空保持原值）",
+            self.t("text_layout.cols_title"),
             vec![
-                ("栏数（1–16）", original[0].clone()),
-                ("栏间距（磅）", original[1].clone()),
+                (self.t("text_layout.cols_count"), original[0].clone()),
+                (self.t("text_layout.cols_spacing"), original[1].clone()),
             ],
             w,
             cx,
             move |s, v, w, cx| {
                 if s.page != page || s.format_targets() != targets {
-                    return Err("文字对象已变化，请重新打开此对话框".into());
+                    return Err(s.t("text_layout.err_shape_changed").into());
                 }
                 let columns = if v[0] == original[0] || v[0].trim().is_empty() {
                     None
@@ -271,13 +310,13 @@ impl Viewer {
                             .parse::<u32>()
                             .ok()
                             .filter(|n| (1..=16).contains(n))
-                            .ok_or("栏数须为 1–16 的整数")?,
+                            .ok_or(s.t("text_layout.err_cols_range"))?,
                     )
                 };
                 let gap = if v[1] == original[1] {
                     None
                 } else {
-                    paragraph_ui::optional_number(&v[1], 0., 4000.)?
+                    paragraph_ui::optional_number(s.locale, &v[1], 0., 4000.)?
                 };
                 if columns.is_some() || gap.is_some() {
                     s.format_bodies(
@@ -311,23 +350,23 @@ impl Viewer {
         let targets = self.format_targets();
         let page = self.page;
         self.fields_dialog(
-            "文字边距（留空保持原值）",
+            self.t("text_layout.insets_title"),
             vec![
-                ("左边距（磅）", original[0].clone()),
-                ("上边距（磅）", original[1].clone()),
-                ("右边距（磅）", original[2].clone()),
-                ("下边距（磅）", original[3].clone()),
+                (self.t("table.margin_left"), original[0].clone()),
+                (self.t("table.margin_top"), original[1].clone()),
+                (self.t("table.margin_right"), original[2].clone()),
+                (self.t("table.margin_bottom"), original[3].clone()),
             ],
             w,
             cx,
             move |s, v, w, cx| {
                 if s.page != page || s.format_targets() != targets {
-                    return Err("文字对象已变化，请重新打开此对话框".into());
+                    return Err(s.t("text_layout.err_shape_changed").into());
                 }
                 let mut patch = [None; 4];
                 for (i, slot) in patch.iter_mut().enumerate() {
                     if v[i] != original[i] {
-                        *slot = paragraph_ui::optional_number(&v[i], 0., 4000.)?;
+                        *slot = paragraph_ui::optional_number(s.locale, &v[i], 0., 4000.)?;
                     }
                 }
                 if patch.iter().any(Option::is_some) {

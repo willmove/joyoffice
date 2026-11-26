@@ -88,11 +88,24 @@ impl Desktop {
                         }
                     })),
             )
-            .child(div().id("language").cursor_pointer().child(if self.chinese() { "EN" } else { "中文" }).on_click(cx.listener(|this, _, _, cx| {
-                this.preferences.language = if this.chinese() { "en".into() } else { "zh".into() };
-                this.persist_preferences(cx);
-                cx.notify();
-            })))
+            .child({
+                let view = cx.entity().downgrade();
+                let locale = self.locale();
+                let palette = self.palette();
+                joyoffice_ui::language_menu(
+                    "language",
+                    locale,
+                    palette,
+                    joyoffice_ui::language_header_trigger("language-trigger", locale, palette),
+                    move |next, _, cx| {
+                        let _ = view.update(cx, |this, cx| {
+                            if let Err(error) = this.set_options(&json!({"language": next.tag()}), cx) {
+                                this.alert(error);
+                            }
+                        });
+                    },
+                )
+            })
             .child(div().id("theme").cursor_pointer().child(if self.preferences.dark { "☀" } else { "◐" }).on_click(cx.listener(|this, _, _, cx| {
                 if let Err(error) = this.set_options(&json!({"dark":!this.preferences.dark}), cx) {
                     this.alert(error);

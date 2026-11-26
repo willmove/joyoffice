@@ -206,7 +206,11 @@ impl ViewEditor {
             .as_ref()
             .ok_or("document is closed")?;
         if editor.session.revision() != self.session.revision {
-            return Err("文稿在另一窗口中更新，请重试".into());
+            return Err(crate::l10n::t(
+                joyoffice_ui::current_locale(cx),
+                "session.updated_other_window",
+            )
+            .into());
         }
         let mut cache = self.session.basic_edits.borrow_mut();
         if let Some(preview) = cache.get(&edit).filter(|preview| preview.slides == slides) {
@@ -231,7 +235,11 @@ impl ViewEditor {
         let (changed, session) = self.document.update(cx, |core, cx| {
             let editor = core.editor.as_mut().ok_or("document is closed")?;
             if editor.session.revision() != self.session.revision {
-                return Err("文稿在另一窗口中更新，请重试".to_string());
+                return Err(crate::l10n::t(
+                    joyoffice_ui::current_locale(cx),
+                    "session.updated_other_window",
+                )
+                .to_string());
             }
             let selection = &self.session.selection;
             editor
@@ -273,11 +281,19 @@ impl ViewEditor {
         if let Some(identity) = joydeck_shell::editor::canonical_source(&path)
             && SharedDocument::find(&identity, cx).is_some_and(|other| other != self.document)
         {
-            return Err("目标文稿已在另一窗口打开".into());
+            return Err(crate::l10n::t(
+                joyoffice_ui::current_locale(cx),
+                "session.open_other_window",
+            )
+            .into());
         }
         self.document.update(cx, |core, cx| {
             if core.saving.get() {
-                return Err("文稿正在另一窗口保存".into());
+                return Err(crate::l10n::t(
+                    joyoffice_ui::current_locale(cx),
+                    "session.saving_other_window",
+                )
+                .into());
             }
             let editor = core.editor.as_ref().ok_or("document is closed")?;
             let job = editor.save_job(path)?;
@@ -407,7 +423,7 @@ impl Viewer {
                 s.drag = None;
                 s.render_generation += 1;
                 if s.composing() {
-                    s.message = "文稿已在另一窗口修改，当前组合输入已取消".into();
+                    s.message = s.t("session.ime_cancelled_other_window").into();
                 }
             }
             cx.notify();
@@ -428,11 +444,12 @@ impl Viewer {
                 s.attach_document(document, Some(selection), false, cx);
                 s.generation += 1;
                 s.refresh_pending = true;
-                s.message = "已打开当前文稿的新视图".into();
+                s.message = s.t("session.new_view_opened").into();
                 cx.notify();
             }),
             Err(error) => {
-                self.message = format!("无法打开文稿视图：{error}");
+                let err_s = error.to_string();
+                self.message = self.tf("session.new_view_failed", &[("error", &err_s)]);
                 cx.notify();
             }
         }

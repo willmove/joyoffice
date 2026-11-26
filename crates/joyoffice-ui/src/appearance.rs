@@ -89,6 +89,23 @@ pub fn apply_theme(preset: ThemePreset, brand: Brand, window: Option<&mut Window
 
 /// Preview content only; callers supply identity, activation and selected state.
 pub fn theme_preview(preset: ThemePreset, brand: Brand, chinese: bool) -> Div {
+    theme_preview_for(
+        preset,
+        brand,
+        if chinese {
+            joyoffice_l10n::UiLocale::ZhCn
+        } else {
+            joyoffice_l10n::UiLocale::En
+        },
+    )
+}
+
+/// Multi-language theme preview content backed by `joyoffice-l10n`.
+pub fn theme_preview_for(
+    preset: ThemePreset,
+    brand: Brand,
+    locale: joyoffice_l10n::UiLocale,
+) -> Div {
     let p: Palette = preset.palette(brand);
     div()
         .flex()
@@ -118,5 +135,5 @@ pub fn theme_preview(preset: ThemePreset, brand: Brand, chinese: bool) -> Div {
                 )
                 .child(div().w(px(15.)).h_full().bg(rgb(p.accent))),
         )
-        .child(preset.label(chinese))
+        .child(crate::theme_label(preset, locale))
 }

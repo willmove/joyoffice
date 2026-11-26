@@ -11,14 +11,20 @@ pub(super) struct SlideDrag {
 }
 pub(super) struct SlideDragPreview(pub(super) usize);
 impl Render for SlideDragPreview {
-    fn render(&mut self, _: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let locale = joyoffice_ui::current_locale(cx);
+        let count_s = self.0.to_string();
         div()
             .px_3()
             .py_2()
             .bg(rgb(0xffffff))
             .border_1()
             .border_color(rgb(0xd95a1a))
-            .child(format!("移动 {} 张幻灯片", self.0))
+            .child(crate::l10n::tf(
+                locale,
+                "dialog.move_slides_drag",
+                &[("count", &count_s)],
+            ))
     }
 }
 impl Viewer {
@@ -116,7 +122,7 @@ impl Viewer {
     ) {
         cx.stop_propagation();
         if drag.owner != cx.entity_id() || drag.generation != self.generation {
-            self.message = "文稿已变化，请重新拖动".into();
+            self.message = self.t("dialog.drag_doc_changed").into();
             cx.notify();
             return;
         }
@@ -150,17 +156,20 @@ impl Viewer {
         let count = e.session.model().slides.len();
         let slides = self.selected_slides();
         self.fields_dialog(
-            "移动选中的幻灯片",
+            self.t("dialog.move_slides_title"),
             vec![(
-                "移到此页之前（末尾填写总页数 + 1）",
+                self.t("dialog.move_slides_field"),
                 (self.page + 1).to_string(),
             )],
             w,
             cx,
             move |s, v, w, cx| {
-                let page: usize = v[0].trim().parse().map_err(|_| "请输入页码")?;
+                let page: usize = v[0]
+                    .trim()
+                    .parse()
+                    .map_err(|_| s.t("dialog.move_slides_err_num"))?;
                 if !(1..=count + 1).contains(&page) {
-                    return Err("页码超出范围".into());
+                    return Err(s.t("dialog.move_slides_err_range").into());
                 }
                 let before = s
                     .editor
@@ -168,7 +177,7 @@ impl Viewer {
                     .and_then(|e| e.session.model().slides.get(page - 1))
                     .map(|s| s.id);
                 if before.is_some_and(|id| slides.contains(&id)) {
-                    return Err("目标位置在当前选区内".into());
+                    return Err(s.t("dialog.move_slides_err_inside").into());
                 }
                 s.dispatch(
                     Command::Workspace {
@@ -187,8 +196,8 @@ impl Viewer {
     pub(super) fn create_slide_section(&mut self, w: &mut Window, cx: &mut Context<Self>) {
         let slides = self.selected_slides();
         self.fields_dialog(
-            "将选中页组成节",
-            vec![("节名称", String::new())],
+            self.t("dialog.create_section_title"),
+            vec![(self.t("dialog.section_name_field"), String::new())],
             w,
             cx,
             move |s, v, w, cx| {

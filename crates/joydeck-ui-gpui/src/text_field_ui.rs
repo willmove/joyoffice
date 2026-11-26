@@ -4,24 +4,28 @@ use gpui_kit::component::{Sizable, button::ButtonVariants, popover::Popover};
 use joydeck_engine::{Command, existing_footer_summary};
 use joydeck_text::datetime::{DATE_KINDS, DateTime, field_text};
 
-const DATE_LABELS: [&str; 13] = [
-    "短日期",
-    "星期和日期",
-    "日、月、年",
-    "月、日、年",
-    "日-月-短年",
-    "月和年份",
-    "短月和年份",
-    "日期和时间",
-    "日期和时间（含秒）",
-    "24 小时时间",
-    "24 小时时间（含秒）",
-    "12 小时时间",
-    "12 小时时间（含秒）",
+const DATE_LABEL_KEYS: [&str; 13] = [
+    "field.short_date",
+    "field.weekday_date",
+    "field.dmy",
+    "field.mdy",
+    "field.dmy_short",
+    "field.month_year",
+    "field.short_month_year",
+    "field.date_time",
+    "field.date_time_sec",
+    "field.time_24",
+    "field.time_24_sec",
+    "field.time_12",
+    "field.time_12_sec",
 ];
 
-fn date_language(index: usize) -> &'static str {
-    if index == 0 { "zh-CN" } else { "en-US" }
+fn date_language(index: usize, locale: joyoffice_ui::UiLocale) -> &'static str {
+    if index == 0 && locale.is_zh_cn() {
+        "zh-CN"
+    } else {
+        "en-US"
+    }
 }
 
 #[derive(Clone, Copy)]
@@ -33,13 +37,14 @@ enum FooterScope {
 }
 
 impl FooterScope {
-    fn label(self) -> &'static str {
-        match self {
-            Self::CurrentMissing => "为当前缺失页脚的幻灯片添加",
-            Self::AllMissing => "为所有缺失页脚的幻灯片添加",
-            Self::Existing => "更新全稿已有页脚",
-            Self::ClearExisting => "清空全稿已有页脚文字",
-        }
+    fn label(self, locale: joyoffice_ui::UiLocale) -> &'static str {
+        let key = match self {
+            Self::CurrentMissing => "field.footer_current_missing",
+            Self::AllMissing => "field.footer_all_missing",
+            Self::Existing => "field.footer_existing",
+            Self::ClearExisting => "field.footer_clear_existing",
+        };
+        crate::l10n::t(locale, key)
     }
 
     fn command(self, text: String) -> Command {
@@ -55,13 +60,14 @@ impl Viewer {
     #[inline(never)]
     pub(super) fn footer_control(&self, cx: &mut Context<Self>) -> impl IntoElement {
         let view = cx.entity().downgrade();
+        let locale = self.locale;
         let disabled = self.editor.is_none() || self.loading || self.composing();
         Popover::new("footer-menu")
             .trigger(
                 chrome::tool(
                     "insert-footer",
                     joyoffice_ui::IconName::NotebookText,
-                    "页眉和\n页脚",
+                    self.t("insert.header_footer"),
                     0x326797,
                 )
                 .disabled(disabled),
@@ -83,7 +89,7 @@ impl Viewer {
                         Button::new(("footer-scope", index))
                             .ghost()
                             .small()
-                            .label(scope.label())
+                            .label(scope.label(locale))
                             .on_click(move |_, w, cx| {
                                 let _ = popup.update(cx, |p, cx| p.dismiss(w, cx));
                                 let _ = view.update(cx, |s, cx| s.footer_dialog(scope, w, cx));
@@ -103,8 +109,8 @@ impl Viewer {
                         Vec::new()
                     } else {
                         vec![match summary.text {
-                            Some(text) => ("页脚文字", text),
-                            None => ("现有页脚文字不同，请输入统一文字", String::new()),
+                            Some(text) => (self.t("field.footer_text"), text),
+                            None => (self.t("field.footer_mixed_prompt"), String::new()),
                         }]
                     }
                 }
@@ -115,13 +121,13 @@ impl Viewer {
                 }
             }
         } else {
-            vec![("页脚文字", String::new())]
+            vec![(self.t("field.footer_text"), String::new())]
         };
         self.fields_dialog(
             if matches!(scope, FooterScope::ClearExisting) {
-                "清空全稿已有页脚文字？保留页脚占位框。"
+                self.t("field.footer_clear_confirm")
             } else {
-                scope.label()
+                scope.label(self.locale)
             },
             fields,
             w,
@@ -130,14 +136,14 @@ impl Viewer {
                 if matches!(scope, FooterScope::CurrentMissing)
                     && s.editor.as_ref().map(|e| e.session.selection().page) != Some(page)
                 {
-                    return Err("当前幻灯片已变化，请重新打开此对话框".into());
+                    return Err(s.t("field.err_slide_changed").into());
                 }
                 let text = values.into_iter().next().unwrap_or_default();
                 if !matches!(scope, FooterScope::ClearExisting) && text.trim().is_empty() {
-                    return Err("请输入页脚文字".into());
+                    return Err(s.t("field.err_footer_empty").into());
                 }
                 if !s.try_dispatch(scope.command(text), w, cx)? {
-                    return Err("没有需要更改的页脚".into());
+                    return Err(s.t("field.err_footer_none").into());
                 }
                 Ok(())
             },
@@ -147,13 +153,14 @@ impl Viewer {
     #[inline(never)]
     pub(super) fn text_field_controls(&self, cx: &mut Context<Self>) -> [AnyElement; 2] {
         let disabled = !self.can_insert_text_field();
+        let locale = self.locale;
         let view = cx.entity().downgrade();
         let date = Popover::new("insert-date-menu")
             .trigger(
                 chrome::tool(
                     "insert-date",
                     joyoffice_ui::IconName::CalendarClock,
-                    "日期和\n时间",
+                    self.t("insert.date_time"),
                     0x326797,
                 )
                 .disabled(disabled),
@@ -168,8 +175,9 @@ impl Viewer {
                     .gap_1()
                     .max_h(px(380.))
                     .overflow_y_scroll();
-                for (i, (name, kind)) in DATE_LABELS.into_iter().zip(DATE_KINDS).enumerate() {
-                    let lang = date_language(i);
+                for (i, (key, kind)) in DATE_LABEL_KEYS.into_iter().zip(DATE_KINDS).enumerate() {
+                    let name = crate::l10n::t(locale, key);
+                    let lang = date_language(i, locale);
                     let sample = now.and_then(|n| field_text(kind, Some(lang), n));
                     let label = sample
                         .as_ref()
@@ -197,8 +205,12 @@ impl Viewer {
                             Button::new(("fixed-date-type", i))
                                 .ghost()
                                 .xsmall()
-                                .label("固定")
-                                .accessibility_label(format!("固定{name}"))
+                                .label(crate::l10n::t(locale, "field.fixed"))
+                                .accessibility_label(crate::l10n::tf(
+                                    locale,
+                                    "field.fixed_aria",
+                                    &[("name", name)],
+                                ))
                                 .disabled(sample.is_none())
                                 .on_click(move |_, w, cx| {
                                     let Some(value) = sample.as_deref() else {
@@ -219,7 +231,7 @@ impl Viewer {
             chrome::tool(
                 "insert-page-field",
                 joyoffice_ui::IconName::Hash,
-                "幻灯片\n编号",
+                self.t("insert.slide_number"),
                 0x326797,
             )
             .disabled(disabled)
@@ -255,7 +267,7 @@ impl Viewer {
             DateTime::now_local().and_then(|now| field_text(kind, lang, now))
         };
         let Some(value) = value else {
-            self.message = "无法获取此日期或时间".into();
+            self.message = self.t("field.err_datetime").into();
             cx.notify();
             return;
         };

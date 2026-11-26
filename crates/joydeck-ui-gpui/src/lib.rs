@@ -9,19 +9,25 @@ use gpui_kit::component::{
 use gpui_kit::prelude::FluentBuilder;
 use gpui_kit::*;
 use joydeck_shell::{PreviewDeck, PreviewSlide, WorkspaceState};
-use joyoffice_ui::{Brand, Palette, ThemePreset, metrics};
+use joyoffice_ui::{Brand, Palette, ThemePreset, UiLocale, metrics};
 use std::{cell::RefCell, rc::Rc};
 
+pub(crate) mod l10n;
 mod layout;
 mod native_clipboard;
 mod viewer;
 use layout::WorkspaceLayout;
 
 fn show_about(window: &mut Window, cx: &mut App) {
-    window.open_dialog(cx, |dialog, _, _| {
-        dialog
-            .title("关于 JoyDeck")
-            .child(concat!("版本 ", env!("CARGO_PKG_VERSION")))
+    let locale = joyoffice_ui::current_locale(cx);
+    let title = l10n::t(locale, "app.about_title");
+    let version = l10n::tf(
+        locale,
+        "app.about_version",
+        &[("version", env!("CARGO_PKG_VERSION"))],
+    );
+    window.open_dialog(cx, move |dialog, _, _| {
+        dialog.title(title).child(version.clone())
     });
 }
 
@@ -48,6 +54,7 @@ struct Workspace {
     focus: FocusHandle,
     notes_input: Entity<TextareaState>,
     theme: ThemePreset,
+    locale: UiLocale,
 }
 
 impl Workspace {
@@ -60,10 +67,26 @@ impl Workspace {
             preview,
             state,
             theme: cx.global::<joyoffice_ui::AppliedTheme>().0,
-            tab: "开始",
+            locale: joyoffice_ui::current_locale(cx),
+            tab: "home",
             focus,
             notes_input: cx.new(|cx| TextareaState::new(window, cx).auto_grow(2, 5)),
         }
+    }
+    fn t(&self, key: &'static str) -> &'static str {
+        l10n::t(self.locale, key)
+    }
+    fn select_locale(&mut self, locale: UiLocale, window: &mut Window, cx: &mut Context<Self>) {
+        if let Err(error) =
+            joydeck_shell::storage::save_locale(&joydeck_shell::editor::recovery_root(), locale)
+        {
+            eprintln!("JoyDeck language: {error}");
+            return;
+        }
+        self.locale = locale;
+        joyoffice_ui::apply_locale(locale, cx);
+        window.set_window_title(l10n::t(locale, "app.sample_window_title"));
+        cx.notify();
     }
     fn palette(&self) -> Palette {
         self.theme.palette(Brand::Deck)
@@ -145,7 +168,7 @@ impl Workspace {
                             .text_size(px(10.))
                             .bg(rgb(p.selected))
                             .text_color(rgb(p.accent))
-                            .child("技术预览 R0"),
+                            .child(self.t("sample.badge")),
                     ),
             )
             .child(
@@ -153,18 +176,38 @@ impl Workspace {
                     .flex()
                     .items_center()
                     .gap_2()
+                    .child({
+                        let view = cx.entity().downgrade();
+                        joyoffice_ui::language_menu(
+                            "sample-language",
+                            self.locale,
+                            p,
+                            joyoffice_ui::language_header_trigger(
+                                "sample-language-trigger",
+                                self.locale,
+                                p,
+                            ),
+                            move |locale, w, cx| {
+                                let _ = view.update(cx, |s, cx| s.select_locale(locale, w, cx));
+                            },
+                        )
+                    })
                     .child(
                         Button::new("header-theme")
                             .small()
                             .ghost()
-                            .label(if self.state.dark { "浅色" } else { "深色" })
+                            .label(if self.state.dark {
+                                self.t("sample.light")
+                            } else {
+                                self.t("sample.dark")
+                            })
                             .on_click(cx.listener(|s, _, w, cx| s.theme(&ToggleTheme, w, cx))),
                     )
                     .child(
                         Button::new("header-about")
                             .small()
                             .ghost()
-                            .label("关于")
+                            .label(self.t("sample.about"))
                             .on_click(cx.listener(|s, _, w, cx| s.about(&About, w, cx))),
                     ),
             )
@@ -183,15 +226,22 @@ impl Workspace {
             .border_color(rgb(p.border))
             .children(
                 [
-                    "文件", "开始", "插入", "设计", "切换", "动画", "放映", "视图",
+                    ("file", "tab.file"),
+                    ("home", "tab.home"),
+                    ("insert", "tab.insert"),
+                    ("design", "tab.design"),
+                    ("transitions", "tab.transitions"),
+                    ("animations", "tab.animations"),
+                    ("show", "tab.show"),
+                    ("view", "tab.view"),
                 ]
                 .into_iter()
                 .enumerate()
-                .map(|(i, tab)| {
+                .map(|(i, (tab, key))| {
                     Button::new(("ribbon-tab", i))
                         .small()
                         .ghost()
-                        .label(tab)
+                        .label(self.t(key))
                         .text_color(rgb(if self.tab == tab { p.accent } else { p.text }))
                         .bg(if self.tab == tab {
                             rgb(p.selected).into()
@@ -217,19 +267,19 @@ impl Workspace {
             .bg(rgb(p.surface))
             .border_b_1()
             .border_color(rgb(p.border));
-        if self.tab == "视图" || self.tab == "开始" {
+        if self.tab == "view" || self.tab == "home" {
             ribbon = ribbon
                 .child(
                     Button::new("ribbon-previous")
                         .outline()
-                        .label("上一页")
+                        .label(self.t("sample.prev"))
                         .disabled(self.state.page() == 0)
                         .on_click(cx.listener(|s, _, w, cx| s.previous(&PreviousSlide, w, cx))),
                 )
                 .child(
                     Button::new("ribbon-next")
                         .outline()
-                        .label("下一页")
+                        .label(self.t("sample.next"))
                         .disabled(self.state.page() + 1 >= self.preview.slides.len())
                         .on_click(cx.listener(|s, _, w, cx| s.next(&NextSlide, w, cx))),
                 )
@@ -237,48 +287,77 @@ impl Workspace {
                 .child(
                     Button::new("ribbon-fit")
                         .ghost()
-                        .label("适应窗口")
+                        .label(self.t("sample.fit"))
                         .on_click(cx.listener(|s, _, w, cx| s.fit(&FitSlide, w, cx))),
                 )
                 .child(
                     Button::new("ribbon-pane")
                         .ghost()
-                        .label("属性")
+                        .label(self.t("sample.inspector"))
                         .on_click(cx.listener(|s, _, w, cx| s.inspector(&ToggleInspector, w, cx))),
                 )
                 .child(
                     Button::new("ribbon-notes")
                         .ghost()
-                        .label("备注")
+                        .label(self.t("sample.notes"))
                         .on_click(cx.listener(|s, _, w, cx| s.notes(&ToggleNotes, w, cx))),
                 );
         } else {
             let actions: &[&str] = match self.tab {
-                "文件" => &["新建", "打开", "保存", "导出"],
-                "插入" => &["文本框", "形状", "图片", "表格", "图表"],
-                "设计" => &["主题", "配色", "母版", "幻灯片大小"],
-                "切换" => &["切换效果", "持续时间", "应用到全部"],
-                "动画" => &["添加动画", "动画窗格", "预览"],
-                _ => &["从头开始", "从当前页", "演示者视图"],
+                "file" => &[
+                    "sample.stub.new",
+                    "sample.stub.open",
+                    "sample.stub.save",
+                    "sample.stub.export",
+                ],
+                "insert" => &[
+                    "sample.stub.textbox",
+                    "sample.stub.shapes",
+                    "sample.stub.picture",
+                    "sample.stub.table",
+                    "sample.stub.chart",
+                ],
+                "design" => &[
+                    "sample.stub.theme",
+                    "sample.stub.colors",
+                    "sample.stub.master",
+                    "sample.stub.slide_size",
+                ],
+                "transitions" => &[
+                    "sample.stub.transition",
+                    "sample.stub.duration",
+                    "sample.stub.apply_all",
+                ],
+                "animations" => &[
+                    "sample.stub.add_anim",
+                    "sample.stub.anim_pane",
+                    "sample.stub.preview",
+                ],
+                _ => &[
+                    "sample.stub.from_start",
+                    "sample.stub.from_current",
+                    "sample.stub.presenter",
+                ],
             };
             ribbon = ribbon
-                .children(actions.iter().enumerate().map(|(i, label)| {
+                .children(actions.iter().enumerate().map(|(i, key)| {
                     Button::new(("pending-action", i))
                         .outline()
-                        .label(*label)
+                        .label(self.t(key))
                         .disabled(true)
                 }))
                 .child(
                     div()
                         .text_size(px(12.))
                         .text_color(rgb(p.muted))
-                        .child("此能力正在迁移"),
+                        .child(self.t("sample.migrating")),
                 );
         }
         ribbon
     }
     fn thumbnails(&self, width: f32, cx: &mut Context<Self>) -> Stateful<Div> {
         let p = self.palette();
+        let count_s = self.preview.slides.len().to_string();
         div()
             .id("slide-rail")
             .w(px(width))
@@ -295,7 +374,11 @@ impl Workspace {
                     .mb_4()
                     .text_size(px(12.))
                     .text_color(rgb(p.muted))
-                    .child(format!("幻灯片 · {}", self.preview.slides.len())),
+                    .child(l10n::tf(
+                        self.locale,
+                        "sample.slides_count",
+                        &[("count", &count_s)],
+                    )),
             )
             .children(self.preview.slides.iter().enumerate().map(|(i, slide)| {
                 let selected = self.state.page() == i;
@@ -350,21 +433,26 @@ impl Workspace {
             .flex()
             .flex_col()
             .gap_4()
-            .child(div().font_weight(FontWeight::SEMIBOLD).child("幻灯片属性"))
             .child(
-                joyoffice_ui::field(p, "标题").child(
+                div()
+                    .font_weight(FontWeight::SEMIBOLD)
+                    .child(self.t("sample.props_heading")),
+            )
+            .child(
+                joyoffice_ui::field(p, self.t("sample.field_title")).child(
                     div()
                         .text_color(rgb(p.text))
                         .child(current.map(|s| s.title.clone()).unwrap_or_default()),
                 ),
             )
-            .child(
-                joyoffice_ui::field(p, "画布尺寸").child(div().text_color(rgb(p.text)).child(
-                    format!("{} × {} · 16:9", self.preview.width, self.preview.height),
+            .child(joyoffice_ui::field(p, self.t("sample.field_canvas")).child(
+                div().text_color(rgb(p.text)).child(format!(
+                    "{} × {} · 16:9",
+                    self.preview.width, self.preview.height
                 )),
-            )
+            ))
             .child(
-                joyoffice_ui::field(p, "主题配色").child(
+                joyoffice_ui::field(p, self.t("sample.field_theme")).child(
                     div().flex().gap_2().children(
                         [p.accent, 0x146c43, 0x315fa8, 0xe8c170, 0x26352d]
                             .into_iter()
@@ -372,26 +460,26 @@ impl Workspace {
                     ),
                 ),
             )
-            .child(joyoffice_ui::section(p, "技术预览"))
+            .child(joyoffice_ui::section(p, self.t("sample.preview_section")))
             .child(
                 div()
                     .text_size(px(12.))
                     .text_color(rgb(p.muted))
                     .line_height(px(21.))
-                    .child(
-                        "这是原创浏览样例。可切换页面、调整缩放与主题，展开备注体验原生文字输入。",
-                    ),
+                    .child(self.t("sample.preview_desc1")),
             )
             .child(
                 div()
                     .text_size(px(12.))
                     .text_color(rgb(p.muted))
                     .line_height(px(21.))
-                    .child("文件导入、内容编辑与保存将在后续阶段接入。"),
+                    .child(self.t("sample.preview_desc2")),
             )
     }
     fn status(&self, cx: &mut Context<Self>) -> Div {
         let p = self.palette();
+        let cur_s = (self.state.page() + 1).to_string();
+        let tot_s = self.preview.slides.len().to_string();
         div()
             .h(px(metrics::STATUS))
             .flex_shrink_0()
@@ -409,12 +497,12 @@ impl Workspace {
                     .flex()
                     .gap_4()
                     .items_center()
-                    .child(format!(
-                        "幻灯片 {} / {}",
-                        self.state.page() + 1,
-                        self.preview.slides.len()
+                    .child(l10n::tf(
+                        self.locale,
+                        "status.slide_of",
+                        &[("current", &cur_s), ("total", &tot_s)],
                     ))
-                    .child("原创示例 · 只读浏览"),
+                    .child(self.t("sample.readonly_badge")),
             )
             .child(
                 div()
@@ -425,14 +513,14 @@ impl Workspace {
                         Button::new("status-notes")
                             .xsmall()
                             .ghost()
-                            .label("备注")
+                            .label(self.t("sample.notes"))
                             .on_click(cx.listener(|s, _, w, cx| s.notes(&ToggleNotes, w, cx))),
                     )
                     .child(
                         Button::new("status-pane")
                             .xsmall()
                             .ghost()
-                            .label("属性")
+                            .label(self.t("sample.inspector"))
                             .on_click(
                                 cx.listener(|s, _, w, cx| s.inspector(&ToggleInspector, w, cx)),
                             ),
@@ -461,7 +549,7 @@ impl Workspace {
                         Button::new("status-fit")
                             .xsmall()
                             .ghost()
-                            .label("适应")
+                            .label(self.t("sample.fit_short"))
                             .on_click(cx.listener(|s, _, w, cx| s.fit(&FitSlide, w, cx))),
                     ),
             )
@@ -566,13 +654,14 @@ fn slide_element(slide: &PreviewSlide, scale: f32, index: usize, thumbnail: bool
 
 impl Render for Workspace {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        self.locale = joyoffice_ui::current_locale(cx);
         let p = self.palette();
         let layout = WorkspaceLayout::new(
             f32::from(window.viewport_size().width),
             f32::from(window.viewport_size().height),
             self.state.inspector,
             self.state.notes,
-            self.tab == "开始",
+            self.tab == "home",
         );
         let scale = layout.fit(self.preview.width, self.preview.height) * self.state.zoom;
         let mut center = div().flex_1().min_w_0().h_full().flex().flex_col().child(
@@ -616,9 +705,9 @@ impl Render for Workspace {
                         .xsmall()
                         .ghost()
                         .label(if self.state.notes {
-                            "演讲备注 · 本窗口临时输入"
+                            self.t("sample.notes_header")
                         } else {
-                            "点击添加演讲备注"
+                            self.t("sample.notes_placeholder")
                         })
                         .on_click(cx.listener(|s, _, w, cx| s.notes(&ToggleNotes, w, cx))),
                 )
@@ -675,11 +764,15 @@ fn apply_theme(theme: ThemePreset, window: Option<&mut Window>, cx: &mut App) {
 }
 
 pub fn run(arguments: impl Iterator<Item = String>) -> Result<(), String> {
-    let mut theme = joydeck_shell::storage::load_theme(&joydeck_shell::editor::recovery_root())
-        .unwrap_or_else(|error| {
-            eprintln!("JoyDeck appearance: {error}");
-            ThemePreset::ClassicLight
-        });
+    let root = joydeck_shell::editor::recovery_root();
+    let mut theme = joydeck_shell::storage::load_theme(&root).unwrap_or_else(|error| {
+        eprintln!("JoyDeck appearance: {error}");
+        ThemePreset::ClassicLight
+    });
+    let mut locale = joydeck_shell::storage::load_locale(&root).unwrap_or_else(|error| {
+        eprintln!("JoyDeck language: {error}");
+        UiLocale::default()
+    });
     let mut window_size = (1440., 900.);
     let mut input = None;
     let mut sample_workspace = false;
@@ -691,7 +784,7 @@ pub fn run(arguments: impl Iterator<Item = String>) -> Result<(), String> {
             "--sample-workspace" => sample_workspace = true,
             "--help" => {
                 println!(
-                    "JoyDeck [INPUT.pptx|INPUT.joydeck|INPUT.deckcraft] [--dark|--light] [--theme=PRESET] [--window-size=WIDTHxHEIGHT] [--control-stdio=AUTHORIZED_ROOT]\nR8 native ribbon editor, save/reopen and recovery. --sample-workspace opens the R0 UI sample."
+                    "JoyDeck [INPUT.pptx|INPUT.joydeck|INPUT.deckcraft] [--dark|--light] [--theme=PRESET] [--lang=LOCALE] [--window-size=WIDTHxHEIGHT] [--control-stdio=AUTHORIZED_ROOT]\nR8 native ribbon editor, save/reopen and recovery. --sample-workspace opens the R0 UI sample."
                 );
                 return Ok(());
             }
@@ -702,6 +795,10 @@ pub fn run(arguments: impl Iterator<Item = String>) -> Result<(), String> {
             _ if arg.starts_with("--theme=") => {
                 theme = ThemePreset::from_id(arg.trim_start_matches("--theme="))
                     .ok_or("unknown application theme")?;
+            }
+            _ if arg.starts_with("--lang=") => {
+                locale = UiLocale::from_tag(arg.trim_start_matches("--lang="))
+                    .ok_or("unsupported application language")?;
             }
             _ if arg.starts_with("--control-stdio=") => {
                 let root = std::path::PathBuf::from(arg.trim_start_matches("--control-stdio="));
@@ -760,10 +857,11 @@ pub fn run(arguments: impl Iterator<Item = String>) -> Result<(), String> {
         .run(move |cx| {
             gpui_kit::init(cx);
             apply_theme(theme, None, cx);
+            joyoffice_ui::apply_locale(locale, cx);
             viewer::bind(cx);
             #[cfg(target_os = "macos")]
             if !sample_workspace {
-                viewer::bind_native_menus(cx);
+                viewer::bind_native_menus(locale, cx);
             }
             cx.on_action(move |_: &Quit, cx| {
                 if sample_workspace {
@@ -814,7 +912,7 @@ pub fn run(arguments: impl Iterator<Item = String>) -> Result<(), String> {
                     },
                     cx,
                     move |window, cx| {
-                        window.set_window_title("JoyDeck · R0 原生技术预览");
+                        window.set_window_title(l10n::t(locale, "app.sample_window_title"));
                         cx.new(|cx| Workspace::new(preview, dark, window, cx))
                     },
                 )

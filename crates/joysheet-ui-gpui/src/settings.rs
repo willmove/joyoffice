@@ -35,8 +35,8 @@ impl Desktop {
             prefs.set_theme(theme);
         }
         if let Some(language) = params.get("language") {
-            let language = language.as_str().filter(|v| ["zh", "en"].contains(v)).ok_or("language must be zh or en")?;
-            prefs.language = language.into();
+            let locale = language.as_str().and_then(joyoffice_ui::UiLocale::from_tag).ok_or("unsupported language")?;
+            prefs.set_locale(locale);
         }
         if params.get("ribbonCollapsed").is_some() {
             return Err("The GPUI command strip is not collapsible".into());
@@ -47,11 +47,20 @@ impl Desktop {
         self.preferences = prefs;
         self.autosave_revision = None;
         joyoffice_ui::apply_theme(self.preferences.theme_preset(), joyoffice_ui::Brand::Sheet, None, cx);
+        joyoffice_ui::apply_locale(self.preferences.ui_locale(), cx);
         cx.set_global(crate::SharedPreferences(self.preferences.clone()));
         cx.notify();
-        Ok(
-            json!({"theme":self.preferences.theme_preset().id(),"dark":self.preferences.dark,"autosave":self.preferences.autosave,"formulaBar":self.preferences.formula_bar,"autocomplete":self.preferences.autocomplete,"recovery":self.preferences.recovery,"animations":self.preferences.animations,"language":self.preferences.language}),
-        )
+        Ok(json!({
+            "theme": self.preferences.theme_preset().id(),
+            "dark": self.preferences.dark,
+            "autosave": self.preferences.autosave,
+            "formulaBar": self.preferences.formula_bar,
+            "autocomplete": self.preferences.autocomplete,
+            "recovery": self.preferences.recovery,
+            "animations": self.preferences.animations,
+            "language": self.preferences.ui_locale().tag(),
+            "languages": joyoffice_ui::UiLocale::ALL.iter().map(|l| l.tag()).collect::<Vec<_>>(),
+        }))
     }
     pub fn settings_panel(&self, cx: &mut Context<Self>) -> impl IntoElement + use<> {
         let mut panel = div()
@@ -92,8 +101,8 @@ impl Desktop {
                     .p_0()
                     .selected(self.preferences.theme_preset() == theme)
                     .toggled(self.preferences.theme_preset() == theme)
-                    .accessibility_label(theme.label(self.chinese()))
-                    .child(joyoffice_ui::theme_preview(theme, joyoffice_ui::Brand::Sheet, self.chinese()))
+                    .accessibility_label(joyoffice_ui::theme_label(theme, self.locale()))
+                    .child(joyoffice_ui::theme_preview_for(theme, joyoffice_ui::Brand::Sheet, self.locale()))
                     .on_click(cx.listener(move |this, _, _, cx| {
                         if let Err(error) = this.set_options(&json!({"theme":theme.id()}), cx) {
                             this.alert(error);
@@ -115,12 +124,16 @@ impl Desktop {
                     }
                 })));
         }
-        panel = panel.child(Button::new("settings-language").label(self.label("界面语言：中文 → English", "Language: English → 中文")).on_click(
-            cx.listener(|this, _, _, cx| {
-                let next = if this.chinese() { "en" } else { "zh" };
-                let _ = this.set_options(&json!({"language":next}), cx);
-            }),
-        ));
+        panel = panel.child({
+            let view = cx.entity().downgrade();
+            joyoffice_ui::language_options_section(self.locale(), self.palette(), 370.0, move |locale, _, cx| {
+                let _ = view.update(cx, |this, cx| {
+                    if let Err(error) = this.set_options(&json!({"language": locale.tag()}), cx) {
+                        this.alert(error);
+                    }
+                });
+            })
+        });
         panel = panel.child(Button::new("open-recovery").label("恢复其他会话的副本… / Recovery copies…").on_click(cx.listener(|this, _, _, cx| {
             this.daily_group = 21;
             cx.notify();

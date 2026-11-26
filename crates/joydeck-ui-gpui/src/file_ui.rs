@@ -23,6 +23,17 @@ pub(super) enum Page {
 
 const TEMPLATES: [&str; 4] = ["空白演示文稿", "简洁简报", "课程讲义", "项目计划"];
 
+fn template_display_name(locale: joyoffice_ui::UiLocale, internal: &str) -> &'static str {
+    let key = match internal {
+        "空白演示文稿" => "template.blank",
+        "简洁简报" => "template.brief",
+        "课程讲义" => "template.course",
+        "项目计划" => "template.plan",
+        _ => return crate::l10n::t(locale, "template.blank"),
+    };
+    crate::l10n::t(locale, key)
+}
+
 fn nav_button(
     id: &'static str,
     label: &'static str,
@@ -89,26 +100,36 @@ fn recent_filter(id: &'static str, label: &'static str, selected: bool, p: Palet
         )
 }
 
-fn modified_label(modified: Option<SystemTime>) -> String {
+fn modified_label(locale: joyoffice_ui::UiLocale, modified: Option<SystemTime>) -> String {
     let Some(age) = modified.and_then(|time| SystemTime::now().duration_since(time).ok()) else {
         return "—".into();
     };
     match age.as_secs() {
-        0..60 => "刚刚".into(),
-        seconds @ 60..3600 => format!("{} 分钟前", seconds / 60),
-        seconds @ 3600..86400 => format!("{} 小时前", seconds / 3600),
-        seconds => format!("{} 天前", seconds / 86400),
+        0..60 => crate::l10n::t(locale, "file.modified.just_now").into(),
+        seconds @ 60..3600 => {
+            let n = (seconds / 60).to_string();
+            crate::l10n::tf(locale, "file.modified.minutes_ago", &[("count", &n)])
+        }
+        seconds @ 3600..86400 => {
+            let n = (seconds / 3600).to_string();
+            crate::l10n::tf(locale, "file.modified.hours_ago", &[("count", &n)])
+        }
+        seconds => {
+            let n = (seconds / 86400).to_string();
+            crate::l10n::tf(locale, "file.modified.days_ago", &[("count", &n)])
+        }
     }
 }
 
-fn greeting() -> &'static str {
-    match joydeck_text::datetime::DateTime::now_local().map(|time| time.hour) {
-        Some(0..=10) => "早上好",
-        Some(11..=12) => "中午好",
-        Some(13..=17) => "下午好",
-        Some(_) => "晚上好",
-        None => "欢迎使用 JoyDeck",
-    }
+fn greeting(locale: joyoffice_ui::UiLocale) -> &'static str {
+    let key = match joydeck_text::datetime::DateTime::now_local().map(|time| time.hour) {
+        Some(0..=10) => "file.greeting.morning",
+        Some(11..=12) => "file.greeting.noon",
+        Some(13..=17) => "file.greeting.afternoon",
+        Some(_) => "file.greeting.evening",
+        None => "file.greeting.welcome",
+    };
+    crate::l10n::t(locale, key)
 }
 
 impl Viewer {
@@ -180,6 +201,7 @@ impl Viewer {
         if !self.template_previews.is_empty() || self.template_preview_task.is_some() {
             return;
         }
+        let locale = self.locale;
         self.template_preview_task = Some(cx.spawn(async move |view, cx| {
             let previews = cx
                 .background_executor()
@@ -193,7 +215,7 @@ impl Viewer {
                                 false,
                             );
                             if name != TEMPLATES[0] {
-                                populate_template(&mut session, name)?;
+                                populate_template_for(&mut session, name, locale)?;
                             }
                             let doc = Deck::from_model(name.into(), session.model().clone())?;
                             let mut raster =
@@ -201,11 +223,14 @@ impl Viewer {
                             for pixel in raster.pixels.as_chunks_mut::<4>().0 {
                                 pixel.swap(0, 2);
                             }
-                            image_of(Raster {
-                                width: raster.width,
-                                height: raster.height,
-                                bgra: raster.pixels,
-                            })
+                            image_of(
+                                Raster {
+                                    width: raster.width,
+                                    height: raster.height,
+                                    bgra: raster.pixels,
+                                },
+                                locale,
+                            )
                         })
                         .collect::<Vec<_>>()
                 })
@@ -271,11 +296,11 @@ impl Viewer {
 
     fn file_header(&self, p: Palette) -> impl IntoElement {
         let status = if self.editor.as_ref().is_some_and(|e| e.session.dirty()) {
-            "有未保存的更改"
+            self.t("file.state.dirty")
         } else if self.source.is_some() {
-            "已保存到这台电脑"
+            self.t("file.state.saved")
         } else {
-            "未保存"
+            self.t("file.state.unsaved")
         };
         div()
             .id("file-title-bar")
@@ -322,9 +347,14 @@ impl Viewer {
     fn file_navigation(&self, p: Palette, cx: &mut Context<Self>) -> Div {
         let mut top = div().flex().flex_col().flex_shrink_0();
         for (id, label, icon, page) in [
-            ("file-start", "开始", I::House, Page::Home),
-            ("file-new", "新建", I::FilePlus, Page::New),
-            ("file-open-page", "打开", I::FolderOpen, Page::Open),
+            ("file-start", self.t("file.nav.home"), I::House, Page::Home),
+            ("file-new", self.t("file.nav.new"), I::FilePlus, Page::New),
+            (
+                "file-open-page",
+                self.t("file.nav.open"),
+                I::FolderOpen,
+                Page::Open,
+            ),
         ] {
             top = top.child(
                 nav_button(id, label, icon, self.file_page == page, p)
@@ -333,15 +363,15 @@ impl Viewer {
         }
         top = top
             .child(
-                nav_button("file-share", "共享", I::Share, false, p)
+                nav_button("file-share", self.t("file.nav.share"), I::Share, false, p)
                     .disabled(true)
-                    .tooltip("暂不支持共享"),
+                    .tooltip(self.t("file.nav.share_tip")),
             )
             .child(divider(p))
             .child(
                 nav_button(
                     "file-info",
-                    "信息",
+                    self.t("file.nav.info"),
                     I::Info,
                     self.file_page == Page::Info,
                     p,
@@ -349,18 +379,34 @@ impl Viewer {
                 .on_click(cx.listener(|s, _, w, cx| s.select_file_page(Page::Info, w, cx))),
             )
             .child(
-                nav_button("file-save", "保存", I::Save, false, p)
+                nav_button("file-save", self.t("file.nav.save"), I::Save, false, p)
                     .disabled(self.save_unavailable().is_some())
                     .on_click(cx.listener(|s, _, w, cx| s.save(&Save, w, cx))),
             )
             .child(
-                nav_button("file-save-as", "另存为", I::SaveAll, false, p)
-                    .disabled(self.save_unavailable().is_some())
-                    .on_click(cx.listener(|s, _, w, cx| s.save_as(&SaveAs, w, cx))),
+                nav_button(
+                    "file-save-as",
+                    self.t("file.nav.save_as"),
+                    I::SaveAll,
+                    false,
+                    p,
+                )
+                .disabled(self.save_unavailable().is_some())
+                .on_click(cx.listener(|s, _, w, cx| s.save_as(&SaveAs, w, cx))),
             );
         for (id, label, icon, page) in [
-            ("file-print-page", "打印", I::Printer, Page::Print),
-            ("file-export-page", "导出", I::FileOutput, Page::Export),
+            (
+                "file-print-page",
+                self.t("file.nav.print"),
+                I::Printer,
+                Page::Print,
+            ),
+            (
+                "file-export-page",
+                self.t("file.nav.export"),
+                I::FileOutput,
+                Page::Export,
+            ),
         ] {
             top = top.child(
                 nav_button(id, label, icon, self.file_page == page, p)
@@ -368,8 +414,14 @@ impl Viewer {
             );
         }
         top = top.child(
-            nav_button("file-close", "关闭", I::FolderClosed, false, p)
-                .on_click(cx.listener(|s, _, w, cx| s.request_close(&CloseEditor, w, cx))),
+            nav_button(
+                "file-close",
+                self.t("file.nav.close"),
+                I::FolderClosed,
+                false,
+                p,
+            )
+            .on_click(cx.listener(|s, _, w, cx| s.request_close(&CloseEditor, w, cx))),
         );
         div()
             .w(px(200.))
@@ -392,8 +444,8 @@ impl Viewer {
                             .w(px(28.))
                             .h(px(28.))
                             .p_0()
-                            .accessibility_label("返回演示文稿")
-                            .tooltip("返回 · Esc")
+                            .accessibility_label(self.t("file.nav.back_aria"))
+                            .tooltip(self.t("file.nav.back_tip"))
                             .on_click(cx.listener(|s, _, w, cx| s.close_file_page(w, cx))),
                     ),
             )
@@ -407,14 +459,20 @@ impl Viewer {
             )
             .child(divider(p))
             .child(
-                nav_button("file-account", "帐户", I::UserRound, false, p)
-                    .disabled(true)
-                    .tooltip("暂不支持帐户登录"),
+                nav_button(
+                    "file-account",
+                    self.t("file.nav.account"),
+                    I::UserRound,
+                    false,
+                    p,
+                )
+                .disabled(true)
+                .tooltip(self.t("file.nav.account_tip")),
             )
             .child(
                 nav_button(
                     "file-options",
-                    "选项",
+                    self.t("file.nav.options"),
                     I::Settings,
                     self.file_page == Page::Options,
                     p,
@@ -422,7 +480,7 @@ impl Viewer {
                 .on_click(cx.listener(|s, _, w, cx| s.select_file_page(Page::Options, w, cx))),
             )
             .child(
-                nav_button("file-about", "关于", I::Info, false, p)
+                nav_button("file-about", self.t("file.nav.about"), I::Info, false, p)
                     .on_click(|_, w, cx| crate::show_about(w, cx)),
             )
     }
@@ -437,7 +495,7 @@ impl Viewer {
                     .h(px(44.))
                     .text_size(px(30.))
                     .font_weight(FontWeight::SEMIBOLD)
-                    .child(greeting()),
+                    .child(greeting(self.locale)),
             )
             .child(self.file_templates(true, cx))
             .child(div().mt(px(58.)).child(self.recent_panel(cx)))
@@ -454,12 +512,13 @@ impl Viewer {
                 Button::new("new-window")
                     .ghost()
                     .icon(I::PanelsTopLeft)
-                    .label("在新窗口中新建空白文稿")
+                    .label(self.t("file.new_blank_window"))
                     .on_click(cx.listener(|s, _, _, cx| {
                         match super::open_window(s.dark, (1440., 900.), cx) {
                             Ok((handle, view)) => super::new_document(&view, handle, cx),
                             Err(error) => {
-                                s.message = format!("无法新建窗口：{error}");
+                                let err_s = error.to_string();
+                                s.message = s.tf("file.new_window_failed", &[("error", &err_s)]);
                                 cx.notify();
                             }
                         }
@@ -479,7 +538,7 @@ impl Viewer {
                     .ghost()
                     .p_0()
                     .h(px(36.))
-                    .accessibility_label("展开或折叠新建模板")
+                    .accessibility_label(self.t("file.toggle_templates_aria"))
                     .child(
                         div()
                             .flex()
@@ -497,7 +556,7 @@ impl Viewer {
                                 div()
                                     .text_size(px(23.))
                                     .font_weight(FontWeight::SEMIBOLD)
-                                    .child("新建"),
+                                    .child(self.t("file.nav.new")),
                             ),
                     )
                     .on_click(cx.listener(move |s, _, _, cx| {
@@ -512,14 +571,14 @@ impl Viewer {
                 d.child(
                     Button::new("file-more-templates")
                         .ghost()
-                        .accessibility_label("更多主题")
+                        .accessibility_label(self.t("file.more_themes"))
                         .child(
                             div()
                                 .flex()
                                 .items_center()
                                 .gap(px(12.))
                                 .text_color(rgb(p.accent))
-                                .child(div().text_size(px(14.)).child("更多主题"))
+                                .child(div().text_size(px(14.)).child(self.t("file.more_themes")))
                                 .child(Icon::new(I::ArrowRight).size(px(20.))),
                         )
                         .on_click(cx.listener(|s, _, w, cx| s.select_file_page(Page::New, w, cx))),
@@ -554,6 +613,7 @@ impl Viewer {
         p: Palette,
         cx: &mut Context<Self>,
     ) -> Button {
+        let display_name = template_display_name(self.locale, name);
         let preview = self.template_previews.get(index);
         let mut image = div()
             .w(px(176.))
@@ -574,7 +634,7 @@ impl Viewer {
                     .p_2()
                     .text_size(px(12.))
                     .text_color(rgb(p.muted))
-                    .child(format!("预览不可用：{error}")),
+                    .child(self.tf("file.preview_unavailable", &[("error", error)])),
             );
         }
         Button::new(("file-template", index))
@@ -582,8 +642,8 @@ impl Viewer {
             .w(px(216.))
             .h(px(158.))
             .p_0()
-            .accessibility_label(name)
-            .tooltip(name)
+            .accessibility_label(display_name)
+            .tooltip(display_name)
             .disabled(self.loading || self.composing() || self.is_saving())
             .child(
                 div()
@@ -598,7 +658,7 @@ impl Viewer {
                         div()
                             .text_size(px(14.))
                             .font_weight(FontWeight::SEMIBOLD)
-                            .child(name),
+                            .child(display_name),
                     ),
             )
             .on_click(cx.listener(move |s, _, w, cx| {
@@ -619,13 +679,13 @@ impl Viewer {
                 div()
                     .text_size(px(30.))
                     .font_weight(FontWeight::SEMIBOLD)
-                    .child("打开"),
+                    .child(self.t("file.nav.open")),
             )
             .child(
                 Button::new("file-browse")
                     .ghost()
                     .icon(I::FolderOpen)
-                    .label("浏览这台电脑")
+                    .label(self.t("file.browse_pc"))
                     .on_click(cx.listener(|s, _, w, cx| s.open(&Open, w, cx))),
             )
             .child(self.recent_panel(cx))
@@ -640,16 +700,21 @@ impl Viewer {
             .items_center()
             .flex_wrap()
             .gap_3()
-            .child(recent_filter("recent-tab", "最近", true, p))
+            .child(recent_filter(
+                "recent-tab",
+                self.t("file.tab.recent"),
+                true,
+                p,
+            ))
             .child(
-                recent_filter("favorite-tab", "收藏夹", false, p)
+                recent_filter("favorite-tab", self.t("file.tab.favorites"), false, p)
                     .disabled(true)
-                    .tooltip("暂不支持收藏文件"),
+                    .tooltip(self.t("file.tab.favorites_tip")),
             )
             .child(
-                recent_filter("shared-tab", "与我共享", false, p)
+                recent_filter("shared-tab", self.t("file.tab.shared"), false, p)
                     .disabled(true)
-                    .tooltip("暂不支持共享文件"),
+                    .tooltip(self.t("file.tab.shared_tip")),
             )
             .child(div().flex_1())
             .child(
@@ -657,7 +722,7 @@ impl Viewer {
                     Input::new(&self.file_search)
                         .large()
                         .prefix(Icon::new(I::Search).size(px(21.)))
-                        .aria_label("搜索最近文件")
+                        .aria_label(self.t("file.search_recent_aria"))
                         .w_full(),
                 ),
             );
@@ -668,8 +733,18 @@ impl Viewer {
                 .h(px(32.))
                 .border_b_1()
                 .border_color(rgb(p.border))
-                .child(div().flex_1().text_size(px(13.)).child("名称"))
-                .child(div().w(px(142.)).text_size(px(13.)).child("已修改日期")),
+                .child(
+                    div()
+                        .flex_1()
+                        .text_size(px(13.))
+                        .child(self.t("file.col.name")),
+                )
+                .child(
+                    div()
+                        .w(px(142.))
+                        .text_size(px(13.))
+                        .child(self.t("file.col.modified")),
+                ),
         );
         match &self.recent_paths {
             Ok(files) => {
@@ -689,15 +764,19 @@ impl Viewer {
                             .text_size(px(14.))
                             .text_color(rgb(p.muted))
                             .child(if query.is_empty() {
-                                "打开或保存文稿后，会在这里显示最近文件。"
+                                self.t("file.recent.empty")
                             } else {
-                                "没有找到匹配的文件。"
+                                self.t("file.recent.no_match")
                             }),
                     );
                 }
             }
             Err(error) => {
-                list = list.child(div().py_6().child(format!("最近文件记录不可读取：{error}")));
+                list = list.child(
+                    div()
+                        .py_6()
+                        .child(self.tf("file.recent.error", &[("error", error)])),
+                );
             }
         }
         div().flex().flex_col().child(header).child(list)
@@ -718,7 +797,7 @@ impl Viewer {
             .to_string_lossy()
             .into_owned();
         let directory = path.parent().map(display_path).unwrap_or_default();
-        let accessible = format!("打开最近文件 {label}");
+        let accessible = self.tf("file.recent.open_aria", &[("label", &label)]);
         Button::new(("recent-file", index))
             .ghost()
             .w_full()
@@ -762,7 +841,7 @@ impl Viewer {
                         div()
                             .w(px(130.))
                             .text_size(px(13.))
-                            .child(modified_label(recent.modified)),
+                            .child(modified_label(self.locale, recent.modified)),
                     ),
             )
             .on_click(cx.listener(move |s, _, w, cx| s.open_path(path.clone(), w, cx)))
@@ -779,7 +858,7 @@ impl Viewer {
                 div()
                     .text_size(px(30.))
                     .font_weight(FontWeight::SEMIBOLD)
-                    .child("信息"),
+                    .child(self.t("file.nav.info")),
             )
             .child(
                 div()
@@ -790,16 +869,21 @@ impl Viewer {
                 div().text_size(px(14.)).text_color(rgb(p.muted)).child(
                     self.source
                         .as_ref()
-                        .map_or_else(|| "文稿尚未保存".into(), |p| display_path(p)),
+                        .map_or_else(|| self.t("file.info.unsaved").into(), |p| display_path(p)),
                 ),
             );
         if let Some(editor) = &self.editor {
             let model = editor.session.model();
-            panel = panel.child(format!(
-                "{} 张幻灯片 · 页面尺寸 {:.0} × {:.0} 磅",
-                model.slides.len(),
-                model.slide_size.width,
-                model.slide_size.height
+            let count_s = model.slides.len().to_string();
+            let width_s = format!("{:.0}", model.slide_size.width);
+            let height_s = format!("{:.0}", model.slide_size.height);
+            panel = panel.child(self.tf(
+                "file.info.summary",
+                &[
+                    ("count", &count_s),
+                    ("width", &width_s),
+                    ("height", &height_s),
+                ],
             ));
         }
         panel
@@ -807,7 +891,7 @@ impl Viewer {
                 Button::new("file-properties")
                     .ghost()
                     .icon(I::FilePenLine)
-                    .label("文稿属性")
+                    .label(self.t("file.info.properties"))
                     .disabled(self.editor.is_none())
                     .on_click(
                         cx.listener(|s, _, w, cx| {
@@ -819,14 +903,14 @@ impl Viewer {
                 Button::new("file-compatibility")
                     .ghost()
                     .icon(I::FileCheck)
-                    .label("兼容性检查")
+                    .label(self.t("file.info.compatibility"))
                     .on_click(cx.listener(|s, _, w, cx| s.report(&Report, w, cx))),
             )
             .child(
                 Button::new("file-recover")
                     .ghost()
                     .icon(I::FolderClock)
-                    .label("恢复未保存文稿")
+                    .label(self.t("file.info.recover"))
                     .on_click(cx.listener(|s, _, w, cx| s.recover(w, cx))),
             )
     }
@@ -838,14 +922,18 @@ impl Viewer {
             div()
                 .text_size(px(30.))
                 .font_weight(FontWeight::SEMIBOLD)
-                .child("打印"),
+                .child(self.t("file.nav.print")),
         );
         for (id, label, layout) in [
-            ("print-slides", "打印幻灯片", PageLayout::Slides),
-            ("print-notes", "打印备注页", PageLayout::Notes),
+            (
+                "print-slides",
+                self.t("file.print.slides"),
+                PageLayout::Slides,
+            ),
+            ("print-notes", self.t("file.print.notes"), PageLayout::Notes),
             (
                 "print-handouts",
-                "打印讲义",
+                self.t("file.print.handouts"),
                 PageLayout::Handouts { per_page: 3 },
             ),
         ] {
@@ -873,12 +961,14 @@ impl Viewer {
                 div()
                     .text_size(px(30.))
                     .font_weight(FontWeight::SEMIBOLD)
-                    .child("导出"),
+                    .child(self.t("file.nav.export")),
             )
             .child(self.delivery_toolbar(cx))
     }
 
     fn file_options(&self, cx: &mut Context<Self>) -> Div {
+        let p = self.palette();
+        let view = cx.entity().downgrade();
         div()
             .flex()
             .flex_col()
@@ -887,13 +977,25 @@ impl Viewer {
                 div()
                     .text_size(px(30.))
                     .font_weight(FontWeight::SEMIBOLD)
-                    .child("选项"),
+                    .child(self.t("file.nav.options")),
             )
-            .child(div().text_size(px(18.)).child("外观"))
+            .child(joyoffice_ui::language_options_section(
+                self.locale,
+                p,
+                360.0,
+                move |locale, w, cx| {
+                    let _ = view.update(cx, |s, cx| s.select_locale(locale, w, cx));
+                },
+            ))
             .child(
                 div()
-                    .text_color(rgb(self.palette().muted))
-                    .child("仅更改界面外观，不影响演示文稿内容。"),
+                    .text_size(px(18.))
+                    .child(self.t("file.options.appearance")),
+            )
+            .child(
+                div()
+                    .text_color(rgb(p.muted))
+                    .child(self.t("file.options.appearance_desc")),
             )
             .child(div().flex().flex_wrap().gap_2().max_w(px(360.)).children(
                 joyoffice_ui::ThemePreset::ALL.into_iter().map(|theme| {
@@ -903,11 +1005,11 @@ impl Viewer {
                         .p_0()
                         .selected(self.theme == theme)
                         .toggled(self.theme == theme)
-                        .accessibility_label(theme.label(true))
-                        .child(joyoffice_ui::theme_preview(
+                        .accessibility_label(joyoffice_ui::theme_label(theme, self.locale))
+                        .child(joyoffice_ui::theme_preview_for(
                             theme,
                             joyoffice_ui::Brand::Deck,
-                            true,
+                            self.locale,
                         ))
                         .on_click(cx.listener(move |s, _, w, cx| s.select_theme(theme, w, cx)))
                 }),
@@ -922,7 +1024,7 @@ impl Viewer {
         if self.confirm_replace(document_ui::ReplaceDocument::Template(name), w, cx) {
             return;
         }
-        let result = template_editor(name, joydeck_shell::editor::recovery_root());
+        let result = template_editor_for(name, self.locale, joydeck_shell::editor::recovery_root());
         match result {
             Ok(editor) => {
                 self.stop_read();
@@ -937,7 +1039,8 @@ impl Viewer {
                 self.generation += 1;
                 self.sync_editor(w, cx);
                 self.checkpoint(cx);
-                self.message = format!("已从“{name}”新建，请另存文稿");
+                let display = template_display_name(self.locale, name);
+                self.message = self.tf("file.template_created", &[("name", display)]);
             }
             Err(error) => self.message = error,
         }
@@ -945,35 +1048,49 @@ impl Viewer {
     }
 }
 
+#[cfg_attr(not(test), allow(dead_code))]
 fn template_editor(
     name: &str,
     root: std::path::PathBuf,
 ) -> Result<joydeck_shell::editor::Editor, String> {
+    template_editor_for(name, joyoffice_ui::UiLocale::ZhCn, root)
+}
+
+fn template_editor_for(
+    name: &str,
+    locale: joyoffice_ui::UiLocale,
+    root: std::path::PathBuf,
+) -> Result<joydeck_shell::editor::Editor, String> {
     let mut editor = joydeck_shell::editor::Editor::new(root)?;
-    populate_template(&mut editor.session, name)?;
+    populate_template_for(&mut editor.session, name, locale)?;
     let snapshot = editor.session.snapshot();
     editor.session = Session::new(snapshot.model.as_ref().clone(), snapshot.origins, false);
     Ok(editor)
 }
 
-fn populate_template(session: &mut Session, name: &str) -> Result<(), String> {
-    let pages: &[(&str, &str)] = match name {
-        "简洁简报" => &[
-            ("项目简报", "主题 · 日期 · 汇报人"),
-            ("关键结论", "结论一\n结论二\n下一步行动"),
-            ("行动计划", "任务 · 负责人 · 完成时间"),
+fn populate_template_for(
+    session: &mut Session,
+    name: &str,
+    locale: joyoffice_ui::UiLocale,
+) -> Result<(), String> {
+    let t = |key: &'static str| crate::l10n::t(locale, key);
+    let pages: [(&str, &str); 3] = match name {
+        "简洁简报" => [
+            (t("template.brief.s1_title"), t("template.brief.s1_body")),
+            (t("template.brief.s2_title"), t("template.brief.s2_body")),
+            (t("template.brief.s3_title"), t("template.brief.s3_body")),
         ],
-        "课程讲义" => &[
-            ("课程主题", "学习目标与适用对象"),
-            ("核心概念", "概念说明\n原创示例\n练习与讨论"),
-            ("课程回顾", "重点总结\n课后练习"),
+        "课程讲义" => [
+            (t("template.course.s1_title"), t("template.course.s1_body")),
+            (t("template.course.s2_title"), t("template.course.s2_body")),
+            (t("template.course.s3_title"), t("template.course.s3_body")),
         ],
-        "项目计划" => &[
-            ("项目计划", "项目目标与预期成果"),
-            ("里程碑", "启动\n实施\n验收"),
-            ("风险与资源", "主要风险\n应对措施\n所需资源"),
+        "项目计划" => [
+            (t("template.plan.s1_title"), t("template.plan.s1_body")),
+            (t("template.plan.s2_title"), t("template.plan.s2_body")),
+            (t("template.plan.s3_title"), t("template.plan.s3_body")),
         ],
-        _ => return Err("未知模板".to_string()),
+        _ => return Err(t("file.template_unknown").to_string()),
     };
     let ids = session.model().slides[0]
         .shapes
@@ -1013,7 +1130,9 @@ fn populate_template(session: &mut Session, name: &str) -> Result<(), String> {
 
 #[cfg(test)]
 mod tests {
-    use super::template_editor;
+    use super::{template_editor, template_editor_for};
+    use joyoffice_ui::UiLocale;
+
     #[test]
     fn starter_templates_create_save_and_reopen_all_three_pages() {
         let root = std::env::temp_dir().join(format!(
@@ -1051,6 +1170,32 @@ mod tests {
                 serde_json::to_value(reopened.session.model()).unwrap()
             );
             assert!(!reopened.session.dirty());
+        }
+        for (name, titles) in [
+            (
+                "简洁简报",
+                ["Executive Brief", "Key Takeaways", "Action Plan"],
+            ),
+            ("课程讲义", ["Course Topic", "Core Concepts", "Summary"]),
+            (
+                "项目计划",
+                ["Project Plan", "Milestones", "Risks & Resources"],
+            ),
+        ] {
+            let result = template_editor_for(name, UiLocale::En, root.join("recovery-en"));
+            assert!(
+                result.is_ok(),
+                "english template {name} failed: {:?}",
+                result.err()
+            );
+            if let Ok(editor) = result {
+                assert_eq!(editor.session.model().slides.len(), 3);
+                for (slide, title) in editor.session.model().slides.iter().zip(titles) {
+                    assert!(slide.shapes.iter().any(|shape| {
+                        shape.text.as_ref().is_some_and(|text| text.text() == title)
+                    }));
+                }
+            }
         }
         std::fs::remove_dir_all(root).unwrap();
     }

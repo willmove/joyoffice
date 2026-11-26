@@ -1,0 +1,17 @@
+# Shared JoyOffice UI strings (zh-CN).
+# Shared across JoyWord, JoyDeck, and JoySheet.
+
+theme.verdant-light = 青岚 · 亮色
+theme.verdant-dark = 青岚 · 暗色
+theme.classic-light = 素雅 · 亮色
+theme.classic-dark = 素雅 · 暗色
+theme.azure-light = 晴空 · 亮色
+theme.azure-dark = 晴空 · 暗色
+theme.sandstone-light = 暖砂 · 亮色
+theme.sandstone-dark = 暖砂 · 暗色
+
+language.section = 界面语言
+language.description = 仅更改应用界面语言，不影响文档内容。
+language.selector_aria = 界面语言
+language.switch_tooltip = 切换界面语言
+language.current = 当前：{name}

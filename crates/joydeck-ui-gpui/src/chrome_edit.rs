@@ -1,21 +1,22 @@
 //! Editing affordances shared by the native ribbon, dialogs and keyboard routes.
 use super::*;
+use crate::l10n::{t, tf};
 use gpui_kit::component::{Sizable, button::ButtonVariants, tooltip::Tooltip};
 use joydeck_engine::Command;
 use joydeck_model::{
     edit,
     text::{Align, Bullet, RunProps, Strike, TextBody},
 };
-use joyoffice_ui::IconName as I;
+use joyoffice_ui::{IconName as I, UiLocale};
 
-fn unavailable_format(id: &'static str, icon: I, label: &'static str) -> Button {
+fn unavailable_format(locale: UiLocale, id: &'static str, icon: I, label: &'static str) -> Button {
     Button::new(id)
         .ghost()
         .xsmall()
         .icon(icon)
         .h(px(25.))
         .w(px(26.))
-        .accessibility_label(format!("{label}（暂不支持）"))
+        .accessibility_label(tf(locale, "common.unsupported_suffix", &[("label", label)]))
         .disabled(true)
 }
 
@@ -132,6 +133,7 @@ impl Viewer {
         self.formatting().run
     }
     pub(super) fn font_group(&self, cx: &mut Context<Self>) -> Div {
+        let locale = self.locale;
         let state = self.formatting();
         let empty = state.is_empty();
         let disabled = empty || self.loading || self.composing();
@@ -141,42 +143,42 @@ impl Viewer {
         for (id, label, icon, property, on) in [
             (
                 "font-bold",
-                "加粗",
+                t(locale, "font.bold"),
                 I::Bold,
                 "bold",
                 props.bold == Some(true),
             ),
             (
                 "font-italic",
-                "倾斜",
+                t(locale, "font.italic"),
                 I::Italic,
                 "italic",
                 props.italic == Some(true),
             ),
             (
                 "font-underline",
-                "下划线",
+                t(locale, "font.underline"),
                 I::Underline,
                 "underline",
                 props.underline.as_deref().is_some_and(|u| u != "none"),
             ),
             (
                 "font-strike",
-                "删除线",
+                t(locale, "font.strikethrough"),
                 I::Strikethrough,
                 "strike",
                 props.strike.is_some_and(|strike| strike != Strike::None),
             ),
             (
                 "font-super",
-                "上标",
+                t(locale, "font.superscript"),
                 I::Superscript,
                 "baseline",
                 props.baseline.is_some_and(|value| value > 0.),
             ),
             (
                 "font-sub",
-                "下标",
+                t(locale, "font.subscript"),
                 I::Subscript,
                 "baseline",
                 props.baseline.is_some_and(|value| value < 0.),
@@ -184,7 +186,7 @@ impl Viewer {
         ] {
             let mixed = state.mixed.contains(property);
             let accessible = if mixed {
-                format!("{label}（混合格式）")
+                tf(locale, "common.mixed_format_suffix", &[("label", label)])
             } else {
                 label.into()
             };
@@ -226,36 +228,39 @@ impl Viewer {
             .xsmall()
             .icon(I::RemoveFormatting)
             .h(px(23.))
-            .accessibility_label("清除字符格式")
-            .tooltip("清除字符格式")
+            .accessibility_label(t(locale, "font.clear_formatting"))
+            .tooltip(t(locale, "font.clear_formatting"))
             .disabled(disabled)
             .on_click(cx.listener(|s, _, w, cx| {
                 s.format_runs(joydeck_engine::formatting::clear_character_format, w, cx)
             }));
         formats = formats
             .child(unavailable_format(
+                locale,
                 "font-spacing",
                 I::MoveHorizontal,
-                "字符间距",
+                t(locale, "font.char_spacing"),
             ))
             .child(unavailable_format(
+                locale,
                 "font-case",
                 I::CaseSensitive,
-                "更改大小写",
+                t(locale, "font.change_case"),
             ))
             .child(unavailable_format(
+                locale,
                 "font-highlight",
                 I::Highlighter,
-                "文本突出显示颜色",
+                t(locale, "font.highlight_color"),
             ))
             .child(self.font_color_picker(disabled, cx));
         let family = props.font.filter(|s| !s.starts_with('+')).unwrap_or(
             if empty {
                 ""
             } else if state.mixed.contains("font") || state.mixed.contains("font_ea") {
-                "混合字体"
+                t(locale, "font.mixed")
             } else {
-                "主题字体"
+                t(locale, "font.theme_font")
             }
             .into(),
         );
@@ -270,8 +275,8 @@ impl Viewer {
                     .child(
                         gpui_kit::component::select::Select::new(&self.font_picker)
                             .xsmall()
-                            .accessibility_label("字体名称")
-                            .search_placeholder("搜索已安装字体")
+                            .accessibility_label(t(locale, "font.name_aria"))
+                            .search_placeholder(t(locale, "font.search_placeholder"))
                             .placeholder(family)
                             .menu_width(px(260.))
                             .menu_max_h(px(360.))
@@ -287,8 +292,8 @@ impl Viewer {
                             .label("A+")
                             .h(px(23.))
                             .w(px(28.))
-                            .accessibility_label("增大字号")
-                            .tooltip("增大字号 (Ctrl+Shift+.)")
+                            .accessibility_label(t(locale, "font.increase_size"))
+                            .tooltip(t(locale, "font.increase_size_tip"))
                             .disabled(disabled)
                             .on_click(cx.listener(|s, _, w, cx| s.step_font_size(true, w, cx))),
                     )
@@ -299,8 +304,8 @@ impl Viewer {
                             .label("A−")
                             .h(px(23.))
                             .w(px(28.))
-                            .accessibility_label("减小字号")
-                            .tooltip("减小字号 (Ctrl+Shift+,)")
+                            .accessibility_label(t(locale, "font.decrease_size"))
+                            .tooltip(t(locale, "font.decrease_size_tip"))
                             .disabled(disabled)
                             .on_click(cx.listener(|s, _, w, cx| s.step_font_size(false, w, cx))),
                     )
@@ -311,21 +316,24 @@ impl Viewer {
                     Button::new("font-more")
                         .ghost()
                         .xsmall()
-                        .label("字体…")
+                        .label(t(locale, "font.dialog_btn"))
                         .h(px(25.))
                         .disabled(disabled)
                         .on_click(cx.listener(|s, _, w, cx| s.font_dialog(w, cx))),
                 ),
             );
-        chrome::group("字体", content)
+        chrome::group(t(locale, "home.group.font"), content)
     }
     pub(super) fn paragraph_group(&self, cx: &mut Context<Self>) -> Div {
+        let locale = self.locale;
         let state = self.formatting();
         let disabled = state.is_empty() || self.loading || self.composing();
         let palette = self.palette();
         let mut first = div().flex().gap(px(1.));
-        for (id, label, numbered) in [("bullets", "项目符号", false), ("numbering", "编号", true)]
-        {
+        for (id, label, numbered) in [
+            ("bullets", t(locale, "para.bullets"), false),
+            ("numbering", t(locale, "para.numbering"), true),
+        ] {
             let active = if numbered {
                 matches!(state.para.bullet, Some(Bullet::AutoNum { .. }))
             } else {
@@ -371,7 +379,7 @@ impl Viewer {
                     .xsmall()
                     .icon(I::ListIndentDecrease)
                     .h(px(25.))
-                    .accessibility_label("减少缩进")
+                    .accessibility_label(t(locale, "para.decrease_indent"))
                     .disabled(disabled)
                     .on_click(cx.listener(|s, _, w, cx| {
                         s.format_paras(
@@ -387,7 +395,7 @@ impl Viewer {
                     .xsmall()
                     .icon(I::ListIndentIncrease)
                     .h(px(25.))
-                    .accessibility_label("增加缩进")
+                    .accessibility_label(t(locale, "para.increase_indent"))
                     .disabled(disabled)
                     .on_click(cx.listener(|s, _, w, cx| {
                         s.format_paras(
@@ -398,21 +406,41 @@ impl Viewer {
                     })),
             )
             .child(self.line_spacing_picker(disabled, cx))
-            .child(unavailable_format("paragraph-columns", I::Columns2, "栏"));
+            .child(unavailable_format(
+                locale,
+                "paragraph-columns",
+                I::Columns2,
+                t(locale, "para.columns"),
+            ));
         let mut second = div().flex().gap(px(1.));
         for (id, label, icon, align) in [
-            ("align-left", "左对齐", I::TextAlignStart, Align::Left),
-            ("align-center", "居中", I::TextAlignCenter, Align::Center),
-            ("align-right", "右对齐", I::TextAlignEnd, Align::Right),
+            (
+                "align-left",
+                t(locale, "para.align_left"),
+                I::TextAlignStart,
+                Align::Left,
+            ),
+            (
+                "align-center",
+                t(locale, "para.align_center"),
+                I::TextAlignCenter,
+                Align::Center,
+            ),
+            (
+                "align-right",
+                t(locale, "para.align_right"),
+                I::TextAlignEnd,
+                Align::Right,
+            ),
             (
                 "align-justify",
-                "两端对齐",
+                t(locale, "para.align_justify"),
                 I::TextAlignJustify,
                 Align::Justify,
             ),
             (
                 "align-distributed",
-                "分散对齐",
+                t(locale, "para.align_distribute"),
                 I::TextAlignJustify,
                 Align::Distributed,
             ),
@@ -439,14 +467,14 @@ impl Viewer {
             Button::new("paragraph-dialog")
                 .ghost()
                 .xsmall()
-                .label("段落…")
+                .label(t(locale, "para.dialog_btn"))
                 .h(px(25.))
-                .accessibility_label("段落设置")
+                .accessibility_label(t(locale, "para.settings_aria"))
                 .disabled(disabled)
                 .on_click(cx.listener(|s, _, w, cx| s.paragraph_dialog(w, cx))),
         );
         chrome::group(
-            "段落",
+            t(locale, "home.group.paragraph"),
             div().flex().flex_col().gap_1().child(first).child(second),
         )
     }
@@ -462,6 +490,7 @@ impl Viewer {
         if self.composing() {
             return;
         }
+        let locale = self.locale;
         let inputs: Vec<_> = fields
             .into_iter()
             .map(|(label, value)| {
@@ -499,14 +528,14 @@ impl Viewer {
                 )
                 .child(
                     Button::new("apply-fields")
-                        .label("确定")
+                        .label(t(locale, "common.ok"))
                         .on_click(move |_, w, cx| {
                             let _ = view.update(cx, |s, cx| {
                                 if s.generation != generation
                                     || s.editor.as_ref().map(|e| e.session.revision()) != revision
                                 {
                                     error2.update(cx, |e, cx| {
-                                        *e = "文稿已变化，请重新打开此对话框".into();
+                                        *e = s.t("dialog.doc_changed").into();
                                         cx.notify();
                                     });
                                     return;
@@ -536,6 +565,7 @@ impl Viewer {
         });
     }
     pub(super) fn font_dialog(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+        let locale = self.locale;
         let state = self.formatting();
         let props = state.run;
         let mut color = match &props.fill {
@@ -560,11 +590,11 @@ impl Viewer {
         let size = props.size.map(|n| n.to_string()).unwrap_or_default();
         let original = [font.clone(), size.clone(), color.clone()];
         self.fields_dialog(
-            "字体",
+            t(locale, "font.dialog_title"),
             vec![
-                ("字体名称（混合时留空）", font),
-                ("字号（磅，混合时留空）", size),
-                ("颜色（RGB）", color),
+                (t(locale, "font.dialog_name_field"), font),
+                (t(locale, "font.dialog_size_field"), size),
+                (t(locale, "font.color_rgb_field"), color),
             ],
             w,
             cx,
@@ -572,16 +602,19 @@ impl Viewer {
                 let size = if v[1] == original[1] || v[1].trim().is_empty() {
                     None
                 } else {
-                    let n: f64 = v[1].trim().parse().map_err(|_| "请输入有效字号")?;
+                    let n: f64 = v[1]
+                        .trim()
+                        .parse()
+                        .map_err(|_| s.t("font.err_invalid_size"))?;
                     if !n.is_finite() || !(1. ..=400.).contains(&n) {
-                        return Err("字号须在 1–400 磅之间".into());
+                        return Err(s.t("font.err_size_range").into());
                     }
                     Some(n)
                 };
                 let color = if v[2] == original[2] || v[2].trim().is_empty() {
                     None
                 } else {
-                    Some(format_ui::parse_rgb(&v[2])?)
+                    Some(format_ui::parse_rgb_for(s.locale, &v[2])?)
                 };
                 let font = (v[0] != original[0] && !v[0].trim().is_empty())
                     .then(|| v[0].trim().to_owned());
@@ -606,18 +639,19 @@ impl Viewer {
         );
     }
     pub(super) fn find_dialog(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+        let locale = self.locale;
         self.fields_dialog(
-            "查找文字",
-            vec![("查找内容", String::new())],
+            t(locale, "dialog.find_title"),
+            vec![(t(locale, "dialog.find_field"), String::new())],
             w,
             cx,
             |s, v, w, cx| {
                 let query = v[0].trim().to_lowercase();
                 if query.is_empty() {
-                    return Err("请输入查找内容".into());
+                    return Err(s.t("dialog.find_err_empty").into());
                 }
                 let Some(e) = &s.editor else {
-                    return Err("请先打开演示文稿".into());
+                    return Err(s.t("dialog.find_err_no_doc").into());
                 };
                 let mut found = None;
                 for (page, slide) in e.session.model().slides.iter().enumerate() {
@@ -633,7 +667,7 @@ impl Viewer {
                     }
                 }
                 let Some((page, id)) = found else {
-                    return Err("未找到匹配的文字".into());
+                    return Err(s.t("dialog.find_err_not_found").into());
                 };
                 s.select(page, cx);
                 if let Some(e) = &mut s.editor {
@@ -658,16 +692,20 @@ impl Viewer {
         self.begin_selected_text(w, cx);
     }
     pub(super) fn insert_table_dialog(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+        let locale = self.locale;
         self.fields_dialog(
-            "插入表格",
-            vec![("列数", "3".into()), ("行数", "3".into())],
+            t(locale, "dialog.insert_table_title"),
+            vec![
+                (t(locale, "dialog.table_cols"), "3".into()),
+                (t(locale, "dialog.table_rows"), "3".into()),
+            ],
             w,
             cx,
             |s, v, w, cx| {
-                let cols: usize = v[0].parse().map_err(|_| "列数须为整数")?;
-                let rows: usize = v[1].parse().map_err(|_| "行数须为整数")?;
+                let cols: usize = v[0].parse().map_err(|_| s.t("dialog.table_err_cols"))?;
+                let rows: usize = v[1].parse().map_err(|_| s.t("dialog.table_err_rows"))?;
                 if !(1..=32).contains(&cols) || !(1..=64).contains(&rows) {
-                    return Err("列数范围 1–32，行数范围 1–64".into());
+                    return Err(s.t("dialog.table_err_range").into());
                 }
                 s.dispatch(
                     Command::InsertTable {
@@ -686,6 +724,7 @@ impl Viewer {
         );
     }
     pub(super) fn geometry_dialog(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+        let locale = self.locale;
         let Some(e) = &self.editor else { return };
         let Some(id) = e.session.selection().shapes.first() else {
             return;
@@ -708,24 +747,25 @@ impl Viewer {
             x.rot = 0.;
         }
         self.fields_dialog(
-            "大小和位置",
+            t(locale, "dialog.geom_title"),
             vec![
-                ("水平位置（磅）", x.x.to_string()),
-                ("垂直位置（磅）", x.y.to_string()),
-                ("宽度（磅）", x.w.to_string()),
-                ("高度（磅）", x.h.to_string()),
-                ("旋转角度", x.rot.to_string()),
+                (t(locale, "dialog.geom_x"), x.x.to_string()),
+                (t(locale, "dialog.geom_y"), x.y.to_string()),
+                (t(locale, "dialog.geom_w"), x.w.to_string()),
+                (t(locale, "dialog.geom_h"), x.h.to_string()),
+                (t(locale, "dialog.geom_rot"), x.rot.to_string()),
             ],
             w,
             cx,
             move |s, v, w, cx| {
+                let err_num = s.t("dialog.geom_err_num");
                 let v: Vec<f64> = v
                     .iter()
-                    .map(|s| s.parse::<f64>().map_err(|_| "请输入数值".to_string()))
+                    .map(|s| s.parse::<f64>().map_err(|_| err_num.to_string()))
                     .collect::<Result<_, _>>()?;
                 if v.iter().any(|x| !x.is_finite() || x.abs() > 100000.) || v[2] <= 0. || v[3] <= 0.
                 {
-                    return Err("尺寸须大于零，数值须为有限值".into());
+                    return Err(s.t("dialog.geom_err_positive").into());
                 }
                 s.dispatch(
                     Command::Workspace {
@@ -745,6 +785,7 @@ impl Viewer {
         );
     }
     pub(super) fn layout_gallery(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+        let locale = self.locale;
         let Some(e) = &self.editor else { return };
         let layouts: Vec<_> = e
             .session
@@ -780,7 +821,7 @@ impl Viewer {
                         }),
                 );
             }
-            d.title("幻灯片版式").child(list)
+            d.title(t(locale, "dialog.slide_layout_title")).child(list)
         });
     }
     pub(super) fn shape_gallery(&mut self, w: &mut Window, cx: &mut Context<Self>) {
@@ -795,79 +836,80 @@ impl Viewer {
         w: &mut Window,
         cx: &mut Context<Self>,
     ) {
+        let locale = self.locale;
         let view = cx.entity().downgrade();
         let p = self.palette();
         w.open_dialog(cx, move |d, _, _| {
             const GROUPS: &[(&str, &[(&str, &str)])] = &[
                 (
-                    "矩形与基本形状",
+                    "shapes.cat.basic",
                     &[
-                        ("rect", "矩形"),
-                        ("roundRect", "圆角矩形"),
-                        ("snip1Rect", "单切角矩形"),
-                        ("ellipse", "椭圆"),
-                        ("triangle", "等腰三角形"),
-                        ("rtTriangle", "直角三角形"),
-                        ("diamond", "菱形"),
-                        ("parallelogram", "平行四边形"),
-                        ("trapezoid", "梯形"),
-                        ("pentagon", "正五边形"),
-                        ("hexagon", "六边形"),
-                        ("octagon", "八边形"),
-                        ("plus", "十字形"),
-                        ("donut", "圆环"),
-                        ("frame", "边框"),
-                        ("heart", "心形"),
-                        ("cloud", "云形"),
-                        ("lightningBolt", "闪电"),
+                        ("rect", "shapes.rect"),
+                        ("roundRect", "shapes.round_rect"),
+                        ("snip1Rect", "shapes.snip1_rect"),
+                        ("ellipse", "shapes.ellipse"),
+                        ("triangle", "shapes.triangle"),
+                        ("rtTriangle", "shapes.rt_triangle"),
+                        ("diamond", "shapes.diamond"),
+                        ("parallelogram", "shapes.parallelogram"),
+                        ("trapezoid", "shapes.trapezoid"),
+                        ("pentagon", "shapes.pentagon"),
+                        ("hexagon", "shapes.hexagon"),
+                        ("octagon", "shapes.octagon"),
+                        ("plus", "shapes.plus"),
+                        ("donut", "shapes.donut"),
+                        ("frame", "shapes.frame"),
+                        ("heart", "shapes.heart"),
+                        ("cloud", "shapes.cloud"),
+                        ("lightningBolt", "shapes.lightning"),
                     ],
                 ),
                 (
-                    "箭头总汇",
+                    "shapes.cat.arrows",
                     &[
-                        ("rightArrow", "右箭头"),
-                        ("leftArrow", "左箭头"),
-                        ("upArrow", "上箭头"),
-                        ("downArrow", "下箭头"),
-                        ("leftRightArrow", "左右箭头"),
-                        ("upDownArrow", "上下箭头"),
-                        ("chevron", "燕尾形"),
-                        ("homePlate", "五边形箭头"),
-                        ("bentArrow", "直角箭头"),
-                        ("uturnArrow", "U形箭头"),
+                        ("rightArrow", "shapes.right_arrow"),
+                        ("leftArrow", "shapes.left_arrow"),
+                        ("upArrow", "shapes.up_arrow"),
+                        ("downArrow", "shapes.down_arrow"),
+                        ("leftRightArrow", "shapes.left_right_arrow"),
+                        ("upDownArrow", "shapes.up_down_arrow"),
+                        ("chevron", "shapes.chevron"),
+                        ("homePlate", "shapes.home_plate"),
+                        ("bentArrow", "shapes.bent_arrow"),
+                        ("uturnArrow", "shapes.uturn_arrow"),
                     ],
                 ),
                 (
-                    "流程图",
+                    "shapes.cat.flowchart",
                     &[
-                        ("flowChartProcess", "过程"),
-                        ("flowChartDecision", "判断"),
-                        ("flowChartTerminator", "终止"),
-                        ("flowChartDocument", "文档"),
-                        ("flowChartPredefinedProcess", "预定义过程"),
-                        ("flowChartConnector", "连接符"),
+                        ("flowChartProcess", "shapes.fc_process"),
+                        ("flowChartDecision", "shapes.fc_decision"),
+                        ("flowChartTerminator", "shapes.fc_terminator"),
+                        ("flowChartDocument", "shapes.fc_document"),
+                        ("flowChartPredefinedProcess", "shapes.fc_predefined"),
+                        ("flowChartConnector", "shapes.fc_connector"),
                     ],
                 ),
                 (
-                    "星形与标注",
+                    "shapes.cat.stars",
                     &[
-                        ("star4", "四角星"),
-                        ("star5", "五角星"),
-                        ("star6", "六角星"),
-                        ("star8", "八角星"),
-                        ("wedgeRectCallout", "矩形标注"),
-                        ("wedgeRoundRectCallout", "圆角标注"),
-                        ("wedgeEllipseCallout", "椭圆标注"),
-                        ("cloudCallout", "云形标注"),
+                        ("star4", "shapes.star4"),
+                        ("star5", "shapes.star5"),
+                        ("star6", "shapes.star6"),
+                        ("star8", "shapes.star8"),
+                        ("wedgeRectCallout", "shapes.callout_rect"),
+                        ("wedgeRoundRectCallout", "shapes.callout_round_rect"),
+                        ("wedgeEllipseCallout", "shapes.callout_ellipse"),
+                        ("cloudCallout", "shapes.callout_cloud"),
                     ],
                 ),
                 (
-                    "线条",
+                    "shapes.cat.lines",
                     &[
-                        ("line", "直线"),
-                        ("straightConnector1", "连线"),
-                        ("bentConnector3", "肘形连线"),
-                        ("curvedConnector3", "曲线连线"),
+                        ("line", "shapes.line"),
+                        ("straightConnector1", "shapes.straight_connector"),
+                        ("bentConnector3", "shapes.bent_connector"),
+                        ("curvedConnector3", "shapes.curved_connector"),
                     ],
                 ),
             ];
@@ -881,9 +923,10 @@ impl Viewer {
                 .overflow_y_scroll()
                 .pr_2();
             let mut idx = 0usize;
-            for (heading, items) in GROUPS {
+            for (heading_key, items) in GROUPS {
                 let mut grid = div().flex().flex_wrap().gap(px(6.));
-                for &(preset, label) in *items {
+                for &(preset, label_key) in *items {
+                    let label = t(locale, label_key);
                     let view = view.clone();
                     let stroke_color = rgb(p.text);
                     let fill_color = rgb(p.accent);
@@ -945,15 +988,15 @@ impl Viewer {
                                 .text_xs()
                                 .font_weight(FontWeight::SEMIBOLD)
                                 .text_color(rgb(p.muted))
-                                .child(*heading),
+                                .child(t(locale, heading_key)),
                         )
                         .child(grid),
                 );
             }
             d.title(if replace_selected {
-                "更改形状"
+                t(locale, "shapes.change_title")
             } else {
-                "插入形状"
+                t(locale, "shapes.insert_title")
             })
             .child(body)
         });

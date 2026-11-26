@@ -867,13 +867,13 @@ impl JoyWord {
                 .map(|(index, theme)| {
                     let selected = self.shell.theme == theme;
                     file_control(
-                        joyoffice_ui::theme_preview(
+                        joyoffice_ui::theme_preview_for(
                             theme,
                             joyoffice_ui::Brand::Word,
-                            self.shell.locale == joyword_shell::l10n::Locale::ZhCn,
+                            self.shell.locale,
                         ),
                         ("appearance-theme", index),
-                        theme.label(self.shell.locale == joyword_shell::l10n::Locale::ZhCn),
+                        joyoffice_ui::theme_label(theme, self.shell.locale),
                         true,
                         p.accent,
                         cx,
@@ -919,14 +919,17 @@ impl JoyWord {
                 cx,
                 |v, w, cx| v.execute("view.theme", w, cx),
             ))
-            .child(self.file_row(
-                "file-language",
-                tr("Switch to English", "切换为中文"),
-                IconName::Globe,
-                true,
-                cx,
-                |v, w, cx| v.execute("view.language", w, cx),
-            ))
+            .child({
+                let view = cx.entity().downgrade();
+                joyoffice_ui::language_options_section(
+                    self.shell.locale,
+                    p,
+                    352.0,
+                    move |locale, w, cx| {
+                        let _ = view.update(cx, |v, cx| v.select_locale(locale, w, cx));
+                    },
+                )
+            })
             .child(self.file_row(
                 "file-general-options",
                 tr("用户信息与单位…", "User information and units…"),

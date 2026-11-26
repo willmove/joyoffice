@@ -1,0 +1,17 @@
+# Shared JoyOffice UI strings (en).
+# Shared across JoyWord, JoyDeck, and JoySheet.
+
+theme.verdant-light = Verdant · Light
+theme.verdant-dark = Verdant · Dark
+theme.classic-light = Classic · Light
+theme.classic-dark = Classic · Dark
+theme.azure-light = Azure · Light
+theme.azure-dark = Azure · Dark
+theme.sandstone-light = Sandstone · Light
+theme.sandstone-dark = Sandstone · Dark
+
+language.section = Interface language
+language.description = Changes the application interface language; document content is preserved.
+language.selector_aria = Interface language
+language.switch_tooltip = Switch interface language
+language.current = Current: {name}

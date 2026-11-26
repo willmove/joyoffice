@@ -30,6 +30,7 @@ members = [
     "crates/joyoffice-opc",
     "crates/joyoffice-ui",
     "crates/joyoffice-theme",
+    "crates/joyoffice-l10n",
     "crates/joyword-agent",
     "crates/joyword-corpus",
     "crates/joyword-doc",
@@ -89,6 +90,7 @@ default-members = [
     "crates/joyoffice-fonts",
     "crates/joyoffice-metafile",
     "crates/joyoffice-opc",
+    "crates/joyoffice-l10n",
     "crates/joyword-agent",
     "crates/joyword-corpus",
     "crates/joyword-doc",
@@ -162,6 +164,7 @@ getrandom = "=0.3.4"
 gpui-kit = "=0.9.1"
 joyoffice-ui = { path = "crates/joyoffice-ui" }
 joyoffice-theme = { path = "crates/joyoffice-theme" }
+joyoffice-l10n = { path = "crates/joyoffice-l10n" }
 # Kit does not expose runtime_shaders. Keep this exact platform dependency to
 # forward the existing development-only shader feature; application APIs use Kit.
 gpui_platform = { package = "gpui-pre-platform", version = "=0.3.12", features = ["font-kit", "wayland", "x11"] }

@@ -19,6 +19,7 @@ static IDS: AtomicU64 = AtomicU64::new(1);
 static RECENT_WRITE: Mutex<()> = Mutex::new(());
 static SAVE_PUBLICATION: Mutex<()> = Mutex::new(());
 static APPEARANCE_WRITE: Mutex<()> = Mutex::new(());
+static LANGUAGE_WRITE: Mutex<()> = Mutex::new(());
 
 #[cfg(test)]
 pub(crate) fn test_preference_id() -> u64 {
@@ -61,6 +62,40 @@ pub fn save_theme(root: &Path, theme: joyoffice_theme::ThemePreset) -> Result<()
         Err(e) => return Err(e),
     };
     save(&path, &theme.id().as_bytes().to_vec(), expected).map(|_| ())
+}
+
+/// Application UI language preference stored beside `appearance.v1`.
+pub fn load_locale(root: &Path) -> Result<joyoffice_l10n::UiLocale> {
+    let file = match File::open(root.join("language.v1")) {
+        Ok(file) => file,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+            return Ok(joyoffice_l10n::UiLocale::default());
+        }
+        Err(e) => return Err(e.to_string()),
+    };
+    let mut value = String::new();
+    file.take(65)
+        .read_to_string(&mut value)
+        .map_err(|e| e.to_string())?;
+    if value.len() > 64 {
+        return Err("language preference exceeds budget".into());
+    }
+    joyoffice_l10n::UiLocale::from_tag(value.trim())
+        .ok_or_else(|| "unsupported language preference".into())
+}
+
+pub fn save_locale(root: &Path, locale: joyoffice_l10n::UiLocale) -> Result<()> {
+    let _writer = LANGUAGE_WRITE
+        .lock()
+        .map_err(|_| "language writer unavailable")?;
+    std::fs::create_dir_all(root).map_err(|e| e.to_string())?;
+    let path = root.join("language.v1");
+    let expected = match fingerprint(&path) {
+        Ok(fp) => Some(fp),
+        Err(_) if !path.exists() => None,
+        Err(e) => return Err(e),
+    };
+    save(&path, &locale.tag().as_bytes().to_vec(), expected).map(|_| ())
 }
 #[derive(Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]

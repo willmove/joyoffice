@@ -102,24 +102,26 @@ impl Viewer {
             return menu;
         };
 
+        let locale = joyoffice_ui::current_locale(cx);
+        let t = |key: &'static str| crate::l10n::t(locale, key);
         let mut menu = menu
             .item(menu_item(
                 &view,
-                "新建幻灯片",
+                t("menu.new_slide"),
                 I::FilePlus,
                 can_new,
                 |s, w, cx| s.run_basic_edit(BasicEdit::NewSlide, w, cx),
             ))
             .item(menu_item(
                 &view,
-                "复制幻灯片",
+                t("menu.duplicate_slide"),
                 I::CopyPlus,
                 can_dup,
                 |s, w, cx| s.run_basic_edit(BasicEdit::DuplicateSlides, w, cx),
             ))
             .item(menu_item(
                 &view,
-                "删除幻灯片",
+                t("menu.delete_slide"),
                 I::Trash,
                 can_del,
                 |s, w, cx| s.run_basic_edit(BasicEdit::DeleteSlides, w, cx),
@@ -128,9 +130,9 @@ impl Viewer {
             .item(menu_item(
                 &view,
                 if hidden {
-                    "取消隐藏幻灯片"
+                    t("ctx.unhide_slide")
                 } else {
-                    "隐藏幻灯片"
+                    t("ctx.hide_slide")
                 },
                 I::EyeOff,
                 can_edit,
@@ -141,7 +143,7 @@ impl Viewer {
             let layout_view = view.clone();
             menu = menu.submenu_with_icon(
                 Some(Icon::new(I::PanelsTopLeft)),
-                "版式",
+                t("home.layout"),
                 w,
                 cx,
                 move |mut sub, _, _| {
@@ -149,7 +151,8 @@ impl Viewer {
                         let id = *id;
                         let v = layout_view.clone();
                         let label = if name.trim().is_empty() {
-                            format!("版式 {}", id.0)
+                            let id_s = id.0.to_string();
+                            crate::l10n::tf(locale, "ctx.layout_num", &[("num", &id_s)])
                         } else {
                             name.clone()
                         };
@@ -177,7 +180,7 @@ impl Viewer {
 
         menu.item(menu_item(
             &view,
-            "设置背景…",
+            t("ctx.format_bg"),
             I::Palette,
             can_edit,
             |s, w, cx| s.content_form(content_ui::Form::Background, w, cx),
@@ -185,7 +188,7 @@ impl Viewer {
         .separator()
         .item(menu_item(
             &view,
-            "移动幻灯片…",
+            t("home.move_slides"),
             I::Move,
             can_edit,
             |s, w, cx| s.organize_dialog(w, cx),
@@ -268,11 +271,13 @@ impl Viewer {
             return menu;
         };
 
+        let locale = joyoffice_ui::current_locale(cx);
+        let t = |key: &'static str| crate::l10n::t(locale, key);
         if sel_len == 0 {
             return menu
                 .item(menu_item(
                     &view,
-                    "粘贴",
+                    t("home.paste"),
                     I::ClipboardPaste,
                     can_doc,
                     |s, w, cx| s.paste_grid(w, cx),
@@ -280,14 +285,14 @@ impl Viewer {
                 .separator()
                 .item(menu_item(
                     &view,
-                    "新建幻灯片",
+                    t("menu.new_slide"),
                     I::FilePlus,
                     can_new_slide,
                     |s, w, cx| s.run_basic_edit(BasicEdit::NewSlide, w, cx),
                 ))
                 .item(menu_item(
                     &view,
-                    "设置背景…",
+                    t("ctx.format_bg"),
                     I::Palette,
                     can_doc,
                     |s, w, cx| s.content_form(content_ui::Form::Background, w, cx),
@@ -296,9 +301,9 @@ impl Viewer {
                 .item(menu_item(
                     &view,
                     if inspector_open {
-                        "隐藏选择窗格"
+                        t("ctx.hide_selection_pane")
                     } else {
-                        "显示选择窗格"
+                        t("ctx.show_selection_pane")
                     },
                     I::PanelRight,
                     true,
@@ -313,17 +318,21 @@ impl Viewer {
         let mut menu = menu
             .item(menu_item(
                 &view,
-                "剪切",
+                t("home.cut"),
                 I::Scissors,
                 can_doc,
                 |s, w, cx| s.clipboard_copy(true, w, cx),
             ))
-            .item(menu_item(&view, "复制", I::Copy, can_doc, |s, w, cx| {
-                s.clipboard_copy(false, w, cx)
-            }))
             .item(menu_item(
                 &view,
-                "粘贴",
+                t("home.copy"),
+                I::Copy,
+                can_doc,
+                |s, w, cx| s.clipboard_copy(false, w, cx),
+            ))
+            .item(menu_item(
+                &view,
+                t("home.paste"),
                 I::ClipboardPaste,
                 can_doc,
                 |s, w, cx| s.paste_grid(w, cx),
@@ -331,39 +340,47 @@ impl Viewer {
             .separator()
             .item(menu_item(
                 &view,
-                "创建副本",
+                t("order.duplicate"),
                 I::CopyPlus,
                 can_dup,
                 |s, w, cx| s.run_basic_edit(BasicEdit::Duplicate, w, cx),
             ))
-            .item(menu_item(&view, "删除", I::Trash, can_del, |s, w, cx| {
-                s.run_basic_edit(BasicEdit::Delete, w, cx)
-            }))
+            .item(menu_item(
+                &view,
+                t("common.delete"),
+                I::Trash,
+                can_del,
+                |s, w, cx| s.run_basic_edit(BasicEdit::Delete, w, cx),
+            ))
             .separator()
             .item(menu_item(
                 &view,
-                "上移一层",
+                t("order.bring_forward"),
                 I::BringToFront,
                 can_fwd,
                 |s, w, cx| s.run_basic_edit(BasicEdit::BringForward, w, cx),
             ))
             .item(menu_item(
                 &view,
-                "下移一层",
+                t("order.send_backward"),
                 I::SendToBack,
                 can_bwd,
                 |s, w, cx| s.run_basic_edit(BasicEdit::SendBackward, w, cx),
             ));
 
         if can_group {
-            menu = menu.item(menu_item(&view, "组合", I::Box, true, |s, w, cx| {
-                s.group_selected(w, cx)
-            }));
+            menu = menu.item(menu_item(
+                &view,
+                t("group.button"),
+                I::Box,
+                true,
+                |s, w, cx| s.group_selected(w, cx),
+            ));
         }
         if can_ungroup {
             menu = menu.item(menu_item(
                 &view,
-                "取消组合",
+                t("group.ungroup"),
                 I::SquareSplitHorizontal,
                 true,
                 |s, w, cx| s.ungroup_selected(w, cx),
@@ -372,10 +389,11 @@ impl Viewer {
 
         menu = menu.submenu_with_icon(
             Some(Icon::new(I::LayoutGrid)),
-            "对齐与分布",
+            t("align.group_and_distribute"),
             w,
             cx,
             move |sub, _, _| {
+                let t = |key: &'static str| crate::l10n::t(locale, key);
                 let align_item = |label: &'static str, icon: I, edge: AlignEdge| {
                     let v = align_view.clone();
                     PopupMenuItem::new(label)
@@ -394,31 +412,43 @@ impl Viewer {
                             let _ = v.update(cx, |s, cx| s.distribute_selected(axis, w, cx));
                         })
                 };
-                sub.item(align_item("左对齐", I::TextAlignStart, AlignEdge::Left))
-                    .item(align_item(
-                        "水平居中",
-                        I::TextAlignCenter,
-                        AlignEdge::CenterH,
-                    ))
-                    .item(align_item("右对齐", I::TextAlignEnd, AlignEdge::Right))
-                    .item(align_item("顶端对齐", I::ArrowUpToLine, AlignEdge::Top))
-                    .item(align_item("垂直居中", I::Columns2, AlignEdge::MiddleV))
-                    .item(align_item(
-                        "底端对齐",
-                        I::ArrowLeftToLine,
-                        AlignEdge::Bottom,
-                    ))
-                    .separator()
-                    .item(dist_item(
-                        "横向分布",
-                        I::MoveHorizontal,
-                        DistributeAxis::Horizontal,
-                    ))
-                    .item(dist_item(
-                        "纵向分布",
-                        I::GalleryVerticalEnd,
-                        DistributeAxis::Vertical,
-                    ))
+                sub.item(align_item(
+                    t("align.left"),
+                    I::TextAlignStart,
+                    AlignEdge::Left,
+                ))
+                .item(align_item(
+                    t("align.center_h"),
+                    I::TextAlignCenter,
+                    AlignEdge::CenterH,
+                ))
+                .item(align_item(
+                    t("align.right"),
+                    I::TextAlignEnd,
+                    AlignEdge::Right,
+                ))
+                .item(align_item(t("align.top"), I::ArrowUpToLine, AlignEdge::Top))
+                .item(align_item(
+                    t("align.middle_v"),
+                    I::Columns2,
+                    AlignEdge::MiddleV,
+                ))
+                .item(align_item(
+                    t("align.bottom"),
+                    I::ArrowLeftToLine,
+                    AlignEdge::Bottom,
+                ))
+                .separator()
+                .item(dist_item(
+                    t("align.distribute_h"),
+                    I::MoveHorizontal,
+                    DistributeAxis::Horizontal,
+                ))
+                .item(dist_item(
+                    t("align.distribute_v"),
+                    I::GalleryVerticalEnd,
+                    DistributeAxis::Vertical,
+                ))
             },
         );
 
@@ -426,7 +456,7 @@ impl Viewer {
         if can_edit_text {
             menu = menu.item(menu_item(
                 &view,
-                "编辑文字",
+                t("ctx.edit_text"),
                 I::TextCursorInput,
                 can_doc,
                 |s, w, cx| s.begin_selected_text(w, cx),
@@ -435,7 +465,7 @@ impl Viewer {
         if is_basic_shape {
             menu = menu.item(menu_item(
                 &view,
-                "形状填充…",
+                t("ctx.shape_fill"),
                 I::PaintBucket,
                 can_doc,
                 |s, w, cx| s.content_form(content_ui::Form::ShapeFill, w, cx),
@@ -444,7 +474,7 @@ impl Viewer {
         if can_outline {
             menu = menu.item(menu_item(
                 &view,
-                "形状轮廓…",
+                t("ctx.shape_outline"),
                 I::PenLine,
                 can_doc,
                 |s, w, cx| s.content_form(content_ui::Form::ShapeLine, w, cx),
@@ -452,7 +482,7 @@ impl Viewer {
         }
         menu.item(menu_item(
             &view,
-            "大小和位置…",
+            t("pane.size_pos_btn"),
             I::Move,
             can_doc,
             |s, w, cx| s.geometry_dialog(w, cx),

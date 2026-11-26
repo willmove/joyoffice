@@ -341,35 +341,155 @@ impl Render for Audience {
         }
         let ink = self.ink.clone();
         let origin = self.origin;
-        div().id("joydeck-audience").size_full().bg(rgb(if blank==Some(true){0xffffff}else{0})).text_color(rgb(0xffffff)).relative().track_focus(&self.focus).key_context("Slideshow")
-            .on_key_down(cx.listener(|s,e:&KeyDownEvent,w,cx|{s.navigation(&e.keystroke.key,w,cx);cx.stop_propagation();}))
-            .on_mouse_down(MouseButton::Left,cx.listener(|s,e:&MouseDownEvent,_,cx|{
-                if s.pen {if s.ink.len()<256 {s.ink.push(vec![(f32::from(e.position.x-s.origin.x)/s.scale,f32::from(e.position.y-s.origin.y)/s.scale)]);s.drawing=true;}}
-                else if !s.laser {
-                    let opened = s.shared.lock().ok().and_then(|mut r| {
-                        let old = r.player.state.slide;
-                        let result = r.player.click(
-                            f64::from(f32::from(e.position.x - s.origin.x) / s.scale),
-                            f64::from(f32::from(e.position.y - s.origin.y) / s.scale),
-                        );
-                        r.changed_page(old);
-                        result.ok().flatten()
-                    });
-                    if let Some(url) = opened {
-                        cx.open_url(&url);
-                    }
-                }
-                cx.notify();
+        div()
+            .id("joydeck-audience")
+            .size_full()
+            .bg(rgb(if blank == Some(true) { 0xffffff } else { 0 }))
+            .text_color(rgb(0xffffff))
+            .relative()
+            .track_focus(&self.focus)
+            .key_context("Slideshow")
+            .on_key_down(cx.listener(|s, e: &KeyDownEvent, w, cx| {
+                s.navigation(&e.keystroke.key, w, cx);
+                cx.stop_propagation();
             }))
-            .on_mouse_move(cx.listener(|s,e:&MouseMoveEvent,_,cx|{s.pointer=e.position;
-                if s.drawing && s.ink.iter().map(Vec::len).sum::<usize>()<2048 && let Some(line)=s.ink.last_mut(){line.push((f32::from(e.position.x-s.origin.x)/s.scale,f32::from(e.position.y-s.origin.y)/s.scale));}
-                if s.laser||s.drawing{cx.notify();}}))
-            .on_mouse_up(MouseButton::Left,cx.listener(|s,_,_,cx|{s.drawing=false;cx.notify();}))
-            .children(self.image.as_ref().filter(|_|blank.is_none()&&!ended).map(|i|img(i.clone()).absolute().left(self.origin.x).top(self.origin.y).w(px(width*scale)).h(px(height*scale))))
-            .children(ended.then(||div().absolute().top(px(100.)).left(px(100.)).child("放映结束 · Esc 退出")))
-            .child(canvas(|_,_,_|(),move|_,_,w,_|{if blank.is_none() && !ended {for line in &ink {let mut path=PathBuilder::stroke(px(2.));for(i,(x,y))in line.iter().enumerate(){let p=point(origin.x+px(x*scale),origin.y+px(y*scale));if i==0{path.move_to(p);}else{path.line_to(p);}}if let Ok(p)=path.build(){w.paint_path(p,rgb(0xff3535));}}}}).absolute().size_full())
-            .children((self.laser && blank.is_none() && !ended).then(||div().absolute().left(self.pointer.x-px(5.)).top(self.pointer.y-px(5.)).size(px(10.)).rounded_full().bg(rgb(0xff3030))))
-            .child(div().absolute().bottom_0().left_0().right_0().min_h(px(36.)).px_3().bg(rgb(0x222222)).text_xs().child(format!("第 {page} 页 · 步骤 {step} {} Space 下一步 · P 暂停 · B/W 黑白 · L 激光 · I 墨迹 · E 清除 · M 媒体 · V 静音 · F11 全屏 · Esc 退出  {}",if paused{"已暂停"}else{""},self.message)))
+            .on_mouse_down(
+                MouseButton::Left,
+                cx.listener(|s, e: &MouseDownEvent, _, cx| {
+                    if s.pen {
+                        if s.ink.len() < 256 {
+                            s.ink.push(vec![(
+                                f32::from(e.position.x - s.origin.x) / s.scale,
+                                f32::from(e.position.y - s.origin.y) / s.scale,
+                            )]);
+                            s.drawing = true;
+                        }
+                    } else if !s.laser {
+                        let opened = s.shared.lock().ok().and_then(|mut r| {
+                            let old = r.player.state.slide;
+                            let result = r.player.click(
+                                f64::from(f32::from(e.position.x - s.origin.x) / s.scale),
+                                f64::from(f32::from(e.position.y - s.origin.y) / s.scale),
+                            );
+                            r.changed_page(old);
+                            result.ok().flatten()
+                        });
+                        if let Some(url) = opened {
+                            cx.open_url(&url);
+                        }
+                    }
+                    cx.notify();
+                }),
+            )
+            .on_mouse_move(cx.listener(|s, e: &MouseMoveEvent, _, cx| {
+                s.pointer = e.position;
+                if s.drawing
+                    && s.ink.iter().map(Vec::len).sum::<usize>() < 2048
+                    && let Some(line) = s.ink.last_mut()
+                {
+                    line.push((
+                        f32::from(e.position.x - s.origin.x) / s.scale,
+                        f32::from(e.position.y - s.origin.y) / s.scale,
+                    ));
+                }
+                if s.laser || s.drawing {
+                    cx.notify();
+                }
+            }))
+            .on_mouse_up(
+                MouseButton::Left,
+                cx.listener(|s, _, _, cx| {
+                    s.drawing = false;
+                    cx.notify();
+                }),
+            )
+            .children(
+                self.image
+                    .as_ref()
+                    .filter(|_| blank.is_none() && !ended)
+                    .map(|i| {
+                        img(i.clone())
+                            .absolute()
+                            .left(self.origin.x)
+                            .top(self.origin.y)
+                            .w(px(width * scale))
+                            .h(px(height * scale))
+                    }),
+            )
+            .children(ended.then(|| {
+                div()
+                    .absolute()
+                    .top(px(100.))
+                    .left(px(100.))
+                    .child(crate::l10n::t(
+                        joyoffice_ui::current_locale(cx),
+                        "show.ended_hint",
+                    ))
+            }))
+            .child(
+                canvas(
+                    |_, _, _| (),
+                    move |_, _, w, _| {
+                        if blank.is_none() && !ended {
+                            for line in &ink {
+                                let mut path = PathBuilder::stroke(px(2.));
+                                for (i, (x, y)) in line.iter().enumerate() {
+                                    let p =
+                                        point(origin.x + px(x * scale), origin.y + px(y * scale));
+                                    if i == 0 {
+                                        path.move_to(p);
+                                    } else {
+                                        path.line_to(p);
+                                    }
+                                }
+                                if let Ok(p) = path.build() {
+                                    w.paint_path(p, rgb(0xff3535));
+                                }
+                            }
+                        }
+                    },
+                )
+                .absolute()
+                .size_full(),
+            )
+            .children((self.laser && blank.is_none() && !ended).then(|| {
+                div()
+                    .absolute()
+                    .left(self.pointer.x - px(5.))
+                    .top(self.pointer.y - px(5.))
+                    .size(px(10.))
+                    .rounded_full()
+                    .bg(rgb(0xff3030))
+            }))
+            .child({
+                let locale = joyoffice_ui::current_locale(cx);
+                let page_s = page.to_string();
+                let step_s = step.to_string();
+                let paused_s = if paused {
+                    crate::l10n::t(locale, "show.state_paused")
+                } else {
+                    ""
+                };
+                div()
+                    .absolute()
+                    .bottom_0()
+                    .left_0()
+                    .right_0()
+                    .min_h(px(36.))
+                    .px_3()
+                    .bg(rgb(0x222222))
+                    .text_xs()
+                    .child(crate::l10n::tf(
+                        locale,
+                        "show.hud",
+                        &[
+                            ("page", &page_s),
+                            ("step", &step_s),
+                            ("paused", paused_s),
+                            ("message", &self.message),
+                        ],
+                    ))
+            })
     }
 }
 
@@ -543,6 +663,8 @@ impl Render for Presenter {
         for old in self.retired.drain(..) {
             let _ = w.drop_image(old);
         }
+        let locale = joyoffice_ui::current_locale(cx);
+        let t = |key: &'static str| crate::l10n::t(locale, key);
         let (slide_w, slide_h, status, notes, next_label, has_next, media, blank, ended) = self
             .shared
             .lock()
@@ -551,45 +673,65 @@ impl Render for Presenter {
                 let next_title = next_idx
                     .map(|p| {
                         let title = r.player.model.slides[p].title();
+                        let num_s = (p + 1).to_string();
                         if title.trim().is_empty() {
-                            format!("第 {} 页", p + 1)
+                            crate::l10n::tf(locale, "show.slide_num", &[("num", &num_s)])
                         } else {
-                            format!("第 {} 页 · {title}", p + 1)
+                            crate::l10n::tf(
+                                locale,
+                                "show.slide_num_title",
+                                &[("num", &num_s), ("title", &title)],
+                            )
                         }
                     })
-                    .unwrap_or_else(|| "放映结束".into());
+                    .unwrap_or_else(|| t("show.ended").into());
+                let page_s = (r.player.state.slide + 1).to_string();
+                let total_s = r.player.model.slides.len().to_string();
+                let step_s = r.player.state.step.to_string();
+                let elapsed_s = format!("{:.1}", r.player.total);
+                let state_s = if r.player.paused {
+                    t("show.state_paused")
+                } else {
+                    t("show.state_running")
+                };
+                let media_str = if r.status.is_null() || r.status["playing"] == false {
+                    t("show.media_stopped").into()
+                } else {
+                    let play_s = if r.status["paused"] == true {
+                        t("show.state_paused")
+                    } else {
+                        t("show.media_playing")
+                    };
+                    let mute_s = if r.media.muted {
+                        t("show.media_muted")
+                    } else {
+                        t("show.media_unmuted")
+                    };
+                    let pos_s = format!("{:.1}", r.status["seconds"].as_f64().unwrap_or(0.));
+                    crate::l10n::tf(
+                        locale,
+                        "show.media_detail",
+                        &[("play", play_s), ("mute", mute_s), ("pos", &pos_s)],
+                    )
+                };
                 (
                     r.player.model.slide_size.width.max(1.),
                     r.player.model.slide_size.height.max(1.),
-                    format!(
-                        "第 {} / {} 页 · 步骤 {} · 已用 {:.1} 秒 · {}",
-                        r.player.state.slide + 1,
-                        r.player.model.slides.len(),
-                        r.player.state.step,
-                        r.player.total,
-                        if r.player.paused {
-                            "已暂停"
-                        } else {
-                            "放映中"
-                        }
+                    crate::l10n::tf(
+                        locale,
+                        "show.presenter_status",
+                        &[
+                            ("page", &page_s),
+                            ("total", &total_s),
+                            ("step", &step_s),
+                            ("elapsed", &elapsed_s),
+                            ("state", state_s),
+                        ],
                     ),
                     r.player.model.slides[r.player.state.slide].notes_text(),
                     next_title,
                     next_idx.is_some(),
-                    if r.status.is_null() || r.status["playing"] == false {
-                        "未播放".into()
-                    } else {
-                        format!(
-                            "{} · {} · {:.1} 秒",
-                            if r.status["paused"] == true {
-                                "已暂停"
-                            } else {
-                                "播放中"
-                            },
-                            if r.media.muted { "静音" } else { "有声" },
-                            r.status["seconds"].as_f64().unwrap_or(0.)
-                        )
-                    },
+                    media_str,
                     r.player.blank,
                     r.player.state.ended,
                 )
@@ -599,9 +741,9 @@ impl Render for Presenter {
                 540.,
                 String::new(),
                 String::new(),
-                "放映结束".into(),
+                t("show.ended").into(),
                 false,
-                "未播放".into(),
+                t("show.media_stopped").into(),
                 None,
                 true,
             ));
@@ -632,70 +774,64 @@ impl Render for Presenter {
         }
 
         let mut buttons = div().flex().flex_wrap().items_center().gap_2();
-        for (label, action) in [
-            ("上一步", "previous"),
-            ("下一步", "next"),
-            ("暂停 / 继续", "pause"),
-            ("黑屏", "black"),
-            ("白屏", "white"),
+        for (id, label, action) in [
+            ("show-prev", t("show.btn_prev"), "previous"),
+            ("show-next", t("show.btn_next"), "next"),
+            ("show-pause", t("show.btn_pause"), "pause"),
+            ("show-black", t("show.btn_black"), "black"),
+            ("show-white", t("show.btn_white"), "white"),
         ] {
-            buttons = buttons.child(
-                Button::new(label)
-                    .small()
-                    .label(label)
-                    .on_click(cx.listener(move |s, _, _, cx| {
-                        if let Ok(mut r) = s.shared.lock() {
-                            let old = r.player.state.slide;
-                            let _ = r.player.navigate(action, None);
-                            r.changed_page(old);
-                        }
-                        cx.notify();
-                    })),
-            );
+            buttons = buttons.child(Button::new(id).small().label(label).on_click(cx.listener(
+                move |s, _, _, cx| {
+                    if let Ok(mut r) = s.shared.lock() {
+                        let old = r.player.state.slide;
+                        let _ = r.player.navigate(action, None);
+                        r.changed_page(old);
+                    }
+                    cx.notify();
+                },
+            )));
         }
-        for (label, action) in [
-            ("媒体开关", 0),
-            ("静音开关", 1),
-            ("后退 5 秒", 2),
-            ("前进 5 秒", 3),
+        for (id, label, action) in [
+            ("show-media", t("show.btn_media"), 0),
+            ("show-mute", t("show.btn_mute"), 1),
+            ("show-back5", t("show.btn_back5"), 2),
+            ("show-fwd5", t("show.btn_fwd5"), 3),
         ] {
-            buttons = buttons.child(
-                Button::new(label)
-                    .small()
-                    .label(label)
-                    .on_click(cx.listener(move |s, _, _, cx| {
-                        if let Ok(mut r) = s.shared.lock() {
-                            r.player.serial += 1;
-                            match action {
-                                0 => r.media.enabled = Some(!r.media_enabled()),
-                                1 => r.media.muted = !r.media.muted,
-                                _ => {
-                                    r.media.seek = Some((
-                                        r.player.serial,
-                                        (r.status["seconds"].as_f64().unwrap_or(0.)
-                                            + if action == 2 { -5. } else { 5. })
-                                        .clamp(0., 3600.),
-                                    ))
-                                }
+            buttons = buttons.child(Button::new(id).small().label(label).on_click(cx.listener(
+                move |s, _, _, cx| {
+                    if let Ok(mut r) = s.shared.lock() {
+                        r.player.serial += 1;
+                        match action {
+                            0 => r.media.enabled = Some(!r.media_enabled()),
+                            1 => r.media.muted = !r.media.muted,
+                            _ => {
+                                r.media.seek = Some((
+                                    r.player.serial,
+                                    (r.status["seconds"].as_f64().unwrap_or(0.)
+                                        + if action == 2 { -5. } else { 5. })
+                                    .clamp(0., 3600.),
+                                ))
                             }
                         }
-                        cx.notify();
-                    })),
-            );
+                    }
+                    cx.notify();
+                },
+            )));
         }
         buttons = buttons.child(
             Button::new("exit-show")
                 .small()
-                .label("结束放映")
+                .label(t("show.btn_end"))
                 .on_click(cx.listener(|s, _, w, cx| s.exit(w, cx))),
         );
 
         let current_badge = if ended {
-            Some("放映结束")
+            Some(t("show.ended"))
         } else if blank == Some(true) {
-            Some("白屏中")
+            Some(t("show.overlay_white"))
         } else if blank == Some(false) {
-            Some("黑屏中")
+            Some(t("show.overlay_black"))
         } else {
             None
         };
@@ -716,7 +852,7 @@ impl Render for Presenter {
                         div()
                             .text_sm()
                             .font_weight(FontWeight::SEMIBOLD)
-                            .child("当前幻灯片"),
+                            .child(t("show.current_slide")),
                     )
                     .children(current_badge.map(|badge| {
                         div()
@@ -753,7 +889,7 @@ impl Render for Presenter {
                         div()
                             .text_sm()
                             .text_color(rgb(0x9fb0ba))
-                            .child("正在渲染当前页预览…")
+                            .child(t("show.rendering_current"))
                             .into_any_element()
                     }),
             )
@@ -761,7 +897,11 @@ impl Render for Presenter {
                 div()
                     .text_xs()
                     .text_color(rgb(0xb8c7d0))
-                    .child(format!("媒体状态：{media}")),
+                    .child(crate::l10n::tf(
+                        locale,
+                        "show.media_status",
+                        &[("media", &media)],
+                    )),
             );
 
         let next_preview_card = div()
@@ -779,7 +919,11 @@ impl Render for Presenter {
                     .font_weight(FontWeight::SEMIBOLD)
                     .text_color(rgb(0xd4e0e7))
                     .truncate()
-                    .child(format!("下一张幻灯片：{next_label}")),
+                    .child(crate::l10n::tf(
+                        locale,
+                        "show.next_slide",
+                        &[("next", &next_label)],
+                    )),
             )
             .child(
                 div()
@@ -796,7 +940,7 @@ impl Render for Presenter {
                         div()
                             .text_sm()
                             .text_color(rgb(0x9fb0ba))
-                            .child("已是最后一张 · 放映结束")
+                            .child(t("show.last_slide_ended"))
                             .into_any_element()
                     } else if let Some(img_ref) = &self.next_image {
                         img(img_ref.clone())
@@ -807,13 +951,13 @@ impl Render for Presenter {
                         div()
                             .text_xs()
                             .text_color(rgb(0x9fb0ba))
-                            .child("正在渲染下一页预览…")
+                            .child(t("show.rendering_next"))
                             .into_any_element()
                     }),
             );
 
         let notes_display = if notes.trim().is_empty() {
-            "（本页无演讲者备注）".to_string()
+            t("show.no_notes").to_string()
         } else {
             notes
         };
@@ -832,7 +976,7 @@ impl Render for Presenter {
                     .text_xs()
                     .font_weight(FontWeight::SEMIBOLD)
                     .text_color(rgb(0xb8c7d0))
-                    .child("演讲者备注（仅此窗口）"),
+                    .child(t("show.notes_header")),
             )
             .child(div().mt_2().text_sm().child(notes_display));
 
@@ -861,7 +1005,7 @@ impl Render for Presenter {
                         div()
                             .text_lg()
                             .font_weight(FontWeight::SEMIBOLD)
-                            .child("JoyDeck · 演示者视图"),
+                            .child(t("app.presenter_window_title")),
                     )
                     .child(
                         div()
@@ -924,7 +1068,10 @@ pub(super) fn open(
         },
         cx,
         move |w, cx| {
-            w.set_window_title("JoyDeck · 放映");
+            w.set_window_title(crate::l10n::t(
+                joyoffice_ui::current_locale(cx),
+                "app.show_window_title",
+            ));
             cx.new(|cx| {
                 let focus = cx.focus_handle();
                 focus.focus(w, cx);
@@ -1000,7 +1147,9 @@ pub(super) fn open(
                     }
                     if dt > 5. {
                         r.player.paused = true;
-                        s.message = "长时间停顿，放映已暂停；按 P 继续".into();
+                        s.message =
+                            crate::l10n::t(joyoffice_ui::current_locale(cx), "show.idle_paused")
+                                .into();
                     } else {
                         let old = r.player.state.slide;
                         let _ = r.player.advance(dt);
@@ -1037,7 +1186,10 @@ pub(super) fn open(
             },
             cx,
             move |w, cx| {
-                w.set_window_title("JoyDeck · 演示者视图");
+                w.set_window_title(crate::l10n::t(
+                    joyoffice_ui::current_locale(cx),
+                    "app.presenter_window_title",
+                ));
                 cx.new(|cx| {
                     let focus = cx.focus_handle();
                     focus.focus(w, cx);

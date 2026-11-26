@@ -37,7 +37,7 @@ impl Viewer {
             return;
         }
         let Some((key, scene)) = &self.scene else {
-            self.message = "请先等待 GPUI 场景完成".into();
+            self.message = self.t("bench.wait_scene").into();
             cx.notify();
             return;
         };
@@ -50,7 +50,7 @@ impl Viewer {
             .find(|n| n.id.is_some() && n.geometry.fallback.is_none())
             .and_then(|n| n.id)
         else {
-            self.message = "此页没有可供对照的原生对象".into();
+            self.message = self.t("bench.no_native_obj").into();
             cx.notify();
             return;
         };
@@ -71,7 +71,7 @@ impl Viewer {
             textures: self.gpu_cache.stats.texture_preparations,
             initial_cpu_tiles: scene.stats.cpu_tiles,
         }));
-        self.message = "桌面对照：GPUI 与 CPU 各 60 帧，临时移动一个文字对象；文稿保持原样".into();
+        self.message = self.t("bench.started").into();
         cx.notify();
     }
     pub(super) fn paint_benchmark(
@@ -84,7 +84,7 @@ impl Viewer {
         let Some(b) = &mut self.benchmark else { return };
         if b.page != self.page {
             self.benchmark = None;
-            self.message = "切换页面已取消性能对照".into();
+            self.message = self.t("bench.cancelled").into();
             return;
         }
         let begin = Instant::now();
@@ -140,7 +140,7 @@ impl Viewer {
                     self.retired_images.push(image);
                 }
             }
-            self.message = "桌面对照完成：各 60 帧；详细百分位与样本已写入运行日志".into();
+            self.message = self.t("bench.done").into();
             cx.defer_in(w, |_, _, cx| cx.notify());
             return;
         }
@@ -148,6 +148,7 @@ impl Viewer {
         let next_index = if b.index == 59 { 0 } else { b.index + 1 };
         let (model, page, id) = (b.model.clone(), b.page, b.id);
         let dpi = w.scale_factor();
+        let locale = self.locale;
         self.benchmark_task = Some(cx.spawn(async move |view, cx| {
             cx.background_executor()
                 .timer(std::time::Duration::from_millis(20))
@@ -177,11 +178,14 @@ impl Viewer {
                         for p in image.pixels.as_chunks_mut::<4>().0 {
                             p.swap(0, 2);
                         }
-                        let image = image_of(Raster {
-                            width: image.width,
-                            height: image.height,
-                            bgra: image.pixels,
-                        })?;
+                        let image = image_of(
+                            Raster {
+                                width: image.width,
+                                height: image.height,
+                                bgra: image.pixels,
+                            },
+                            locale,
+                        )?;
                         Ok::<_, String>((Some(image), begin.elapsed().as_micros() as u64))
                     })
                     .await

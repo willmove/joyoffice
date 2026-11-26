@@ -7,9 +7,15 @@ use gpui_kit::component::Icon;
 use gpui_kit::{Div, ParentElement, Styled, div, px, rgb};
 use std::path::Path;
 
+pub use joyoffice_l10n::{Catalog, CatalogSet, L10nIssue, Plural, UiLocale};
 pub use joyoffice_theme::{Brand, Palette, ThemePreset};
 mod appearance;
-pub use appearance::{AppliedTheme, apply_theme, theme_preview};
+pub use appearance::{AppliedTheme, apply_theme, theme_preview, theme_preview_for};
+mod language;
+pub use language::{
+    AppliedLocale, apply_locale, current_locale, language_header_trigger, language_menu,
+    language_options_section, language_status_trigger, theme_label,
+};
 mod ribbon;
 pub use ribbon::{ribbon_group, ribbon_group_footer};
 mod save_changes;

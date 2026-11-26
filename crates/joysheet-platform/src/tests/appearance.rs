@@ -47,3 +47,18 @@ fn every_preset_round_trips_and_mode_switch_keeps_the_family() -> Result<(), Box
     }
     Ok(())
 }
+
+#[test]
+fn locale_preferences_preserve_legacy_tags_and_round_trip() -> Result<(), Box<dyn std::error::Error>> {
+    let legacy: Preferences = serde_json::from_str("{\"language\":\"zh\"}")?;
+    assert_eq!(legacy.ui_locale(), joyoffice_l10n::UiLocale::ZhCn);
+    let unknown: Preferences = serde_json::from_str("{\"language\":\"xx-YY\"}")?;
+    assert_eq!(unknown.ui_locale(), joyoffice_l10n::UiLocale::ZhCn);
+    for locale in joyoffice_l10n::UiLocale::ALL {
+        let mut prefs = Preferences::default();
+        prefs.set_locale(locale);
+        let restored: Preferences = serde_json::from_slice(&serde_json::to_vec(&prefs)?)?;
+        assert_eq!(restored.ui_locale(), locale);
+    }
+    Ok(())
+}

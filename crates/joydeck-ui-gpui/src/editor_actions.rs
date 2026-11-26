@@ -81,12 +81,12 @@ impl Viewer {
     }
     pub(super) fn block_replace(&mut self, cx: &mut Context<Self>) -> bool {
         if self.composing() {
-            self.message = "请先完成或取消输入法组合输入".into();
+            self.message = self.t("edit.err_ime").into();
             cx.notify();
             return true;
         }
         if self.is_saving() || self.requires_save_prompt() {
-            self.message = "当前文稿有未保存更改或正在保存；请先保存后重试".into();
+            self.message = self.t("save.dirty_retry").into();
             cx.notify();
             true
         } else {
@@ -110,7 +110,7 @@ impl Viewer {
             match editor.display(cx) {
                 Ok(mut deck) => {
                     if editor.source.is_none() && deck.info.name == "Untitled.joydeck" {
-                        deck.info.name = "演示文稿1".into();
+                        deck.info.name = self.t("app.default_presentation").into();
                     }
                     self.deck = Some(Arc::new(deck));
                 }
@@ -188,7 +188,7 @@ impl Viewer {
                 match result {
                     Ok(()) => eprintln!("R4/R5 checkpoint revision={revision}"),
                     Err(e) => {
-                        s.message = format!("恢复快照未写入：{e}");
+                        s.message = s.tf("save.recovery_failed", &[("error", &e)]);
                         cx.notify();
                     }
                 }
@@ -215,22 +215,23 @@ impl Viewer {
         cx: &mut Context<Self>,
     ) -> Result<bool, String> {
         if self.benchmark.is_some() {
-            return Err("性能对照进行中；完成后可以继续编辑".into());
+            return Err(self.t("edit.err_benchmark").into());
         }
         if self.composing() {
-            return Err("请先完成或取消输入法组合输入".into());
+            return Err(self.t("edit.err_ime").into());
         }
         self.end_inline(cx);
         if self.loading {
-            return Err("正在读取，请稍后编辑".into());
+            return Err(self.t("edit.err_loading").into());
         }
+        let ready = self.t("msg.ready");
         let Some(editor) = &mut self.editor else {
             return Ok(false);
         };
         let label = command.id();
         let changed = editor.execute(command, cx)?;
         if changed {
-            self.message = "就绪".into();
+            self.message = ready.into();
             eprintln!(
                 "R4/R5 command={label} revision={} dirty={}",
                 editor.session.revision(),
@@ -259,7 +260,7 @@ impl Viewer {
                 self.save_input.update(cx, |s, cx| s.set_value("", w, cx));
                 self.sync_editor(w, cx);
                 self.checkpoint(cx);
-                self.message = "新演示文稿".into();
+                self.message = self.t("msg.new_presentation").into();
             }
             Err(e) => self.message = e,
         }
@@ -277,7 +278,7 @@ impl Viewer {
         let reason = self.save_unavailable().or_else(|| {
             self.notes_input
                 .update(cx, |i, cx| i.marked_text_range(w, cx).is_some())
-                .then_some("请先完成或取消输入法组合输入再保存")
+                .then_some(self.t("save.err_ime"))
         });
         if let Some(reason) = reason {
             self.message = reason.into();
@@ -313,7 +314,7 @@ impl Viewer {
         };
         let generation = self.generation;
         self.saving = true;
-        self.message = "正在后台保存；可以继续编辑".into();
+        self.message = self.t("save.bg_saving").into();
         self.save_task = Some(cx.spawn(async move |view, cx| {
             let result = cx
                 .background_executor()
@@ -334,6 +335,7 @@ impl Viewer {
                         let revision = saved.revision;
                         let path = saved.path.clone();
                         let warning = saved.warning.clone();
+                        let locale = s.locale;
                         if let Some(editor) = &mut s.editor {
                             editor.finish_save(Some((saved, identity)), cx);
                             if let Some(doc) = &mut s.deck {
@@ -344,17 +346,24 @@ impl Viewer {
                                     .into_owned();
                             }
                             s.source = Some(path.clone());
-                            s.message = format!(
-                                "已保存 revision {revision} · {}{}",
-                                path.file_name().unwrap_or_default().to_string_lossy(),
-                                if editor.session.dirty() {
-                                    " · 仍有新修改未保存"
-                                } else {
-                                    ""
-                                }
+                            let rev_s = revision.to_string();
+                            let file_s = path.file_name().unwrap_or_default().to_string_lossy();
+                            let dirty_s = if editor.session.dirty() {
+                                crate::l10n::t(locale, "save.still_dirty")
+                            } else {
+                                ""
+                            };
+                            s.message = crate::l10n::tf(
+                                locale,
+                                "save.saved_status",
+                                &[("revision", &rev_s), ("path", &file_s), ("dirty", dirty_s)],
                             );
                             if let Some(warning) = warning {
-                                s.message.push_str(&format!(" · 恢复清理提示：{warning}"));
+                                s.message.push_str(&crate::l10n::tf(
+                                    locale,
+                                    "save.recovery_cleanup",
+                                    &[("warning", &warning)],
+                                ));
                             }
                             eprintln!(
                                 "R4/R5 saved revision={revision} dirty={} path={}",
@@ -364,7 +373,8 @@ impl Viewer {
                             if s.pending_replace.is_some() {
                                 if editor.session.dirty() {
                                     s.pending_replace = None;
-                                    s.message.push_str(" · 仍有新修改，请再次打开或新建");
+                                    s.message
+                                        .push_str(crate::l10n::t(locale, "save.dirty_reopen"));
                                 } else {
                                     s.replace_ready = true;
                                 }
@@ -373,7 +383,8 @@ impl Viewer {
                                 s.close_ready = true;
                             } else if s.close_after_save {
                                 s.close_after_save = false;
-                                s.message.push_str(" · 有新修改，窗口继续打开");
+                                s.message
+                                    .push_str(crate::l10n::t(locale, "save.dirty_keep_open"));
                             }
                         }
                     }
@@ -381,7 +392,7 @@ impl Viewer {
                         if let Some(editor) = &mut s.editor {
                             editor.finish_save(None, cx);
                         }
-                        s.message = format!("保存失败，原文件保持不变：{e}");
+                        s.message = s.tf("save.failed", &[("error", &e)]);
                         s.close_after_save = false;
                         s.pending_replace = None;
                     }
@@ -402,14 +413,14 @@ impl Viewer {
                 .notes_input
                 .update(cx, |i, cx| i.marked_text_range(w, cx).is_some())
         {
-            self.message = "请先完成或取消组合输入".into();
+            self.message = self.t("msg.finish_ime_short").into();
             cx.notify();
             return;
         }
         self.commit_notes(w, cx);
         if self.saving {
             self.close_after_save = true;
-            self.message = "正在保存，完成且无新修改后关闭".into();
+            self.message = self.t("save.closing_after_save").into();
             cx.notify();
             return;
         }
@@ -419,52 +430,63 @@ impl Viewer {
         }
         let generation = self.generation;
         let revision = self.editor.as_ref().map(|e| e.session.revision());
+        let locale = self.locale;
         let weak = cx.entity().downgrade();
         let discard = weak.clone();
         let save = weak;
         w.open_dialog(cx, move |dialog, _, _| {
             dialog
-                .title("关闭前保存文稿？")
-                .child("当前修改尚未保存。取消可继续编辑。")
+                .title(crate::l10n::t(locale, "save.close_title"))
+                .child(crate::l10n::t(locale, "save.close_body"))
                 .child(
                     div()
                         .flex()
                         .gap_2()
-                        .child(Button::new("close-save").label("保存后关闭").on_click({
-                            let view = save.clone();
-                            move |_, w, cx| {
-                                let _ = view.update(cx, |s, cx| {
-                                    w.close_dialog(cx);
-                                    if generation != s.generation || s.is_saving() {
-                                        return;
+                        .child(
+                            Button::new("close-save")
+                                .label(crate::l10n::t(locale, "save.close_save"))
+                                .on_click({
+                                    let view = save.clone();
+                                    move |_, w, cx| {
+                                        let _ = view.update(cx, |s, cx| {
+                                            w.close_dialog(cx);
+                                            if generation != s.generation || s.is_saving() {
+                                                return;
+                                            }
+                                            s.close_after_save = true;
+                                            s.save(&Save, w, cx);
+                                        });
                                     }
-                                    s.close_after_save = true;
-                                    s.save(&Save, w, cx);
-                                });
-                            }
-                        }))
-                        .child(Button::new("close-discard").label("放弃并关闭").on_click({
-                            let view = discard.clone();
-                            move |_, w, cx| {
-                                let _ = view.update(cx, |s, cx| {
-                                    w.close_dialog(cx);
-                                    if generation != s.generation
-                                        || s.is_saving()
-                                        || revision
-                                            != s.editor.as_ref().map(|e| e.session.revision())
-                                    {
-                                        return;
+                                }),
+                        )
+                        .child(
+                            Button::new("close-discard")
+                                .label(crate::l10n::t(locale, "save.close_discard"))
+                                .on_click({
+                                    let view = discard.clone();
+                                    move |_, w, cx| {
+                                        let _ = view.update(cx, |s, cx| {
+                                            w.close_dialog(cx);
+                                            if generation != s.generation
+                                                || s.is_saving()
+                                                || revision
+                                                    != s.editor
+                                                        .as_ref()
+                                                        .map(|e| e.session.revision())
+                                            {
+                                                return;
+                                            }
+                                            if let Some(editor) = s.editor.take() {
+                                                editor.discard(cx);
+                                            }
+                                            w.remove_window();
+                                        });
                                     }
-                                    if let Some(editor) = s.editor.take() {
-                                        editor.discard(cx);
-                                    }
-                                    w.remove_window();
-                                });
-                            }
-                        }))
+                                }),
+                        )
                         .child(
                             Button::new("close-cancel")
-                                .label("取消")
+                                .label(crate::l10n::t(locale, "common.cancel"))
                                 .on_click(|_, w, cx| w.close_dialog(cx)),
                         ),
                 )
@@ -498,96 +520,103 @@ impl Viewer {
         let Some(rows) = self.recovery_rows.take() else {
             return;
         };
+        let locale = self.locale;
         let view = cx.entity().downgrade();
         w.open_dialog(cx, move |dialog, _, _| {
-            dialog.title("可恢复文稿").child(
-                div()
-                    .id("recovery-list")
-                    .max_h(px(360.))
-                    .overflow_y_scroll()
-                    .flex()
-                    .flex_col()
-                    .gap_2()
-                    .child(if rows.is_empty() {
-                        "没有恢复记录"
-                    } else {
-                        "选择一个未被其它实例占用的快照"
-                    })
-                    .children(rows.iter().take(20).enumerate().map(|(i, e)| {
-                        let record = e.record.clone();
-                        let target = view.clone();
-                        let disabled = e.active || e.problem.is_some();
-                        Button::new(("recover-entry", i))
-                            .label(format!(
-                                "{} · revision {}{}",
-                                e.record
-                                    .source
-                                    .as_ref()
-                                    .and_then(|p| p.file_name())
-                                    .map(|s| s.to_string_lossy().into_owned())
-                                    .unwrap_or_else(|| "未命名".into()),
-                                e.record.revision,
-                                e.problem.as_deref().unwrap_or(if e.active {
-                                    " · 正在使用"
-                                } else {
-                                    ""
-                                })
-                            ))
-                            .disabled(disabled)
-                            .on_click(move |_, w, cx| {
-                                let record = record.clone();
-                                let _ = target.update(cx, |s, cx| {
-                                    if s.block_replace(cx) {
-                                        return;
-                                    }
-                                    w.close_dialog(cx);
-                                    let revision = s.editor.as_ref().map(|e| e.session.revision());
-                                    let (request, cancel) = s.start_read();
-                                    s.read_task = Some(cx.spawn(async move |view, cx| {
-                                        let result = cx
-                                            .background_executor()
-                                            .spawn(async move {
-                                                let editor =
-                                                    joydeck_shell::editor::Editor::restore(
-                                                        joydeck_shell::editor::recovery_root(),
-                                                        &record,
-                                                    )?;
-                                                cancel.check()?;
-                                                Ok::<_, String>(editor)
-                                            })
-                                            .await;
-                                        let _ = view.update(cx, |s, cx| {
-                                            if s.read_request != request {
-                                                return;
-                                            }
-                                            s.loading = false;
-                                            if revision
-                                                != s.editor.as_ref().map(|e| e.session.revision())
-                                            {
-                                                s.message =
-                                                    "当前文稿已变更，请重新选择恢复记录".into();
-                                                cx.notify();
-                                                return;
-                                            }
-                                            match result {
-                                                Ok(editor) => {
-                                                    s.attach_new_editor(editor, cx);
-                                                    s.generation += 1;
-                                                    s.refresh_pending = true;
-                                                    s.pending_save_path = Some(String::new());
-                                                    s.message =
-                                                        "已恢复；请选择新路径保存，原文件不覆盖"
-                                                            .into();
+            dialog
+                .title(crate::l10n::t(locale, "save.recovery_title"))
+                .child(
+                    div()
+                        .id("recovery-list")
+                        .max_h(px(360.))
+                        .overflow_y_scroll()
+                        .flex()
+                        .flex_col()
+                        .gap_2()
+                        .child(if rows.is_empty() {
+                            crate::l10n::t(locale, "save.recovery_empty")
+                        } else {
+                            crate::l10n::t(locale, "save.recovery_hint")
+                        })
+                        .children(rows.iter().take(20).enumerate().map(|(i, e)| {
+                            let record = e.record.clone();
+                            let target = view.clone();
+                            let disabled = e.active || e.problem.is_some();
+                            Button::new(("recover-entry", i))
+                                .label(format!(
+                                    "{} · revision {}{}",
+                                    e.record
+                                        .source
+                                        .as_ref()
+                                        .and_then(|p| p.file_name())
+                                        .map(|s| s.to_string_lossy().into_owned())
+                                        .unwrap_or_else(|| {
+                                            crate::l10n::t(locale, "common.untitled").into()
+                                        }),
+                                    e.record.revision,
+                                    e.problem.as_deref().unwrap_or(if e.active {
+                                        crate::l10n::t(locale, "save.recovery_in_use")
+                                    } else {
+                                        ""
+                                    })
+                                ))
+                                .disabled(disabled)
+                                .on_click(move |_, w, cx| {
+                                    let record = record.clone();
+                                    let _ = target.update(cx, |s, cx| {
+                                        if s.block_replace(cx) {
+                                            return;
+                                        }
+                                        w.close_dialog(cx);
+                                        let revision =
+                                            s.editor.as_ref().map(|e| e.session.revision());
+                                        let (request, cancel) = s.start_read();
+                                        s.read_task = Some(cx.spawn(async move |view, cx| {
+                                            let result = cx
+                                                .background_executor()
+                                                .spawn(async move {
+                                                    let editor =
+                                                        joydeck_shell::editor::Editor::restore(
+                                                            joydeck_shell::editor::recovery_root(),
+                                                            &record,
+                                                        )?;
+                                                    cancel.check()?;
+                                                    Ok::<_, String>(editor)
+                                                })
+                                                .await;
+                                            let _ = view.update(cx, |s, cx| {
+                                                if s.read_request != request {
+                                                    return;
                                                 }
-                                                Err(e) => s.message = e,
-                                            }
-                                            cx.notify();
-                                        });
-                                    }));
-                                });
-                            })
-                    })),
-            )
+                                                s.loading = false;
+                                                if revision
+                                                    != s.editor
+                                                        .as_ref()
+                                                        .map(|e| e.session.revision())
+                                                {
+                                                    s.message =
+                                                        s.t("save.recovery_doc_changed").into();
+                                                    cx.notify();
+                                                    return;
+                                                }
+                                                match result {
+                                                    Ok(editor) => {
+                                                        s.attach_new_editor(editor, cx);
+                                                        s.generation += 1;
+                                                        s.refresh_pending = true;
+                                                        s.pending_save_path = Some(String::new());
+                                                        s.message =
+                                                            s.t("save.recovery_done").into();
+                                                    }
+                                                    Err(e) => s.message = e,
+                                                }
+                                                cx.notify();
+                                            });
+                                        }));
+                                    });
+                                })
+                        })),
+                )
         });
     }
     fn select_object(&mut self, id: ShapeId, extend: bool, w: &mut Window, cx: &mut Context<Self>) {

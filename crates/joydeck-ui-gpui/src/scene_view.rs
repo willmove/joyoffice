@@ -57,7 +57,7 @@ impl Viewer {
                         s.scene = Some((key, Arc::new(scene)));
                     }
                     Err(error) => {
-                        s.message = format!("场景失败，已切换 CPU 对照：{error}");
+                        s.message = s.tf("scene.fallback_cpu", &[("error", &error)]);
                         s.cpu_view = true;
                     }
                 }
@@ -92,7 +92,7 @@ impl Viewer {
             .map(|e| e.session.selection().shapes.as_slice())
             .unwrap_or_default();
         if let Err(error) = self.gpu_cache.paint(scene, bounds, scale, moved, delta, w) {
-            self.message = format!("GPUI 绘制错误：{error}");
+            self.message = self.tf("scene.draw_error", &[("error", &error)]);
         }
     }
     pub(super) fn scene_report(&self, w: &mut Window, cx: &mut Context<Self>) {
@@ -126,9 +126,11 @@ impl Viewer {
         eprintln!("R4 diagnostics {value}");
         let view = cx.entity().downgrade();
         let report_height = (f32::from(w.viewport_size().height) - 260.).max(140.);
+        let title = self.t("scene.diag_title");
+        let run_label = self.t("scene.run_bench");
         w.open_dialog(cx, move |dialog, _, _| {
             dialog
-                .title("GPUI 场景 / CPU 对照诊断")
+                .title(title)
                 .child(
                     div()
                         .id("scene-report-scroll")
@@ -139,7 +141,7 @@ impl Viewer {
                 )
                 .child(
                     Button::new("run-render-benchmark")
-                        .label("运行桌面对照（各 60 帧）")
+                        .label(run_label)
                         .on_click({
                             let view = view.clone();
                             move |_, w, cx| {

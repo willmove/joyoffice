@@ -178,6 +178,7 @@ pub fn run(options: LaunchOptions) -> Result<(), String> {
             ]),
         ]);
         joyoffice_ui::apply_theme(preferences.theme_preset(), joyoffice_ui::Brand::Sheet, None, cx);
+        joyoffice_ui::apply_locale(preferences.ui_locale(), cx);
         cx.set_global(desktop::NativeWindows::default());
         cx.set_global(desktop::NativeFocus::default());
         let queue = server.as_ref().map(|s| s.queue.clone()).unwrap_or_default();

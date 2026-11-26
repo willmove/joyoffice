@@ -187,6 +187,7 @@ pub struct Viewer {
     activation: Option<Subscription>,
     dark: bool,
     theme: joyoffice_ui::ThemePreset,
+    locale: joyoffice_ui::UiLocale,
     focus: FocusHandle,
     deck: Option<Arc<Deck>>,
     source: Option<PathBuf>,
@@ -224,13 +225,17 @@ impl Drop for Viewer {
         }
     }
 }
-fn image_of(r: Raster) -> std::result::Result<Arc<RenderImage>, String> {
-    let pixels =
-        image::RgbaImage::from_raw(r.width, r.height, r.bgra).ok_or("预览像素与画布尺寸不匹配")?;
+fn image_of(
+    r: Raster,
+    locale: joyoffice_ui::UiLocale,
+) -> std::result::Result<Arc<RenderImage>, String> {
+    let pixels = image::RgbaImage::from_raw(r.width, r.height, r.bgra)
+        .ok_or_else(|| crate::l10n::t(locale, "msg.preview_size_mismatch").to_owned())?;
     Ok(Arc::new(RenderImage::new(vec![image::Frame::new(pixels)])))
 }
 impl Viewer {
     fn new(dark: bool, window: &mut Window, cx: &mut Context<Self>) -> Self {
+        let locale = joyoffice_ui::current_locale(cx);
         let focus = cx.focus_handle();
         focus.focus(window, cx);
         let font_picker = cx.new(|cx| {
@@ -266,7 +271,10 @@ impl Viewer {
             file_page: file_ui::Page::Home,
             file_scroll: ScrollHandle::new(),
             file_templates_expanded: true,
-            file_search: cx.new(|cx| InputState::new(window, cx).placeholder("搜索文件")),
+            file_search: cx.new(|cx| {
+                InputState::new(window, cx)
+                    .placeholder(crate::l10n::t(locale, "nav.search_files_placeholder"))
+            }),
             file_search_subscription: None,
             template_previews: vec![],
             template_preview_task: None,
@@ -292,16 +300,18 @@ impl Viewer {
             cell_range: None,
             notes_input: cx.new(|cx| {
                 TextareaState::new(window, cx)
-                    .placeholder("单击此处添加备注")
+                    .placeholder(crate::l10n::t(locale, "nav.notes_placeholder"))
                     .auto_grow(1, 3)
             }),
             editor: None,
             document_observer: None,
             save_input: cx.new(|cx| {
-                InputState::new(window, cx).placeholder("另存路径 .pptx / .joydeck（新文件）")
+                InputState::new(window, cx)
+                    .placeholder(crate::l10n::t(locale, "nav.save_path_placeholder"))
             }),
             text_input: cx.new(|cx| {
-                InputState::new(window, cx).placeholder("选中文字对象后，在这里修改并应用")
+                InputState::new(window, cx)
+                    .placeholder(crate::l10n::t(locale, "nav.text_edit_placeholder"))
             }),
             save_task: None,
             save_picker_generation: None,
@@ -319,6 +329,7 @@ impl Viewer {
             activation: None,
             dark,
             theme: cx.global::<joyoffice_ui::AppliedTheme>().0,
+            locale,
             focus,
             deck: None,
             source: None,
@@ -343,7 +354,7 @@ impl Viewer {
             thumbs_task: None,
             dialog_task: None,
             loading: false,
-            message: "选择本地文稿开始编辑 · PPTX / JoyDeck v2 / DeckCraft 导入".into(),
+            message: crate::l10n::t(locale, "msg.welcome").into(),
             rasters: 0,
             started: Instant::now(),
         }
@@ -353,7 +364,7 @@ impl Viewer {
             files: true,
             directories: false,
             multiple: false,
-            prompt: Some("打开文稿".into()),
+            prompt: Some(self.t("msg.open_prompt").into()),
         });
         let window = w.window_handle();
         let read_request = self.read_request;
@@ -372,7 +383,7 @@ impl Viewer {
                         }
                         Ok(Ok(None)) => {}
                         _ => {
-                            s.message = "无法打开文件选择器，请重新尝试".into();
+                            s.message = s.t("msg.picker_failed").into();
                             cx.notify();
                         }
                     }
@@ -419,7 +430,7 @@ impl Viewer {
         let revision = self.editor.as_ref().map(|e| e.session.revision());
         let (request, cancel) = self.start_read();
         self.started = Instant::now();
-        self.message = "正在后台读取、检查文稿… 可取消；当前文稿继续可浏览".into();
+        self.message = self.t("msg.opening_bg").into();
         eprintln!("R6/R7 open_started=true request={request}");
         self.read_task = Some(cx.spawn(async move |view, cx| {
             let source = path.clone();
@@ -460,7 +471,7 @@ impl Viewer {
                             || s.composing()
                             || s.is_saving()
                         {
-                            s.message = "打开请求已过期 · 当前文稿保持不变".into();
+                            s.message = s.t("msg.open_stale").into();
                             cx.notify();
                             return;
                         }
@@ -529,7 +540,8 @@ impl Viewer {
                         s.thumbs_task = None;
                         s.thumbs_cancel = Arc::new(AtomicBool::new(false));
                         s.scroll.scroll_to_item(0, ScrollStrategy::Top);
-                        s.message = format!("已打开 · {} 张幻灯片", pages);
+                        let pages_s = pages.to_string();
+                        s.message = s.tf("msg.opened_pages", &[("pages", &pages_s)]);
                         eprintln!(
                             "R6/R7 opened=true pages={} elapsed_ms={}",
                             pages,
@@ -537,7 +549,7 @@ impl Viewer {
                         );
                     }
                     Err(error) => {
-                        s.message = format!("打开失败：{error} · 当前文稿保持不变");
+                        s.message = s.tf("msg.open_failed", &[("error", &error)]);
                         eprintln!("R6/R7 open_failed=true reason={error}");
                     }
                 }
@@ -549,7 +561,7 @@ impl Viewer {
     pub(super) fn cancel_read(&mut self, cx: &mut Context<Self>) {
         if self.loading {
             self.stop_read();
-            self.message = "已取消读取 · 当前文稿保持不变".into();
+            self.message = self.t("msg.open_cancelled").into();
             eprintln!("R6/R7 open_cancelled=true");
             cx.notify();
         }
@@ -562,7 +574,7 @@ impl Viewer {
         } else if self.inline.is_some() {
             self.cancel_inline(cx);
         } else if self.drag.take().is_some() {
-            self.message = "手势已取消，未修改文稿".into();
+            self.message = self.t("msg.gesture_cancelled").into();
             cx.notify();
         }
     }
@@ -639,20 +651,20 @@ impl Viewer {
             .as_ref()
             .map(|d| d.info.warnings.iter().take(200).cloned().collect())
             .unwrap_or_default();
+        let title = self.t("msg.compat_title");
+        let total_s = total.to_string();
+        let summary = self.tf("msg.compat_summary", &[("total", &total_s)]);
         window.open_dialog(cx, move |dialog, _, _| {
-            dialog
-                .title("兼容报告 · 导入与输出限制")
-                .child(format!("共 {total} 条提示；此面板最多显示前 200 条"))
-                .child(
-                    div()
-                        .id("report-body")
-                        .max_h(px(420.))
-                        .overflow_y_scroll()
-                        .flex()
-                        .flex_col()
-                        .gap_3()
-                        .children(rows.iter().map(|s| div().text_sm().child(s.clone()))),
-                )
+            dialog.title(title).child(summary.clone()).child(
+                div()
+                    .id("report-body")
+                    .max_h(px(420.))
+                    .overflow_y_scroll()
+                    .flex()
+                    .flex_col()
+                    .gap_3()
+                    .children(rows.iter().map(|s| div().text_sm().child(s.clone()))),
+            )
         });
     }
     fn request_image(&mut self, width: u32, cx: &mut Context<Self>) {
@@ -676,11 +688,14 @@ impl Viewer {
         let cancel = Arc::new(AtomicBool::new(false));
         self.paint_cancel = cancel.clone();
         self.pending = Some(key);
+        let locale = self.locale;
         self.paint_task = Some(cx.spawn(async move |view, cx| {
             let started = Instant::now();
             let result = cx
                 .background_executor()
-                .spawn(async move { render_doc(&deck, key.1, key.2, &cancel).and_then(image_of) })
+                .spawn(async move {
+                    render_doc(&deck, key.1, key.2, &cancel).and_then(|r| image_of(r, locale))
+                })
                 .await;
             let _ = view.update(cx, |s, cx| {
                 if s.pending != Some(key)
@@ -703,7 +718,7 @@ impl Viewer {
                             s.rasters
                         );
                     }
-                    Err(e) => s.message = format!("预览失败：{e}"),
+                    Err(e) => s.message = s.tf("msg.preview_failed", &[("error", &e)]),
                 }
                 cx.notify();
             });
@@ -751,7 +766,7 @@ impl Viewer {
                     return;
                 }
                 for (p, r) in result {
-                    let Ok(image) = r.and_then(image_of) else {
+                    let Ok(image) = r.and_then(|r| image_of(r, s.locale)) else {
                         s.thumbnail_errors.insert(p);
                         continue;
                     };
@@ -770,9 +785,10 @@ impl Viewer {
 }
 impl Render for Viewer {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        // GPUI Kit refreshes every window when its application theme changes.
+        // GPUI Kit refreshes every window when its application theme or locale changes.
         self.theme = cx.global::<joyoffice_ui::AppliedTheme>().0;
         self.dark = self.theme.is_dark();
+        self.locale = joyoffice_ui::current_locale(cx);
         if self.close_ready {
             self.close_ready = false;
             cx.defer_in(window, |s, w, _| {
@@ -936,16 +952,16 @@ impl Render for Viewer {
                 .gap_4()
                 .bg(rgb(palette.canvas))
                 .child(div().text_3xl().child("JoyDeck"))
-                .child("打开文稿，编辑、导出或放映")
+                .child(self.t("msg.empty_headline"))
                 .child(
                     div()
                         .text_sm()
                         .text_color(rgb(palette.muted))
-                        .child(".deckcraft v1  /  PPTX · 本地读取 · 源文件不变"),
+                        .child(self.t("msg.empty_subline")),
                 )
                 .child(
                     Button::new("empty-open")
-                        .label("打开文稿  Ctrl+O")
+                        .label(self.t("msg.empty_open_btn"))
                         .on_click(cx.listener(|s, _, w, cx| s.open(&Open, w, cx))),
                 )
                 .into_any_element()
@@ -1104,30 +1120,31 @@ pub fn bind(cx: &mut App) {
     ]);
 }
 #[cfg(target_os = "macos")]
-pub(super) fn bind_native_menus(cx: &mut App) {
+pub(super) fn bind_native_menus(locale: joyoffice_ui::UiLocale, cx: &mut App) {
+    let t = |key: &'static str| crate::l10n::t(locale, key);
     cx.set_menus([
-        Menu::new("JoyDeck").items([MenuItem::action("退出 JoyDeck", super::Quit)]),
-        Menu::new("文件").items([
-            MenuItem::action("新建", NewDocument),
-            MenuItem::action("打开…", Open),
-            MenuItem::action("保存", Save),
-            MenuItem::action("另存为…", SaveAs),
+        Menu::new("JoyDeck").items([MenuItem::action(t("menu.quit"), super::Quit)]),
+        Menu::new(t("menu.file")).items([
+            MenuItem::action(t("menu.new"), NewDocument),
+            MenuItem::action(t("menu.open"), Open),
+            MenuItem::action(t("menu.save"), Save),
+            MenuItem::action(t("menu.save_as"), SaveAs),
             MenuItem::separator(),
-            MenuItem::action("关闭", CloseEditor),
+            MenuItem::action(t("menu.close"), CloseEditor),
         ]),
-        Menu::new("编辑").items([
-            MenuItem::action("撤销", UndoEdit),
-            MenuItem::action("重做", RedoEdit),
+        Menu::new(t("menu.edit")).items([
+            MenuItem::action(t("menu.undo"), UndoEdit),
+            MenuItem::action(t("menu.redo"), RedoEdit),
             MenuItem::separator(),
-            MenuItem::action("创建对象副本", DuplicateObject),
-            MenuItem::action("删除对象", DeleteObject),
-            MenuItem::action("上移一层", MoveForward),
-            MenuItem::action("下移一层", MoveBackward),
+            MenuItem::action(t("menu.duplicate_object"), DuplicateObject),
+            MenuItem::action(t("menu.delete_object"), DeleteObject),
+            MenuItem::action(t("menu.move_forward"), MoveForward),
+            MenuItem::action(t("menu.move_backward"), MoveBackward),
         ]),
-        Menu::new("幻灯片").items([
-            MenuItem::action("新建幻灯片", AddSlide),
-            MenuItem::action("复制幻灯片", DuplicateSlides),
-            MenuItem::action("删除幻灯片", DeleteSlides),
+        Menu::new(t("menu.slide")).items([
+            MenuItem::action(t("menu.new_slide"), AddSlide),
+            MenuItem::action(t("menu.duplicate_slide"), DuplicateSlides),
+            MenuItem::action(t("menu.delete_slide"), DeleteSlides),
         ]),
     ]);
 }
@@ -1171,7 +1188,7 @@ pub fn open_window(
                         s.commit_notes(w, cx);
                         s.end_inline(cx);
                         if s.drag.take().is_some() {
-                            s.message = "失焦，手势已取消".into();
+                            s.message = s.t("msg.gesture_cancelled_blur").into();
                             cx.notify();
                         }
                     }
@@ -1184,7 +1201,7 @@ pub fn open_window(
                         || s.notes_input
                             .update(cx, |i, cx| i.marked_text_range(w, cx).is_some())
                     {
-                        s.message = "请先完成或取消组合输入".into();
+                        s.message = s.t("msg.finish_ime_short").into();
                         cx.notify();
                         return false;
                     }
@@ -1295,6 +1312,14 @@ fn render_doc(
 }
 
 impl Viewer {
+    pub(super) fn t(&self, key: &'static str) -> &'static str {
+        crate::l10n::t(self.locale, key)
+    }
+
+    pub(super) fn tf(&self, key: &str, args: &[(&str, &str)]) -> String {
+        crate::l10n::tf(self.locale, key, args)
+    }
+
     fn palette(&self) -> joyoffice_ui::Palette {
         self.theme.palette(joyoffice_ui::Brand::Deck)
     }
@@ -1311,7 +1336,27 @@ impl Viewer {
                 self.dark = theme.is_dark();
                 crate::apply_theme(theme, Some(window), cx);
             }
-            Err(error) => self.message = format!("无法保存外观设置：{error}"),
+            Err(error) => self.message = self.tf("save.appearance_failed", &[("error", &error)]),
+        }
+        cx.notify();
+    }
+
+    pub(super) fn select_locale(
+        &mut self,
+        locale: joyoffice_ui::UiLocale,
+        _window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        match joydeck_shell::storage::save_locale(&joydeck_shell::editor::recovery_root(), locale) {
+            Ok(()) => {
+                self.locale = locale;
+                self.template_previews.clear();
+                self.template_preview_task = None;
+                joyoffice_ui::apply_locale(locale, cx);
+                #[cfg(target_os = "macos")]
+                bind_native_menus(locale, cx);
+            }
+            Err(error) => self.message = self.tf("save.language_failed", &[("error", &error)]),
         }
         cx.notify();
     }
@@ -1324,8 +1369,10 @@ impl Viewer {
             .as_ref()
             .map(|d| d.info.name.as_str())
             .unwrap_or("JoyDeck");
-        if self.source.is_none() && name == "Untitled.joydeck" {
-            "演示文稿1"
+        if self.source.is_none()
+            && (name == "Untitled.joydeck" || name == "演示文稿1" || name == "Presentation1")
+        {
+            self.t("app.default_presentation")
         } else {
             name
         }

@@ -42,30 +42,32 @@ impl BasicEdit {
         }
     }
 
-    fn no_change(self) -> &'static str {
-        match self {
-            Self::Undo => "没有可撤销的操作",
-            Self::Redo => "没有可重做的操作",
-            Self::BringForward => "选中对象无法再上移",
-            Self::SendBackward => "选中对象无法再下移",
-            _ => "此命令不会修改文稿",
-        }
+    fn no_change(self, locale: joyoffice_ui::UiLocale) -> &'static str {
+        let key = match self {
+            Self::Undo => "edit.err_nothing_undo",
+            Self::Redo => "edit.err_nothing_redo",
+            Self::BringForward => "edit.err_cannot_forward",
+            Self::SendBackward => "edit.err_cannot_backward",
+            _ => "edit.err_no_change",
+        };
+        crate::l10n::t(locale, key)
     }
 }
 
-fn edit_reason(error: &str) -> &str {
-    match error {
-        "select an object first" => "请先选择对象",
-        "selected object is locked" => "选中对象已锁定",
-        "keep at least one slide" => "至少保留一张幻灯片",
-        "page budget exceeded" => "已达到幻灯片数量上限",
-        "shape budget exceeded" => "已达到对象数量上限",
-        "duplicate simple shapes only in R2" => "当前仅支持为基本形状、图片和表格创建副本",
+fn edit_reason(error: &str, locale: joyoffice_ui::UiLocale) -> &str {
+    let key = match error {
+        "select an object first" => "edit.err_select_object",
+        "selected object is locked" => "edit.err_locked",
+        "keep at least one slide" => "edit.err_keep_one_slide",
+        "page budget exceeded" => "edit.err_page_budget",
+        "shape budget exceeded" => "edit.err_shape_budget",
+        "duplicate simple shapes only in R2" => "edit.err_duplicate_r2",
         "R2 duplicates simple slides; grouped/opaque/3D slides remain intact" => {
-            "当前页包含暂不支持复制的组合、未知或 3D 对象"
+            "edit.err_duplicate_complex"
         }
-        _ => error,
-    }
+        _ => return error,
+    };
+    crate::l10n::t(locale, key)
 }
 
 impl Viewer {
@@ -105,24 +107,24 @@ impl Viewer {
         cx: &App,
     ) -> Option<SharedString> {
         if self.loading {
-            return Some("正在读取，请稍后编辑".into());
+            return Some(self.t("edit.err_loading").into());
         }
         if self.benchmark.is_some() {
-            return Some("性能对照进行中；完成后可以继续编辑".into());
+            return Some(self.t("edit.err_benchmark").into());
         }
         if self.composing() {
-            return Some("请先完成或取消输入法组合输入".into());
+            return Some(self.t("edit.err_ime").into());
         }
         if self.drag.is_some() {
-            return Some("请先结束当前手势".into());
+            return Some(self.t("edit.err_gesture").into());
         }
         let Some(editor) = &self.editor else {
-            return Some("请先打开或新建文稿".into());
+            return Some(self.t("edit.err_no_doc").into());
         };
         match editor.validate_basic_edit(edit, slides, cx) {
             Ok(true) => None,
-            Ok(false) => Some(edit.no_change().into()),
-            Err(error) => Some(edit_reason(&error).to_owned().into()),
+            Ok(false) => Some(edit.no_change(self.locale).into()),
+            Err(error) => Some(edit_reason(&error, self.locale).to_owned().into()),
         }
     }
 
@@ -147,17 +149,17 @@ impl Viewer {
 
     pub(super) fn save_unavailable(&self) -> Option<&'static str> {
         if self.loading {
-            Some("正在读取，请稍后保存")
+            Some(self.t("save.err_loading"))
         } else if self.save_picker_generation == Some(self.generation) {
-            Some("请选择保存位置或取消另存为")
+            Some(self.t("save.err_picking"))
         } else if self.is_saving() {
-            Some("文稿正在保存")
+            Some(self.t("save.err_in_progress"))
         } else if self.composing() {
-            Some("请先完成或取消输入法组合输入再保存")
+            Some(self.t("save.err_ime"))
         } else if self.drag.is_some() {
-            Some("请先结束当前手势")
+            Some(self.t("edit.err_gesture"))
         } else if self.editor.is_none() {
-            Some("请先打开或新建文稿")
+            Some(self.t("edit.err_no_doc"))
         } else {
             None
         }

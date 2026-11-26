@@ -219,6 +219,16 @@ impl Shell {
         Ok(())
     }
 
+    pub fn set_locale(&mut self, locale: Locale) -> Result<(), String> {
+        let previous = self.locale;
+        self.locale = locale;
+        if let Err(error) = self.persist() {
+            self.locale = previous;
+            return Err(error);
+        }
+        Ok(())
+    }
+
     pub fn tr(&self, zh: &'static str, en: &'static str) -> &'static str {
         if self.locale == Locale::ZhCn { zh } else { en }
     }
@@ -257,13 +267,7 @@ impl Shell {
                 self.dark = !self.dark;
                 self.theme = self.theme.with_dark(self.dark);
             }
-            "view.language" => {
-                self.locale = if self.locale == Locale::ZhCn {
-                    Locale::En
-                } else {
-                    Locale::ZhCn
-                }
-            }
+            "view.language" => self.locale = self.locale.next(),
             _ => return Err(format!("Command is not implemented: {id}")),
         }
         if matches!(id, "view.theme" | "view.language")

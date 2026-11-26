@@ -4035,6 +4035,7 @@ dependencies = [
  "joydeck-pptx",
  "joydeck-render",
  "joydeck-text",
+ "joyoffice-l10n",
  "joyoffice-opc",
  "joyoffice-theme",
  "serde",
@@ -4101,6 +4102,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "joyoffice-l10n"
+version = "0.3.0"
+
+[[package]]
 name = "joyoffice-metafile"
 version = "0.3.0"
 
@@ -4130,6 +4135,7 @@ version = "0.3.0"
 dependencies = [
  "gpui-kit",
  "image",
+ "joyoffice-l10n",
  "joyoffice-theme",
 ]
 
@@ -4285,6 +4291,7 @@ name = "joysheet-platform"
 version = "0.3.0"
 dependencies = [
  "arboard",
+ "joyoffice-l10n",
  "joyoffice-theme",
  "rfd",
  "serde",
@@ -4633,6 +4640,7 @@ dependencies = [
  "hayro-cmap",
  "hayro-interpret",
  "hayro-syntax",
+ "joyoffice-l10n",
  "joyoffice-opc",
  "joyoffice-theme",
  "joyword-docx",

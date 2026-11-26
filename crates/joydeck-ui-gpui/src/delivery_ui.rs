@@ -10,20 +10,55 @@ impl Viewer {
             .items_center()
             .gap_1()
             .px_2();
-        for (label, kind, layout) in [
-            ("PDF", "pdf", PageLayout::Slides),
-            ("备注 PDF", "pdf", PageLayout::Notes),
-            ("讲义 PDF", "pdf", PageLayout::Handouts { per_page: 3 }),
-            ("PNG", "png", PageLayout::Slides),
-            ("JPEG", "jpeg", PageLayout::Slides),
-            ("动画 GIF", "gif", PageLayout::Slides),
-            ("静态 MP4", "mp4", PageLayout::Slides),
-            ("提纲", "outline", PageLayout::Slides),
-            ("标题 VTT", "vtt", PageLayout::Slides),
-            ("打印", "print", PageLayout::Slides),
+        for (id, label, kind, layout) in [
+            ("deliver-pdf", "PDF", "pdf", PageLayout::Slides),
+            (
+                "deliver-notes-pdf",
+                self.t("delivery.notes_pdf"),
+                "pdf",
+                PageLayout::Notes,
+            ),
+            (
+                "deliver-handouts-pdf",
+                self.t("delivery.handouts_pdf"),
+                "pdf",
+                PageLayout::Handouts { per_page: 3 },
+            ),
+            ("deliver-png", "PNG", "png", PageLayout::Slides),
+            ("deliver-jpeg", "JPEG", "jpeg", PageLayout::Slides),
+            (
+                "deliver-gif",
+                self.t("delivery.animated_gif"),
+                "gif",
+                PageLayout::Slides,
+            ),
+            (
+                "deliver-mp4",
+                self.t("delivery.static_mp4"),
+                "mp4",
+                PageLayout::Slides,
+            ),
+            (
+                "deliver-outline",
+                self.t("delivery.outline"),
+                "outline",
+                PageLayout::Slides,
+            ),
+            (
+                "deliver-vtt",
+                self.t("delivery.vtt"),
+                "vtt",
+                PageLayout::Slides,
+            ),
+            (
+                "deliver-print",
+                self.t("delivery.print"),
+                "print",
+                PageLayout::Slides,
+            ),
         ] {
             row = row.child(
-                Button::new(label)
+                Button::new(id)
                     .label(label)
                     .disabled(self.editor.is_none() || self.delivery_busy)
                     .on_click(cx.listener(move |s, _, w, cx| s.delivery_form(kind, layout, w, cx))),
@@ -31,11 +66,11 @@ impl Viewer {
         }
         row.child(
             Button::new("cancel-output")
-                .label("取消输出")
+                .label(self.t("delivery.cancel"))
                 .disabled(!self.delivery_busy)
                 .on_click(cx.listener(|s, _, _, cx| {
                     s.delivery_cancel.cancel();
-                    s.message = "正在取消输出…".into();
+                    s.message = s.t("delivery.cancelling").into();
                     cx.notify();
                 })),
         )
@@ -51,10 +86,11 @@ impl Viewer {
             return;
         }
         self.end_inline(cx);
+        let locale = self.locale;
         let path = cx.new(|cx| {
             let mut s = InputState::new(w, cx);
             s.set_value("", w, cx);
-            s.placeholder("新的输出文件或图片目录")
+            s.placeholder(crate::l10n::t(locale, "delivery.path_placeholder"))
         });
         let pages = cx.new(|cx| {
             let mut s = InputState::new(w, cx);
@@ -70,11 +106,12 @@ impl Viewer {
         let error = cx.new(|_| String::new());
         let view = cx.entity().downgrade();
         let title = if kind == "print" {
-            "打印幻灯片"
+            self.t("delivery.print_title")
         } else {
-            "导出文稿副本"
+            self.t("delivery.export_title")
         };
         w.open_dialog(cx, move |dialog, _, cx| {
+            let t = |key: &'static str| crate::l10n::t(locale, key);
             let mut content = div()
                 .id("output-fields")
                 .max_h(px(340.))
@@ -85,16 +122,16 @@ impl Viewer {
             if kind != "print" {
                 content = content
                     .child(if ["png", "jpeg"].contains(&kind) {
-                        "新的图片目录"
+                        t("delivery.dir_label")
                     } else {
-                        "新的输出文件"
+                        t("delivery.file_label")
                     })
                     .child(Input::new(&path));
             }
             content = content
-                .child("页面：all 或 1,3,5（含隐藏页时请显式检查所选范围）")
+                .child(t("delivery.pages_hint"))
                 .child(Input::new(&pages))
-                .child("PDF / 打印 DPI（36–300）；图片 72 DPI，GIF 每页 1 秒 / 10 帧")
+                .child(t("delivery.dpi_hint"))
                 .child(Input::new(&density))
                 .child(
                     div()
@@ -107,20 +144,20 @@ impl Viewer {
             dialog.title(title).child(content).child(
                 Button::new("deliver")
                     .label(if kind == "print" {
-                        "打开系统打印对话框"
+                        t("delivery.open_print_dialog")
                     } else {
-                        "导出"
+                        t("delivery.export_btn")
                     })
                     .on_click(move |_, w, cx| {
                         let _ = view.update(cx, |s, cx| {
                             if s.generation != generation {
-                                s.message = "文稿已切换，请重新打开输出设置".into();
+                                s.message = s.t("delivery.doc_switched").into();
                                 w.close_dialog(cx);
                                 return;
                             }
                             for input in [&path, &pages, &density] {
                                 if input.update(cx, |s, cx| s.marked_text_range(w, cx).is_some()) {
-                                    s.message = "请先确认输入法组合文字".into();
+                                    s.message = s.t("delivery.finish_ime").into();
                                     cx.notify();
                                     return;
                                 }
@@ -139,15 +176,18 @@ impl Viewer {
                                                     .parse::<usize>()
                                                     .ok()
                                                     .and_then(|p| p.checked_sub(1))
-                                                    .ok_or("页码从 1 开始")
+                                                    .ok_or(s.t("delivery.err_page_one"))
                                             })
                                             .collect::<std::result::Result<Vec<_>, _>>()?,
                                     )
                                 };
-                                let dpi: f64 =
-                                    density.read(cx).value().parse().map_err(|_| "DPI 无效")?;
+                                let dpi: f64 = density
+                                    .read(cx)
+                                    .value()
+                                    .parse()
+                                    .map_err(|_| s.t("delivery.err_dpi_invalid"))?;
                                 if !dpi.is_finite() || !(36.0..=300.).contains(&dpi) {
-                                    return Err("DPI 范围为 36–300");
+                                    return Err(s.t("delivery.err_dpi_range"));
                                 }
                                 if selected.as_ref().is_some_and(|pages: &Vec<usize>| {
                                     pages.is_empty()
@@ -159,10 +199,10 @@ impl Viewer {
                                                 .map_or(0, |e| e.session.model().slides.len())
                                         })
                                 }) {
-                                    return Err("页面范围超出文稿或 500 页预算");
+                                    return Err(s.t("delivery.err_pages_range"));
                                 }
                                 if kind != "print" && destination.trim().is_empty() {
-                                    return Err("请输入新的输出路径");
+                                    return Err(s.t("delivery.err_path_empty"));
                                 }
                                 Ok::<_, &str>(Options {
                                     format: kind.into(),
@@ -197,10 +237,11 @@ impl Viewer {
         let model = editor.session.model_snapshot();
         let revision = editor.session.revision();
         let generation = self.generation;
+        let locale = self.locale;
         self.delivery_cancel = Default::default();
         let cancel = self.delivery_cancel.clone();
         self.delivery_busy = true;
-        self.message = "正在输出文稿快照…".into();
+        self.message = self.t("delivery.running").into();
         self.delivery_task = Some(cx.spawn(async move |view, cx| {
             let result = cx
                 .background_executor()
@@ -210,15 +251,26 @@ impl Viewer {
                         (*model).clone(),
                     )?;
                     if options.format == "print" {
-                        joydeck_shell::output::print(&doc, &options, &cancel)
-                            .map(|s| format!("打印：{s}"))
+                        joydeck_shell::output::print(&doc, &options, &cancel).map(|summary| {
+                            crate::l10n::tf(
+                                locale,
+                                "delivery.print_result",
+                                &[("summary", &summary)],
+                            )
+                        })
                     } else {
                         joydeck_shell::output::export(&doc, &path, &options, &cancel).map(|r| {
-                            format!(
-                                "输出完成：{} 页 / {} 个文件 / {} 字节",
-                                r.pages.len(),
-                                r.files,
-                                r.bytes
+                            let pages_s = r.pages.len().to_string();
+                            let files_s = r.files.to_string();
+                            let bytes_s = r.bytes.to_string();
+                            crate::l10n::tf(
+                                locale,
+                                "delivery.done",
+                                &[
+                                    ("pages", &pages_s),
+                                    ("files", &files_s),
+                                    ("bytes", &bytes_s),
+                                ],
                             )
                         })
                     }
@@ -227,7 +279,8 @@ impl Viewer {
             let _ = view.update(cx, |s, cx| {
                 s.delivery_busy = false;
                 if generation == s.generation {
-                    s.message = result.unwrap_or_else(|e| format!("输出失败：{e}"));
+                    s.message =
+                        result.unwrap_or_else(|e| s.tf("delivery.failed", &[("error", &e)]));
                     eprintln!("R6 delivery revision={revision} {}", s.message);
                     cx.notify();
                 }

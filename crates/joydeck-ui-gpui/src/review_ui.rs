@@ -10,13 +10,19 @@ impl Viewer {
             .as_ref()
             .and_then(|e| e.session.selection().shapes.first().copied());
         self.fields_dialog(
-            "新增批注",
-            vec![("作者", "作者".into()), ("批注", String::new())],
+            self.t("review.add_comment_title"),
+            vec![
+                (
+                    self.t("review.field_author"),
+                    self.t("review.default_author").into(),
+                ),
+                (self.t("review.field_comment"), String::new()),
+            ],
             w,
             cx,
             move |s, v, w, cx| {
                 if v[0].trim().is_empty() || v[1].trim().is_empty() {
-                    return Err("请填写作者和批注".into());
+                    return Err(s.t("review.err_comment_required").into());
                 }
                 s.dispatch(
                     Command::Review {
@@ -45,21 +51,27 @@ impl Viewer {
             return;
         };
         self.fields_dialog(
-            "替代文字",
+            self.t("review.alt_text_title"),
             vec![
-                ("说明", shape.descr.clone()),
+                (self.t("review.field_description"), shape.descr.clone()),
                 (
-                    "装饰对象（是／否）",
-                    if shape.decorative { "是" } else { "否" }.into(),
+                    self.t("review.field_decorative"),
+                    if shape.decorative {
+                        self.t("common.yes")
+                    } else {
+                        self.t("common.no")
+                    }
+                    .into(),
                 ),
             ],
             w,
             cx,
             |s, v, w, cx| {
-                let decorative = match v[1].trim() {
-                    "是" => true,
-                    "否" => false,
-                    _ => return Err("装饰对象请填写是或否".into()),
+                let raw = v[1].trim();
+                let decorative = match raw.to_ascii_lowercase().as_str() {
+                    "是" | "yes" | "y" | "true" | "1" => true,
+                    "否" | "no" | "n" | "false" | "0" => false,
+                    _ => return Err(s.t("review.err_decorative").into()),
                 };
                 s.dispatch(
                     Command::Review {
@@ -81,8 +93,10 @@ impl Viewer {
         let generation = self.generation;
         let revision = e.session.revision();
         let page = self.page;
+        let locale = self.locale;
         let view = cx.entity().downgrade();
         w.open_dialog(cx, move |d, _, _| {
+            let t = |key: &'static str| crate::l10n::t(locale, key);
             let mut list = div()
                 .id("comment-list")
                 .flex()
@@ -91,13 +105,13 @@ impl Viewer {
                 .overflow_y_scroll()
                 .gap_3();
             if comments.is_empty() {
-                list = list.child("当前页没有批注");
+                list = list.child(t("review.no_comments"));
             }
             for (index, comment) in comments.iter().enumerate() {
                 let mut item = div().flex().flex_col().gap_1().child(format!(
                     "{}{}：{}",
                     if comment.resolved {
-                        "已解决 · "
+                        t("review.resolved_prefix")
                     } else {
                         ""
                     },
@@ -117,7 +131,11 @@ impl Viewer {
                         .child(
                             Button::new(("resolve-comment", index))
                                 .xsmall()
-                                .label(if resolved { "重新打开" } else { "解决" })
+                                .label(if resolved {
+                                    t("review.reopen")
+                                } else {
+                                    t("review.resolve")
+                                })
                                 .on_click(move |_, w, cx| {
                                     let _ = resolve_view.update(cx, |s, cx| {
                                         if s.generation == generation
@@ -144,7 +162,7 @@ impl Viewer {
                         .child(
                             Button::new(("reply-comment", index))
                                 .xsmall()
-                                .label("回复…")
+                                .label(t("review.reply_btn"))
                                 .on_click(move |_, w, cx| {
                                     let _ = reply_view.update(cx, |s, cx| {
                                         if s.generation != generation
@@ -157,14 +175,22 @@ impl Viewer {
                                         }
                                         w.close_dialog(cx);
                                         s.fields_dialog(
-                                            "回复批注",
-                                            vec![("作者", "作者".into()), ("回复", String::new())],
+                                            s.t("review.reply_title"),
+                                            vec![
+                                                (
+                                                    s.t("review.field_author"),
+                                                    s.t("review.default_author").into(),
+                                                ),
+                                                (s.t("review.field_reply"), String::new()),
+                                            ],
                                             w,
                                             cx,
                                             move |s, v, w, cx| {
                                                 if v[0].trim().is_empty() || v[1].trim().is_empty()
                                                 {
-                                                    return Err("请填写作者和回复".into());
+                                                    return Err(s
+                                                        .t("review.err_reply_required")
+                                                        .into());
                                                 }
                                                 s.dispatch(
                                                     Command::Review {
@@ -186,7 +212,7 @@ impl Viewer {
                 );
                 list = list.child(item);
             }
-            d.title("当前页批注").child(list)
+            d.title(t("review.comments_title")).child(list)
         });
     }
     pub(super) fn compare_file(&mut self, w: &mut Window, cx: &mut Context<Self>) {
@@ -202,7 +228,7 @@ impl Viewer {
             files: true,
             directories: false,
             multiple: false,
-            prompt: Some("选择比较文稿".into()),
+            prompt: Some(self.t("review.compare_prompt").into()),
         });
         self.compare_task = Some(cx.spawn_in(w, async move |view, cx| {
             if let Ok(Ok(Some(paths))) = receiver.await
@@ -242,8 +268,10 @@ impl Viewer {
             return;
         };
         let report = comparison.report.clone();
+        let locale = self.locale;
         let view = cx.entity().downgrade();
         w.open_dialog(cx, move |d, _, _| {
+            let t = |key: &'static str| crate::l10n::t(locale, key);
             let mut list = div()
                 .id("comparison-differences")
                 .flex()
@@ -252,7 +280,7 @@ impl Viewer {
                 .max_h(px(460.))
                 .overflow_y_scroll();
             if report.differences.is_empty() {
-                list = list.child("未发现文稿内容差异");
+                list = list.child(t("review.compare_no_diff"));
             }
             for (index, diff) in report.differences.iter().enumerate() {
                 let view = view.clone();
@@ -260,28 +288,31 @@ impl Viewer {
                 let reference = report.reference_sha256.clone();
                 let page = diff.page;
                 let object = diff.object;
+                let page_s = diff.page.to_string();
+                let obj_s = diff
+                    .object
+                    .map(|id| id.0.to_string())
+                    .unwrap_or_else(|| "—".into());
+                let kind_s = match diff.kind {
+                    "added" => t("review.compare_added"),
+                    "deleted" => t("review.compare_deleted"),
+                    "changed" => t("review.compare_changed"),
+                    _ => t("review.compare_other"),
+                };
                 list = list.child(
                     div()
                         .flex()
                         .gap_2()
                         .items_center()
-                        .child(format!(
-                            "第 {} 页 · 对象 {} · {}",
-                            diff.page,
-                            diff.object
-                                .map(|id| id.0.to_string())
-                                .unwrap_or_else(|| "—".into()),
-                            match diff.kind {
-                                "added" => "新增",
-                                "deleted" => "删除",
-                                "changed" => "修改",
-                                _ => "页面或文稿属性（仅报告）",
-                            }
+                        .child(crate::l10n::tf(
+                            locale,
+                            "review.compare_row",
+                            &[("page", &page_s), ("object", &obj_s), ("kind", kind_s)],
                         ))
                         .child(
                             Button::new(("accept-comparison", index))
                                 .xsmall()
-                                .label("接受")
+                                .label(t("review.compare_accept"))
                                 .disabled(!diff.acceptable)
                                 .on_click(move |_, w, cx| {
                                     let _ = view.update(cx, |s, cx| {
@@ -289,14 +320,17 @@ impl Viewer {
                                             .comparison
                                             .as_ref()
                                             .zip(s.editor.as_ref())
-                                            .ok_or("比较结果不可用".into())
+                                            .ok_or_else(|| {
+                                                s.t("review.compare_unavailable").to_owned()
+                                            })
                                             .and_then(|(comparison, editor)| {
                                                 comparison.command_for_model(
                                                     editor.session.model(),
                                                     &base,
                                                     &reference,
                                                     page,
-                                                    object.ok_or("对象不存在")?,
+                                                    object
+                                                        .ok_or(s.t("review.compare_no_object"))?,
                                                 )
                                             });
                                         match result {
@@ -315,7 +349,7 @@ impl Viewer {
                         ),
                 );
             }
-            d.title("比较文稿 · 接受一项后请重新比较").child(list)
+            d.title(t("review.compare_title")).child(list)
         });
     }
 }

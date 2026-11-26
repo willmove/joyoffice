@@ -8,6 +8,7 @@ publish = false
 
 [dependencies]
 joyoffice-theme.workspace = true
+joyoffice-l10n.workspace = true
 gpui-kit.workspace = true
 image = { workspace = true, features = ["ico"] }
 

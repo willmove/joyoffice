@@ -3,11 +3,19 @@ use super::*;
 use gpui_kit::component::{button::ButtonVariants, input::InputEvent};
 use joydeck_engine::{Command, TextTarget};
 
+#[cfg(all(test, target_os = "macos"))]
 fn save_as_name(source: Option<&std::path::Path>) -> String {
+    save_as_name_for(source, joyoffice_ui::UiLocale::ZhCn)
+}
+
+fn save_as_name_for(source: Option<&std::path::Path>, locale: joyoffice_ui::UiLocale) -> String {
     let name = source
         .and_then(std::path::Path::file_stem)
-        .map(|stem| format!("{} - 副本", stem.to_string_lossy()))
-        .unwrap_or_else(|| "演示文稿".into());
+        .map(|stem| {
+            let stem = stem.to_string_lossy();
+            crate::l10n::tf(locale, "app.save_copy_suffix", &[("stem", &stem)])
+        })
+        .unwrap_or_else(|| crate::l10n::t(locale, "app.default_save_stem").into());
     if cfg!(target_os = "macos") {
         // AppKit can keep an extension from the suggestion outside the editable stem.
         // The selected path gets the native default after the panel returns.
@@ -135,10 +143,12 @@ impl Viewer {
                                                     .h(px(height + 6.))
                                                     .rounded(px(5.))
                                                     .border_0()
-                                                    .accessibility_label(format!(
-                                                        "幻灯片 {} {}",
-                                                        page + 1,
-                                                        title
+                                                    .accessibility_label(s.tf(
+                                                        "nav.slide_aria",
+                                                        &[
+                                                            ("num", &(page + 1).to_string()),
+                                                            ("title", &title),
+                                                        ],
                                                     ))
                                                     .tooltip(title)
                                                     .child(
@@ -245,9 +255,9 @@ impl Viewer {
                                                     } else {
                                                         p.border
                                                     }))
-                                                    .accessibility_label(format!(
-                                                        "打开幻灯片 {}",
-                                                        page + 1
+                                                    .accessibility_label(s.tf(
+                                                        "nav.open_slide_aria",
+                                                        &[("num", &(page + 1).to_string())],
                                                     ))
                                                     .child(
                                                         div()
@@ -331,15 +341,15 @@ impl Viewer {
                     )
                 });
                 let label = if title {
-                    "单击此处添加标题"
+                    self.t("nav.placeholder_title")
                 } else if s
                     .ph
                     .as_ref()
                     .is_some_and(|p| p.kind == joydeck_model::PhType::SubTitle)
                 {
-                    "单击此处添加副标题"
+                    self.t("nav.placeholder_subtitle")
                 } else {
-                    "单击此处添加文本"
+                    self.t("nav.placeholder_body")
                 };
                 Button::new(("placeholder", id.0))
                     .ghost()
@@ -388,7 +398,7 @@ impl Viewer {
                     .bordered(false)
                     .h(px(50.))
                     .w_full()
-                    .aria_label("演讲备注")
+                    .aria_label(self.t("nav.speaker_notes_aria"))
                     .accessibility_id("speaker-notes"),
             )
     }
@@ -485,14 +495,14 @@ impl Viewer {
             .as_ref()
             .and_then(|p| p.parent())
             .unwrap_or_else(|| std::path::Path::new("."));
-        let name = save_as_name(self.source.as_deref());
+        let name = save_as_name_for(self.source.as_deref(), self.locale);
         let rx = cx.prompt_for_new_path(base, Some(&name));
         let window = w.window_handle();
         let generation = self.generation;
         let read_request = self.read_request;
         let revision = self.editor.as_ref().map(|e| e.session.revision());
         self.save_picker_generation = Some(generation);
-        self.message = "请选择保存位置".into();
+        self.message = self.t("save.pick_location").into();
         cx.notify();
         cx.spawn(async move |view, cx| {
             let result = rx.await;
@@ -520,9 +530,9 @@ impl Viewer {
                             s.backstage = false;
                             return;
                         }
-                        Ok(Ok(Some(_))) => s.message = "文稿已更改，请重新另存为".into(),
+                        Ok(Ok(Some(_))) => s.message = s.t("save.doc_changed_resave").into(),
                         Ok(Ok(None)) => {}
-                        _ => s.message = "无法打开另存为对话框".into(),
+                        _ => s.message = s.t("save.dialog_open_failed").into(),
                     }
                     s.close_after_save = false;
                     s.pending_replace = None;
