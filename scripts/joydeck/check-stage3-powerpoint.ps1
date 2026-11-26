@@ -4,7 +4,9 @@ param(
     [Parameter(Mandatory)] [string] $Evidence,
     [Parameter(Mandatory)] [string] $FrozenCli,
     [Parameter(Mandatory)] [string] $CandidateCli,
-    [string] $PowerPoint = "$env:ProgramFiles/Microsoft Office/root/Office16/POWERPNT.EXE"
+    [string] $PowerPoint = "$env:ProgramFiles/Microsoft Office/root/Office16/POWERPNT.EXE",
+    [switch] $ReportChartTypes,
+    [string[]] $ComboSeriesOrder
 )
 
 $ErrorActionPreference = 'Stop'
@@ -49,13 +51,39 @@ function Get-PowerPoint {
 function Get-DocumentShape($Presentation) {
     foreach ($slide in $Presentation.Slides) {
         $shapeTypes = @(foreach ($shape in $slide.Shapes) { [int] $shape.Type })
-        [ordered] @{
+        $record = [ordered] @{
             id = [int] $slide.SlideID
             shapeTypes = $shapeTypes
             effects = [int] $slide.TimeLine.MainSequence.Count
             notes = [int] $slide.NotesPage.Shapes.Count
         }
+        if ($ReportChartTypes) {
+            $record.chartTypes = @(foreach ($shape in $slide.Shapes) {
+                if ($shape.HasChart -eq -1) { [int] $shape.Chart.ChartType }
+            })
+        }
+        $record
     }
+}
+
+function Test-ComboOrder($FrozenModel, $CandidateModel) {
+    $frozenDeck = ConvertFrom-Json $FrozenModel -AsHashtable -Depth 100
+    $candidateDeck = ConvertFrom-Json $CandidateModel -AsHashtable -Depth 100
+    $old = @($frozenDeck.slides.shapes.kind | Where-Object { $_.type -eq 'chart' -and $_.kind -eq 'combo' })
+    $new = @($candidateDeck.slides.shapes.kind | Where-Object { $_.type -eq 'chart' -and $_.kind -eq 'combo' })
+    if ($old.Count -ne 1 -or $new.Count -ne 1 -or
+        $old[0].series.Count -ne $ComboSeriesOrder.Count -or
+        ($new[0].series.name -join "`n") -cne ($ComboSeriesOrder -join "`n")) {
+        return $false
+    }
+    $ordered = @(foreach ($name in $ComboSeriesOrder) {
+        $series = @($old[0].series | Where-Object { $_.name -ceq $name })
+        if ($series.Count -ne 1) { return $false }
+        $series[0]
+    })
+    $old[0].series = $ordered
+    (ConvertTo-Json -InputObject $frozenDeck -Depth 100 -Compress) -ceq
+        (ConvertTo-Json -InputObject $candidateDeck -Depth 100 -Compress)
 }
 
 $powerPointApp = Get-PowerPoint
@@ -110,7 +138,9 @@ $records = foreach ($sample in $Samples) {
     if ($LASTEXITCODE -ne 0) { throw "Frozen JoyDeck cannot reopen: $output" }
     $candidate = (& $CandidateCli content $output) -join "`n"
     if ($LASTEXITCODE -ne 0) { throw "Candidate JoyDeck cannot reopen: $output" }
-    if ($frozen -cne $candidate -or ((ConvertFrom-Json $candidate).slides).Count -ne $after.Count) {
+    $orderOnly = $frozen -cne $candidate -and $ComboSeriesOrder -and (Test-ComboOrder $frozen $candidate)
+    if (($frozen -cne $candidate -and -not $orderOnly) -or
+        ((ConvertFrom-Json $candidate).slides).Count -ne $after.Count) {
         throw "JoyDeck readers disagree after PowerPoint save: $output"
     }
     if ($inputHash -ne (Get-FileHash -LiteralPath $sample -Algorithm SHA256).Hash) {
@@ -123,6 +153,7 @@ $records = foreach ($sample in $Samples) {
         output = Split-Path $output -Leaf
         outputSha256 = (Get-FileHash -LiteralPath $output -Algorithm SHA256).Hash.ToLowerInvariant()
         slides = @($before)
+        seriesOrderDifference = [bool] $orderOnly
     }
 }
 

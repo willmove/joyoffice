@@ -81,7 +81,9 @@ impl<'a> Dataset<'a> {
 
 fn read_level<T: Default>(level: &El, available: &mut usize, decode: impl Fn(&El) -> T) -> Vec<T> {
     let limit = (*available).min(MAX_LEVEL_POINTS);
+    let declared = level.u32("ptCount").unwrap_or_default() as usize;
     let mut values = Vec::new();
+    values.resize_with(declared.min(limit), T::default);
     for point in level.children_named("pt").take(limit) {
         let index = point.u32("idx").unwrap_or_default() as usize;
         if index < limit {
@@ -215,18 +217,25 @@ fn read_layout(chart: &mut Chart, properties: &El) {
     if let Some(node) = properties.child("binning") {
         chart.bin_count = node
             .child("binCount")
-            .and_then(|count| count.u32("val"))
+            .and_then(|count| {
+                count
+                    .u32("val")
+                    .or_else(|| count.text().trim().parse().ok())
+            })
             .filter(|count| *count > 0);
         chart.bin_size = node
             .child("binSize")
-            .and_then(|size| size.attr("val"))
-            .and_then(|value| value.parse::<f64>().ok())
+            .and_then(|size| size.f64("val").or_else(|| size.text().trim().parse().ok()))
             .filter(|value| value.is_finite() && *value > 0.0);
     }
     if let Some(node) = properties.child("subtotals") {
         chart.subtotals = node
             .children_named("idx")
-            .filter_map(|point| point.u32("val"))
+            .filter_map(|point| {
+                point
+                    .u32("val")
+                    .or_else(|| point.text().trim().parse().ok())
+            })
             .take(MAX_LEVEL_POINTS)
             .map(|index| index as usize)
             .collect();

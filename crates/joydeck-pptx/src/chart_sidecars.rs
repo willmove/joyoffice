@@ -5,6 +5,7 @@ use std::collections::{HashMap, HashSet, hash_map::Entry};
 use joydeck_model::Chart;
 use joydeck_model::chart::{ChartKept, ChartPart, ChartRel};
 
+use crate::chart_style_parts::{PALETTE_REL, STYLE_REL};
 use crate::opc::{self, Package, PackageOut, RelsOut};
 use crate::read::Imp;
 
@@ -150,14 +151,58 @@ pub(super) fn relationship_ids(chart: &Chart) -> HashSet<&str> {
         .collect()
 }
 
-pub(super) fn write(package: &mut PackageOut, chart_path: &str, chart: &Chart, next: &mut u32) {
-    if chart.kept.rels.is_empty() {
-        return;
+pub(super) fn drop_missing_refs(root: &mut crate::xml::El, chart: &Chart) {
+    fn prune(element: &mut crate::xml::El, available: &HashSet<&str>, depth: usize) {
+        if depth > crate::xml::MAX_DEPTH {
+            return;
+        }
+        element.children.retain(|node| {
+            if let crate::xml::Node::El(child) = node
+                && matches!(child.local(), "externalData" | "userShapes")
+            {
+                return child.attr("r:id").is_some_and(|id| available.contains(id));
+            }
+            true
+        });
+        for child in element.elements_mut() {
+            prune(child, available, depth + 1);
+        }
     }
+    prune(root, &relationship_ids(chart), 0);
+}
+
+pub(super) fn write(
+    package: &mut PackageOut,
+    chart_path: &str,
+    chart: &Chart,
+    next: &mut u32,
+    rebuilt: bool,
+) -> RelsOut {
+    if chart.kept.rels.is_empty() {
+        return RelsOut::default();
+    }
+    let direct: Vec<_> = chart
+        .kept
+        .rels
+        .iter()
+        .filter(|rel| {
+            !rebuilt || (!rel.external && matches!(rel.rel_type.as_str(), STYLE_REL | PALETTE_REL))
+        })
+        .collect();
+    let originals: HashMap<_, _> = chart
+        .kept
+        .parts
+        .iter()
+        .map(|part| (opc::norm(&part.name), part))
+        .collect();
+    let selection = rebuilt.then(|| reachable(&direct, &originals));
     let mut renamed = HashMap::new();
     let mut moved = Vec::new();
     for part in chart.kept.parts.iter().filter(|part| payload(part)) {
-        if let Entry::Vacant(entry) = renamed.entry(opc::norm(&part.name)) {
+        let key = opc::norm(&part.name);
+        if selection.as_ref().is_none_or(|paths| paths.contains(&key))
+            && let Entry::Vacant(entry) = renamed.entry(key)
+        {
             *next += 1;
             let destination = destination(entry.key(), *next);
             let content_type = if part.content_type.is_empty() {
@@ -171,7 +216,7 @@ pub(super) fn write(package: &mut PackageOut, chart_path: &str, chart: &Chart, n
         }
     }
     let mut chart_rels = RelsOut::default();
-    for rel in &chart.kept.rels {
+    for rel in direct {
         let target = relocate(chart_path, &renamed, rel.external, &rel.target, &rel.part);
         if let Some(target) = target {
             chart_rels
@@ -179,18 +224,10 @@ pub(super) fn write(package: &mut PackageOut, chart_path: &str, chart: &Chart, n
                 .push((rel.id.clone(), rel.rel_type.clone(), target, rel.external));
         }
     }
-    package.rels(chart_path, &chart_rels);
-
-    let mut originals = HashMap::new();
-    for part in &chart.kept.parts {
-        originals
-            .entry(opc::norm(&part.name))
-            .or_insert(&part.bytes);
-    }
     for (old, new) in moved {
-        if let Some(bytes) = originals.get(&opc::norm(&opc::rels_path(&old.name))) {
+        if let Some(rels) = originals.get(&opc::norm(&opc::rels_path(&old.name))) {
             let mut relations = RelsOut::default();
-            for rel in opc::rels_from_bytes(bytes, &old.name).items {
+            for rel in opc::rels_from_bytes(&rels.bytes, &old.name).items {
                 if let Some(target) =
                     relocate(&new, &renamed, rel.external, &rel.target_raw, &rel.target)
                 {
@@ -200,6 +237,40 @@ pub(super) fn write(package: &mut PackageOut, chart_path: &str, chart: &Chart, n
             package.rels(&new, &relations);
         }
     }
+    chart_rels
+}
+
+fn reachable(roots: &[&ChartRel], parts: &HashMap<String, &ChartPart>) -> HashSet<String> {
+    let mut pending: Vec<_> = roots.iter().map(|edge| opc::norm(&edge.part)).collect();
+    let mut selected = HashSet::new();
+    while let Some(key) = pending.pop() {
+        let Some(part) = parts.get(&key).filter(|part| !part.bytes.is_empty()) else {
+            continue;
+        };
+        if selected.insert(key)
+            && let Some(rels) = parts.get(&opc::norm(&opc::rels_path(&part.name)))
+        {
+            pending.extend(
+                opc::rels_from_bytes(&rels.bytes, &part.name)
+                    .items
+                    .into_iter()
+                    .filter(|edge| !edge.external)
+                    .map(|edge| opc::norm(&edge.target)),
+            );
+        }
+    }
+    selected
+}
+
+pub(super) fn add_internal(relationships: &mut RelsOut, kind: &str, target: &str) -> String {
+    let mut id = format!("rId{}", relationships.items.len() + 1);
+    while relationships.items.iter().any(|existing| existing.0 == id) {
+        id.push('x');
+    }
+    relationships
+        .items
+        .push((id.clone(), kind.into(), target.into(), false));
+    id
 }
 
 fn relocate(

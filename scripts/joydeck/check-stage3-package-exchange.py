@@ -26,6 +26,7 @@ TYPES = {
 }
 MARKUP = b"<!-- JoyDeck phase 3 retained --><?phase3 keep?>"
 LEGACY_REVIEW = "r9-ui2/legacy-review-media.joydeck"
+CHART_STYLE_ROLES = {"chartStyle", "chartColorStyle"}
 
 
 def digest(value):
@@ -66,7 +67,7 @@ def local(name):
     return name.split("}")[-1]
 
 
-def relationship_graph(path, extension):
+def relationship_graph(path, extension, omit_extended_styles=False):
     parts = unpack(path)
     inventory = {name.casefold(): name for name in parts}
     relationships = {}
@@ -97,6 +98,11 @@ def relationship_graph(path, extension):
                     missing.append((owner, kind.rsplit("/", 1)[-1], key))
             assert rid not in resolved, (name, rid)
             resolved[rid] = (kind, target, external)
+        if omit_extended_styles and owner.startswith("ppt/charts/chartEx"):
+            resolved = {
+                rid: edge for rid, edge in resolved.items()
+                if edge[0].rsplit("/", 1)[-1] not in CHART_STYLE_ROLES
+            }
         relationships[owner] = resolved
     roots = [target for kind, target, external in relationships.get("", {}).values()
              if kind.endswith("/officeDocument") and not external]
@@ -155,6 +161,21 @@ def mismatch(left, right, key="$"):
 
 def assert_equal(left, right, label):
     assert left == right, (label, mismatch(left, right))
+
+
+def compare_extended_style_additions(frozen, candidate):
+    [chart] = [shape["kind"] for shape in candidate["slides"][1]["shapes"]
+               if shape["kind"]["type"] == "chart"]
+    kept = chart["kept"]
+    added = [edge for edge in kept["rels"] if edge["relType"].rsplit("/", 1)[-1] in CHART_STYLE_ROLES]
+    assert len(added) == 2
+    assert {edge["relType"].rsplit("/", 1)[-1] for edge in added} == CHART_STYLE_ROLES
+    assert all(not edge["external"] for edge in added)
+    targets = {edge["part"] for edge in added}
+    assert len(targets) == 2 and targets <= {part["name"] for part in kept["parts"]}
+    kept["rels"] = [edge for edge in kept["rels"] if edge not in added]
+    kept["parts"] = [part for part in kept["parts"] if part["name"] not in targets]
+    assert_equal(frozen, candidate, "extended chart model apart from its generated style pair")
 
 
 def compare_legacy_review(frozen, candidate):
@@ -314,10 +335,18 @@ def compile_inventory(exes, work, report):
                 if (label, mode) == (LEGACY_REVIEW, "preserve"):
                     compare_legacy_review(writer_models["frozen"], writer_models["candidate"])
                     row["existingDifference"] = "picture placeholder for legacy audio, introduced in phase 2"
+                elif source == chart_source and mode == "regenerate":
+                    compare_extended_style_additions(writer_models["frozen"], writer_models["candidate"])
+                    row["expectedDifference"] = "ChartEx regeneration includes the PowerPoint style pair"
                 else:
                     assert_equal(writer_models["frozen"], writer_models["candidate"], (label, mode))
                 if mode == "regenerate":
-                    assert_equal(record["frozen"]["graph"], record["candidate"]["graph"], (label, mode))
+                    candidate_graph = record["candidate"]["graph"]
+                    if source == chart_source:
+                        assert not candidate_graph["missingRelationships"]
+                        candidate_graph = relationship_graph(target / "regenerate-candidate.pptx", "pptx",
+                                                             omit_extended_styles=True)
+                    assert_equal(record["frozen"]["graph"], candidate_graph, (label, mode))
             row["outputs"][mode] = record
         assert row["inputSha256"] == digest(source.read_bytes())
         report["samples"].append(row)

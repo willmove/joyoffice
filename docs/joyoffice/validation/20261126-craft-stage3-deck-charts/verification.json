@@ -1,0 +1,398 @@
+{
+  "date": "2026-11-26",
+  "platform": "Windows 11 x64",
+  "frozen": {
+    "commit": "14cbb29616d7c0ababbf40a8f6c0218b996e7ae8",
+    "cliSha256": "f8fd32a31570e241f17ced00dbce66f7e2ae53739b18e3c70bea03c2e78794f7"
+  },
+  "startingPoint": {
+    "commit": "761233fb5fa2c67baf17ac3450f09afbc03306bd",
+    "cliSha256": "b045a9f14f36e5865ad469c568e91ea4c9ace3d208ae13949d95deacf6fe14bf"
+  },
+  "candidateCliSha256": "052b09815e089d8ecc34f21e3d6d0049deacdfcc9e073941c074103527139673",
+  "powerPoint": {
+    "fileVersion": "16.0.20625.20108",
+    "applicationVersion": "16.0",
+    "authoredFixtures": [
+      {
+        "file": "powerpoint16-treemap.pptx",
+        "chartType": 117,
+        "sha256": "519dd1d789bc9bfcd9358d9a7c40677a5c723dca9fbc975eb56e7539f62953aa"
+      },
+      {
+        "file": "powerpoint16-type-118.pptx",
+        "chartType": 118,
+        "sha256": "56e7c85196f7124adaa3b5892406a99b1b6d3215ec924d16acf1361bc765ecaa"
+      },
+      {
+        "file": "powerpoint16-waterfall.pptx",
+        "chartType": 119,
+        "sha256": "5bb96ba4859bf847703db45cee4e971cd35932f756a6d6b22f8c7da755a84f9f"
+      }
+    ],
+    "documentsOpenedSavedAndReopened": 22,
+    "chartDataAndAxisDifferencesBeforeAndAfter": 0,
+    "classicComboAfterOffice": {
+      "frozenSeries": [
+        "Primary A",
+        "Primary B",
+        "Secondary"
+      ],
+      "candidateSeries": [
+        "Primary A",
+        "Secondary",
+        "Primary B"
+      ],
+      "otherReaderDifferences": false
+    },
+    "cases": [
+      {
+        "file": "craft-stage3-deck-charts-20261126/powerpoint16-treemap.pptx",
+        "inputSha256": "519dd1d789bc9bfcd9358d9a7c40677a5c723dca9fbc975eb56e7539f62953aa",
+        "savedSha256": "0d341dd501b1076a1603036bd51a049ce836d991214bcab413006354e51a26c5",
+        "slides": 1,
+        "chartTypes": [
+          117
+        ],
+        "legacySeriesOrderOnly": false
+      },
+      {
+        "file": "craft-stage3-deck-charts-20261126/powerpoint16-type-118.pptx",
+        "inputSha256": "56e7c85196f7124adaa3b5892406a99b1b6d3215ec924d16acf1361bc765ecaa",
+        "savedSha256": "6f2aeb992ca8c8a42e060591c6d1bb24c34951fa5254b05c524bdef8d5f96004",
+        "slides": 1,
+        "chartTypes": [
+          118
+        ],
+        "legacySeriesOrderOnly": false
+      },
+      {
+        "file": "craft-stage3-deck-charts-20261126/powerpoint16-waterfall.pptx",
+        "inputSha256": "5bb96ba4859bf847703db45cee4e971cd35932f756a6d6b22f8c7da755a84f9f",
+        "savedSha256": "0662df3fea38b331fffe2945a55fdbc0e418a3f8c804c0a5c43f88995eef657e",
+        "slides": 1,
+        "chartTypes": [
+          119
+        ],
+        "legacySeriesOrderOnly": false
+      },
+      {
+        "file": "verified-office/authored-edited-regenerate.pptx",
+        "inputSha256": "4a4d7df60e90013bd40065952ef4cad74c0b47c5b38727d336d47d4b0626aaa7",
+        "savedSha256": "61c1b90cf531cb6d4e5e71be29990c58db941a5079bfc37d3dc4763093eac7e3",
+        "slides": 1,
+        "chartTypes": [
+          117
+        ],
+        "legacySeriesOrderOnly": false
+      },
+      {
+        "file": "verified-office/authored-histogram-preserve.pptx",
+        "inputSha256": "ffb92bb01c938b788b7ee7108db89ce64aea4273438540be68a4ad4a106dcb69",
+        "savedSha256": "efe90b4c4d93e17b090f4a671d0d8f0b8d6db070168bcc6e1a7c2c97b66fb17c",
+        "slides": 1,
+        "chartTypes": [
+          118
+        ],
+        "legacySeriesOrderOnly": false
+      },
+      {
+        "file": "verified-office/authored-histogram-regenerate.pptx",
+        "inputSha256": "41d34c7c90dc27dbcfb5b6b7d59978bbeac88945880512cc127e748ed1f487d3",
+        "savedSha256": "624ede8c0e83588c72309c733e1290f1d67fc63bafe63e2d30b2712a3b6457c1",
+        "slides": 1,
+        "chartTypes": [
+          118
+        ],
+        "legacySeriesOrderOnly": false
+      },
+      {
+        "file": "verified-office/authored-preserve.pptx",
+        "inputSha256": "fe6f4f5554c3f164de36caa6c8a02cff65a7b7e191d04d26f868ff136fc925da",
+        "savedSha256": "ffa31a8ee3b03aea9ae06c24599300b503bf3e0323172664669f310a1f606720",
+        "slides": 1,
+        "chartTypes": [
+          117
+        ],
+        "legacySeriesOrderOnly": false
+      },
+      {
+        "file": "verified-office/authored-regenerate.pptx",
+        "inputSha256": "80e16beadc20fd45275822e62a5a32dca6aa378a2fdab857c20c0de008e69dd8",
+        "savedSha256": "4c6245ada95f3c814b1aa27fcb566e1b98f3b0a1f6bc5b8367c91b16c625a799",
+        "slides": 1,
+        "chartTypes": [
+          117
+        ],
+        "legacySeriesOrderOnly": false
+      },
+      {
+        "file": "verified-office/classic-preserve.pptx",
+        "inputSha256": "6ffcf0b5aa04c0c6ba844cdd040fb7af76f9c63dec52dcacaf130a0756e5c88e",
+        "savedSha256": "ea8345703e1e78fea1a3729aa1988740a44444ddffb52d4afb670700f0642d1c",
+        "slides": 7,
+        "chartTypes": [
+          51,
+          57,
+          65,
+          5,
+          74
+        ],
+        "legacySeriesOrderOnly": false
+      },
+      {
+        "file": "verified-office/classic-regenerate.pptx",
+        "inputSha256": "74bdbe6997a878e6957a9e4c7bdb7615c8cac7d2e007569b307fa4e0265f1904",
+        "savedSha256": "792e6117f727a9f8f9720409fc06f65bc032d847d862d890d8cccc14a60b56a7",
+        "slides": 7,
+        "chartTypes": [
+          51,
+          57,
+          65,
+          5,
+          74
+        ],
+        "legacySeriesOrderOnly": false
+      },
+      {
+        "file": "verified-office/fresh-box.pptx",
+        "inputSha256": "3ebaf46b0cd29874d8ad56d81a627d4e3d95dd529d0b09b7da277e63ad2f4b20",
+        "savedSha256": "06a5eda21a8e2b647a042c68107d203bb12d1b0197749ebb0862173b33d562d0",
+        "slides": 1,
+        "chartTypes": [
+          121
+        ],
+        "legacySeriesOrderOnly": false
+      },
+      {
+        "file": "verified-office/fresh-bubble.pptx",
+        "inputSha256": "d24d0598b882294ddd43040aa7d2b057d3665b16dcb4180ee42e2ecbc05bccd3",
+        "savedSha256": "e8a73ebc223f8b999eb048245452fcff2bb8f840e7319664b01e95c4e6ed469f",
+        "slides": 1,
+        "chartTypes": [
+          15
+        ],
+        "legacySeriesOrderOnly": false
+      },
+      {
+        "file": "verified-office/fresh-combo.pptx",
+        "inputSha256": "a90a7fd3fc5ef61e855f1794dd64fb76d4adc2a651227b06684181d667cd1120",
+        "savedSha256": "f5b06ed76e018329e564e1eb15c0f59f9e5bb314ba8526d722596b89341da516",
+        "slides": 1,
+        "chartTypes": [
+          -4111
+        ],
+        "legacySeriesOrderOnly": true
+      },
+      {
+        "file": "verified-office/fresh-funnel.pptx",
+        "inputSha256": "92aca290462e30999c248bdcd2c9a18998b0e253675b958bf21335645887c54b",
+        "savedSha256": "2a0af922845eb6638100bc848f33c0355929c5a561f3c18f387568fcd1a79767",
+        "slides": 1,
+        "chartTypes": [
+          123
+        ],
+        "legacySeriesOrderOnly": false
+      },
+      {
+        "file": "verified-office/fresh-histogram.pptx",
+        "inputSha256": "f4a85d2f9a070f8e0d06badd42c86881a6f99ff8f16206fa37d7f7fd09937b8e",
+        "savedSha256": "19d05aff0318ea06e070946b0192fb49c876d16d06b41f0d39c4a391e9b7548f",
+        "slides": 1,
+        "chartTypes": [
+          118
+        ],
+        "legacySeriesOrderOnly": false
+      },
+      {
+        "file": "verified-office/fresh-pareto.pptx",
+        "inputSha256": "4c05493ee77752deb6d2115e0586480de8bbe8ed9ecacd3e0da5d65b84ef5948",
+        "savedSha256": "fb3df2938ef1b0fb23ad43c56e2dc8d7785fd8fe786a2994180987d2403c1668",
+        "slides": 1,
+        "chartTypes": [
+          122
+        ],
+        "legacySeriesOrderOnly": false
+      },
+      {
+        "file": "verified-office/fresh-scatter.pptx",
+        "inputSha256": "ba223fb7249f7a0df12974e8351752359455de06c2d9a77ecee1e2ec6d404c84",
+        "savedSha256": "654b23453399ad55d773fbf3053fbe27fe518237043fefda6ef3576ee6d326e4",
+        "slides": 1,
+        "chartTypes": [
+          74
+        ],
+        "legacySeriesOrderOnly": false
+      },
+      {
+        "file": "verified-office/fresh-sunburst.pptx",
+        "inputSha256": "9c1a98595f15718907ac1767825491df75a91c9d40e4a27e003afb8bd13fb068",
+        "savedSha256": "c469a8f4a4c3486ce66acb431f2d4897aceea215711e06ca884c95282ed21946",
+        "slides": 1,
+        "chartTypes": [
+          120
+        ],
+        "legacySeriesOrderOnly": false
+      },
+      {
+        "file": "verified-office/fresh-treemap.pptx",
+        "inputSha256": "395a6466136c512104c5b5aef9d7e0c5625f968f7674d2d60b5cdd99f321400c",
+        "savedSha256": "88cfd16458cad9e54bb5d5523761f41b71da084a44def7178ff2620d81f7a922",
+        "slides": 1,
+        "chartTypes": [
+          117
+        ],
+        "legacySeriesOrderOnly": false
+      },
+      {
+        "file": "verified-office/fresh-waterfall.pptx",
+        "inputSha256": "67d03ae60cb2d4a31fd59919ceaea9968a98a56010ffd32642497e49766cc46d",
+        "savedSha256": "f5e2b4ddea14048527357a53cb589e8604ada70209916d8b18761d3a367a4dd3",
+        "slides": 1,
+        "chartTypes": [
+          119
+        ],
+        "legacySeriesOrderOnly": false
+      },
+      {
+        "file": "verified-office/previous-failing-regenerate.pptx",
+        "inputSha256": "cc213cfea50a21fd45b7ab48825f8554f4e99dcef883b39fd59cc1835c746ce2",
+        "savedSha256": "8eeb2a9ff9059dff458cf63a3c0930f0d82325c5386d1afd9d6ee491ba953eeb",
+        "slides": 3,
+        "chartTypes": [
+          117
+        ],
+        "legacySeriesOrderOnly": false
+      },
+      {
+        "file": "verified-office/waterfall-regenerate.pptx",
+        "inputSha256": "bc1de78c794ba0fbd4ef40569a61b34c0fa95da0d2470d22995eb3b3943ae05e",
+        "savedSha256": "2e3da245f35dd656851a51d24331f797423762c446e0dc806c0c8b2afcbef473",
+        "slides": 1,
+        "chartTypes": [
+          119
+        ],
+        "legacySeriesOrderOnly": false
+      }
+    ]
+  },
+  "treemap": {
+    "leafCount": 16,
+    "parentLevels": 2,
+    "firstValuesBeforeAndAfterEdit": [
+      22,
+      125
+    ],
+    "unchangedPartsInPreserveCopy": 42,
+    "originalStylesSha256": {
+      "chartStyle": "b6341d8c24852d21eeaee3736377e90e810eae756dabe5e9d02565198b61a6d0",
+      "chartColorStyle": "04fefba7d31853fa0aa636e5c8b8e308fc3126a9b48a1f4490947fff91d5a92f"
+    },
+    "styleIsolation": [
+      {
+        "case": "no styles",
+        "file": "committed-edited-regenerate.pptx",
+        "sha256": "480349a5c958da142b5fe8d40dd32dbd5682bf799a9b9d552399a51b34a9782a",
+        "powerPointOpened": false,
+        "error": "0x80070570"
+      },
+      {
+        "case": "ChartStyle only",
+        "file": "isolate-old-edited-add-style-0.pptx",
+        "sha256": "853e22aaa43cb7cf30f9640e3a35bf490989f55326e2841c3a60ec26f4375de3",
+        "powerPointOpened": false,
+        "error": "0x80070570"
+      },
+      {
+        "case": "ChartColorStyle only",
+        "file": "isolate-old-edited-add-style-1.pptx",
+        "sha256": "10b13d8adaa29506f42f9e1f900a0439f3e4d7aa288ee3f9e5ba151cba19d7ce",
+        "powerPointOpened": false,
+        "error": "0x80070570"
+      },
+      {
+        "case": "both styles",
+        "file": "isolate-old-edited-add-only-chart-styles.pptx",
+        "sha256": "818b3af5b60b1e1322aad865ebf2543a91017d8a3ce6c7e75efe1fefb18ab6d3",
+        "powerPointOpened": true
+      }
+    ],
+    "partsChangedWhenAddingStyles": {
+      "added": [
+        "ppt/charts/_rels/chartEx1.xml.rels",
+        "ppt/charts/kept1.xml",
+        "ppt/charts/kept2.xml"
+      ],
+      "removed": [],
+      "modified": [
+        "[Content_Types].xml"
+      ]
+    },
+    "sourceBackedEditPreserve": {
+      "passed": false,
+      "outputPresent": false
+    },
+    "officeEditData": {
+      "version": "16.0",
+      "sheet": "Sheet1",
+      "cells": {
+        "D2": 125.0,
+        "D3": 12.0,
+        "D17": 11.0
+      },
+      "sourceSha256": "4a4d7df60e90013bd40065952ef4cad74c0b47c5b38727d336d47d4b0626aaa7"
+    }
+  },
+  "independentWorkbookCheck": {
+    "joyDeckOutputs": {
+      "files": 19,
+      "chartParts": 39,
+      "chartExStylePairs": 14,
+      "embeddedWorkbooks": 21,
+      "references": 79,
+      "cachePositions": 346,
+      "worksheetCells": 377
+    },
+    "officeCopies": {
+      "files": 22,
+      "chartParts": 42,
+      "chartExStylePairs": 17,
+      "embeddedWorkbooks": 21,
+      "references": 79,
+      "cachePositions": 346,
+      "worksheetCells": 377
+    },
+    "workbookBytesChangedByOffice": 0
+  },
+  "frozenPackageRegression": {
+    "samples": 17,
+    "reads": 234,
+    "successfulWrites": 100,
+    "exactPreserveCopies": 11,
+    "exactPreservedParts": 510,
+    "invalidInputs": [
+      "broken-pptx",
+      "future-native",
+      "unknown-capability",
+      "unbound-source",
+      "utf16-dtd",
+      "symlink-metadata",
+      "bad-member-crc"
+    ],
+    "protectedPreserveRefusals": 2,
+    "buildChecks": [
+      "cargo xtask check joydeck",
+      "cargo xtask build joydeck"
+    ],
+    "rustTestsPassed": 1054,
+    "rustTestsFailed": 0,
+    "rustTestsIgnored": 0,
+    "cliChecks": {
+      "r1": 28,
+      "r2": 20,
+      "r3": 20,
+      "r4-r5": 23,
+      "r6-r7": 35
+    }
+  }
+}

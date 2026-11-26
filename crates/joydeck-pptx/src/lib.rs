@@ -16,9 +16,17 @@
 
 mod archive;
 mod cfb;
+mod chart_axes;
 mod chart_cache;
+#[cfg(test)]
+#[allow(clippy::expect_used, clippy::panic, reason = "Test assertions")]
+mod chart_exchange_tests;
+mod chart_series;
 mod chart_sidecars;
+mod chart_style_parts;
+mod chart_workbook;
 mod chartex_part;
+mod chartex_write;
 mod custgeom;
 mod dgm;
 mod maps;

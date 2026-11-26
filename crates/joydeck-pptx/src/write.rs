@@ -4,7 +4,6 @@ pub(crate) mod chart;
 pub(crate) mod dml;
 mod shapes;
 mod timing;
-mod workbook;
 
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -135,74 +134,103 @@ impl Exp<'_> {
         o.rels
             .add_new("tags", &opc::relative(&o.name, &name), false)
     }
-    /// An unchanged Office 2016 chart's `chartEx` part and its relationship id.
-    pub fn chartex_rel(&mut self, o: &mut Out, c: &joydeck_model::Chart) -> Option<String> {
-        let (xml, preserved) = chart::chartex_part(c)?;
+    /// Write the actual ChartEx part or use the classic path for other chart types.
+    pub fn chartex_rel(&mut self, owner: &mut Out, chart: &joydeck_model::Chart) -> Option<String> {
+        use crate::{
+            chart_sidecars, chart_style_parts, chart_workbook::ChartWorkbook, chartex_write,
+        };
+        if !chart.kind.is_chartex() {
+            return None;
+        }
+        let original = chartex_write::retained(chart);
+        let count = chartex_write::series_count(chart);
+        if original.is_none() && count == 0 {
+            return None;
+        }
         self.n_chartex += 1;
         let name = format!("ppt/charts/chartEx{}.xml", self.n_chartex);
-        self.pkg.xml_part(&name, CT_CHARTEX, xml);
-        if preserved {
-            crate::chart_sidecars::write(&mut self.pkg, &name, c, &mut self.n_kept);
-        } else if !c.kept.parts.is_empty() {
-            log::warn!("pptx: chart data changed; the embedded workbook was not written back");
-        }
+        let mut relationships = chart_sidecars::write(
+            &mut self.pkg,
+            &name,
+            chart,
+            &mut self.n_kept,
+            original.is_none(),
+        );
+        let data = if let Some(original) = original {
+            original
+        } else {
+            let workbook = ChartWorkbook::new(chart, true, count);
+            let link = workbook.as_ref().and_then(|sheet| {
+                self.attach_workbook(
+                    sheet,
+                    &name,
+                    &format!("joydeck-chartex-{}.xlsx", self.n_chartex),
+                    &mut relationships,
+                )
+            });
+            let binding = workbook.as_ref().zip(link.as_deref());
+            chartex_write::encode(chart, &name, binding)?
+        };
+        chart_style_parts::ensure(&mut self.pkg, &name, self.n_chartex, &mut relationships);
+        self.pkg.rels(&name, &relationships);
+        self.pkg.xml_part(&name, CT_CHARTEX, data);
         Some(
-            o.rels
-                .add_new(RT_CHARTEX, &opc::relative(&o.name, &name), false),
+            owner
+                .rels
+                .add_new(RT_CHARTEX, &opc::relative(&owner.name, &name), false),
         )
     }
 
-    pub fn chart_rel(&mut self, o: &mut Out, c: &joydeck_model::Chart) -> String {
+    pub fn chart_rel(&mut self, owner: &mut Out, model: &joydeck_model::Chart) -> String {
         self.n_chart += 1;
         let name = format!("ppt/charts/chart{}.xml", self.n_chart);
-        let (xml, preserved) = chart::chart_xml(c);
-        let xml = if !preserved
-            && matches!(
-                c.kind,
-                joydeck_model::chart::ChartType::Column
-                    | joydeck_model::chart::ChartType::StackedColumn
-                    | joydeck_model::chart::ChartType::PercentColumn
-                    | joydeck_model::chart::ChartType::Bar
-                    | joydeck_model::chart::ChartType::StackedBar
-                    | joydeck_model::chart::ChartType::PercentBar
-                    | joydeck_model::chart::ChartType::Line
-                    | joydeck_model::chart::ChartType::LineMarkers
-                    | joydeck_model::chart::ChartType::StackedLine
-                    | joydeck_model::chart::ChartType::Area
-                    | joydeck_model::chart::ChartType::StackedArea
-                    | joydeck_model::chart::ChartType::Pie
-                    | joydeck_model::chart::ChartType::Doughnut
-            )
-            && c.series.len() <= 64
-            && c.categories.len() <= 4096
-            && c.series.len().saturating_mul(c.categories.len()) <= 65536
-        {
-            match workbook::attach(&mut self.pkg, &name, c, &xml, self.n_chart) {
-                Ok(xml) => xml,
-                Err(e) => {
-                    self.error = Some(e);
-                    xml
-                }
-            }
+        let original = chart::retained(model);
+        let mut relationships = crate::chart_sidecars::write(
+            &mut self.pkg,
+            &name,
+            model,
+            &mut self.n_kept,
+            original.is_none(),
+        );
+        let data = if let Some(original) = original {
+            original
         } else {
-            xml
+            let workbook = (!model.kind.is_chartex())
+                .then(|| {
+                    crate::chart_workbook::ChartWorkbook::new(model, false, model.series.len())
+                })
+                .flatten();
+            let link = workbook.as_ref().and_then(|sheet| {
+                self.attach_workbook(
+                    sheet,
+                    &name,
+                    &format!("joydeck-chart-{}.xlsx", self.n_chart),
+                    &mut relationships,
+                )
+            });
+            chart::build(model, workbook.as_ref().zip(link.as_deref()))
         };
-        self.pkg.xml_part(&name, CT_CHART, xml);
-        if preserved {
-            crate::chart_sidecars::write(&mut self.pkg, &name, c, &mut self.n_kept);
-        } else if !c.kept.parts.is_empty()
-            && !matches!(
-                c.kind,
-                joydeck_model::chart::ChartType::Column
-                    | joydeck_model::chart::ChartType::Bar
-                    | joydeck_model::chart::ChartType::Line
-                    | joydeck_model::chart::ChartType::Pie
-            )
-        {
-            log::warn!("pptx: chart data changed; the embedded workbook was not written back");
+        self.pkg.rels(&name, &relationships);
+        self.pkg.xml_part(&name, CT_CHART, data);
+        owner
+            .rels
+            .add_new("chart", &opc::relative(&owner.name, &name), false)
+    }
+
+    fn attach_workbook(
+        &mut self,
+        sheet: &crate::chart_workbook::ChartWorkbook<'_>,
+        chart: &str,
+        filename: &str,
+        relationships: &mut RelsOut,
+    ) -> Option<String> {
+        match sheet.attach(&mut self.pkg, chart, filename, relationships) {
+            Ok(id) => Some(id),
+            Err(error) => {
+                self.error = Some(error);
+                None
+            }
         }
-        o.rels
-            .add_new("chart", &opc::relative(&o.name, &name), false)
     }
 }
 

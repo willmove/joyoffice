@@ -486,10 +486,15 @@ pub fn shape(w: &mut W, x: &mut Exp, o: &mut Out, cx: &mut Ctx, s: &Shape, depth
                         .a("Requires", "cx1"),
                 );
                 frame_open(w, x, o, id, s);
-                w.open("a:graphicData", A::new().a("uri", super::chart::NS_CX));
+                w.open(
+                    "a:graphicData",
+                    A::new().a("uri", crate::chartex_write::NS_CX),
+                );
                 w.empty(
                     "cx:chart",
-                    A::new().a("xmlns:cx", super::chart::NS_CX).a("r:id", exid),
+                    A::new()
+                        .a("xmlns:cx", crate::chartex_write::NS_CX)
+                        .a("r:id", exid),
                 );
                 w.close("a:graphicData");
                 frame_close(w);
@@ -497,7 +502,9 @@ pub fn shape(w: &mut W, x: &mut Exp, o: &mut Out, cx: &mut Ctx, s: &Shape, depth
                 w.open0("mc:Fallback");
             }
             let mut plain = (**c).clone();
-            plain.raw = plain.raw.filter(|r| !r.contains(super::chart::NS_CX));
+            plain.raw = plain
+                .raw
+                .filter(|r| !r.contains(crate::chartex_write::NS_CX));
             if ex.is_some() {
                 // The kept workbook belongs to the `chartEx` part; the fallback has none.
                 plain.kept = Default::default();

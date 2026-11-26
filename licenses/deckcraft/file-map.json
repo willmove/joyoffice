@@ -1739,7 +1739,7 @@
       "source_path": "crates/pptx/src/lib.rs",
       "source_sha256": "7886430c0095c036472d8a84d8b4d2eccf001b0c8660e5c2b43572f6a0f79c1f",
       "target_path": "crates/joydeck-pptx/src/lib.rs",
-      "adapted_sha256": "b49275abb78adc2884345f37e785482f59d7bb0a78bfa55de54fe4dbee59d2b9",
+      "adapted_sha256": "130b02eb53510be344cad74dba2445aedac6e0a8c755f9b3acb0b160bbeafdfb",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -1748,7 +1748,8 @@
         "R2 shared preservation writer entry point or rustfmt; history cost extraction kept pure",
         "Reuse verified OPC buffers while preserving format reader budgets and ZIP name decoding.",
         "Route validated package members into the current PresentationML importer.",
-        "Use the JoyOffice ChartEx reader on the import and source comparison paths."
+        "Use the JoyOffice ChartEx reader on the import and source comparison paths.",
+        "Wire the independent series, axis, style-part and embedded SpreadsheetML codecs into PPTX exchange."
       ],
       "safety_integration": "Register footer import and preservation regression tests (d28049dc)."
     },
@@ -1795,13 +1796,14 @@
       "source_path": "crates/pptx/src/read/chart.rs",
       "source_sha256": "5b8801d22c205a63cf49ad9e87896eb7156f6a4beff7a0dada409b10694f5e3e",
       "target_path": "crates/joydeck-pptx/src/read/chart.rs",
-      "adapted_sha256": "6442484f0ee5e375f30f1a4886ab7460f7556e9e394d9e83c5a07041544e53dd",
+      "adapted_sha256": "eec10981b6f23f962d023c9454b3a157fe20b58669c7376fffc2aafd7c5efacd",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
-        "Use the first-party sparse point reader and chart sidecar relationship inventory."
+        "Use the first-party sparse point reader and chart sidecar relationship inventory.",
+        "Use the independent series and axis codecs for plot groups, display order and value-axis bindings."
       ]
     },
     {
@@ -1912,13 +1914,14 @@
       "source_path": "crates/pptx/src/write/chart.rs",
       "source_sha256": "200e062c4bd2928c99200b4eb36004367be3f5923656e276fee393f4d728d4a9",
       "target_path": "crates/joydeck-pptx/src/write/chart.rs",
-      "adapted_sha256": "904be34f7b64fcf0c866f85d1b5fde6dfd261e8d511f2a26c3b5e18a6628f471",
+      "adapted_sha256": "4aad66f0c4c3de096282e3095e72af907f2be63d8e09c1006f84278021d138e3",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
-        "Use the first-party sparse point writer and relocatable chart sidecars."
+        "Use the first-party sparse point writer and relocatable chart sidecars.",
+        "Delegate classic chart series and axes to the new codecs. Emit workbook references when emitting the chart space."
       ]
     },
     {
@@ -1938,7 +1941,7 @@
       "source_path": "crates/pptx/src/write/shapes.rs",
       "source_sha256": "386f88a4a3ca7b7b1434028d1360f17ff16af7c0eca4b75cb5e73a38e7aced1a",
       "target_path": "crates/joydeck-pptx/src/write/shapes.rs",
-      "adapted_sha256": "1238fa7e488f4a017f100136583840eb9f40d44dc34d327098718b8c5c2e5d63",
+      "adapted_sha256": "1ac7d08b043a48b91ac8b3a1c75bb95ec392223d3ca4acc9eb0dea58c4bc4bc6",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -1946,7 +1949,8 @@
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
         "Derive straight, orthogonal and smoothed DrawingML connector paths and adjustments from the published coordinate guides, including multi-bend defaults when opening and writing PPTX.",
         "Retain the signed DrawingML range of borderCallout1 through regeneration.",
-        "Use the shared first-party DrawingML table codec."
+        "Use the shared first-party DrawingML table codec.",
+        "Use the independent ChartEx writer for the extended chart branch."
       ]
     },
     {
@@ -1981,7 +1985,7 @@
       "source_path": "crates/pptx/src/write.rs",
       "source_sha256": "ca721cabd36b0853a69a1f2e69cf02211100fe1b4f499ced1c066a3321a92e65",
       "target_path": "crates/joydeck-pptx/src/write.rs",
-      "adapted_sha256": "7daa96ad404a2df5801031fb338242892d90cf1ed94dda499001680088c779e1",
+      "adapted_sha256": "f1ae816efa5cd8634f87ac87b827cbef81aa0974dcf1e6792f955435012c201c",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -1990,7 +1994,8 @@
         "R4/R5 scene/content/workbook/font-revision adaptation, exact JoyOffice dependency reuse",
         "preserve recognized layout and master header/footer visibility flags without resolving inheritance",
         "Assemble resolved PresentationML members before writing, with first-party media, review and transition part writers.",
-        "Build the master, layout, and theme relationship graph through the master part codec."
+        "Build the master, layout, and theme relationship graph through the master part codec.",
+        "Write the ChartEx style pair, retained chart sidecars and new editable workbooks through one relationship list."
       ],
       "dynamic_text_fields": "Support atomic dynamic text fields, native authoring, and separate rendered/source offsets."
     },

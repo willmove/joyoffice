@@ -59,26 +59,47 @@ fn values<T: Default>(source: &El, available: &mut usize, convert: impl Fn(&El) 
     values
 }
 
-pub(super) fn str_cache(xml: &mut W, formula: &str, values: &[String]) {
-    xml.open0("c:strRef");
-    xml.elt("c:f", formula);
-    xml.open0("c:strCache");
+pub(super) fn write_strings(xml: &mut W, formula: Option<&str>, values: &[String]) {
+    let tag = if let Some(formula) = formula {
+        xml.open0("c:strRef");
+        xml.elt("c:f", formula);
+        "c:strCache"
+    } else {
+        "c:strLit"
+    };
+    xml.open0(tag);
     xml.val("c:ptCount", values.len());
     for (index, value) in values.iter().enumerate() {
         point(xml, index, value);
     }
-    xml.close("c:strCache");
-    xml.close("c:strRef");
+    xml.close(tag);
+    if formula.is_some() {
+        xml.close("c:strRef");
+    }
 }
 
-pub(super) fn num_cache(xml: &mut W, formula: &str, values: &[Option<f64>]) {
-    xml.open0("c:numRef");
-    xml.elt("c:f", formula);
-    xml.open0("c:numCache");
-    xml.elt("c:formatCode", "General");
+pub(super) fn write_numbers(
+    xml: &mut W,
+    formula: Option<&str>,
+    values: &[Option<f64>],
+    format: Option<&str>,
+) {
+    let tag = if let Some(formula) = formula {
+        xml.open0("c:numRef");
+        xml.elt("c:f", formula);
+        "c:numCache"
+    } else {
+        "c:numLit"
+    };
+    xml.open0(tag);
+    if let Some(format) = format.or_else(|| formula.map(|_| "General")) {
+        xml.elt("c:formatCode", format);
+    }
     numeric_points(xml, values);
-    xml.close("c:numCache");
-    xml.close("c:numRef");
+    xml.close(tag);
+    if formula.is_some() {
+        xml.close("c:numRef");
+    }
 }
 
 pub(super) fn num_lit(xml: &mut W, values: &[Option<f64>]) {
