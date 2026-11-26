@@ -43,13 +43,6 @@ pub fn rasterize(bytes: &[u8], side: u32) -> Option<image::RgbaImage> {
     let k = side / pw.max(ph);
     let w = (pw * k).round().clamp(1.0, MAX_SIDE as f64) as u16;
     let h = (ph * k).round().clamp(1.0, MAX_SIDE as f64) as u16;
-    let pixmaps: Vec<Option<Arc<Pixmap>>> = pic
-        .items
-        .iter_mut()
-        .map(|it| it.take_pixels().and_then(|(w, h, px)| premul(w, h, &px)))
-        .collect();
-    // Pattern tiles shared by several fills are converted once.
-    let mut tiles: HashMap<*const Tile, (Option<Arc<Pixmap>>, peniko::Color)> = HashMap::new();
     let mut ctx = RenderContext::new_with(
         w,
         h,
@@ -58,118 +51,11 @@ pub fn rasterize(bytes: &[u8], side: u32) -> Option<image::RgbaImage> {
             ..Default::default()
         },
     );
-    let r = Rect::new(0.0, 0.0, w as f64, h as f64);
-    ctx.push_clip_layer(&r.to_path(0.1));
-    for it in pic.place(r, [0.0; 4]) {
-        match it {
-            PlacedItem::Path {
-                path,
-                fill,
-                stroke,
-                even_odd,
-                region,
-            } => clipped(&mut ctx, region.as_deref(), |ctx| {
-                if let Some(f) = fill {
-                    ctx.set_paint(rgba(f));
-                    ctx.set_fill_rule(if even_odd {
-                        peniko::Fill::EvenOdd
-                    } else {
-                        peniko::Fill::NonZero
-                    });
-                    ctx.fill_path(&path);
-                }
-                // GDI pens: round caps and joins; a cosmetic (zero-width) pen is one pixel.
-                if let Some((s, sw)) = stroke {
-                    ctx.set_paint(rgba(s));
-                    ctx.set_stroke(
-                        kurbo::Stroke::new(sw.max(1.0))
-                            .with_caps(kurbo::Cap::Round)
-                            .with_join(kurbo::Join::Round),
-                    );
-                    ctx.stroke_path(&path);
-                }
-            }),
-            PlacedItem::Bitmap {
-                index,
-                rect,
-                region,
-            } => clipped(&mut ctx, region.as_deref(), |ctx| {
-                let Some(Some(pm)) = pixmaps.get(index) else {
-                    return;
-                };
-                let (bw, bh) = (pm.width().max(1) as f64, pm.height().max(1) as f64);
-                ctx.set_paint(vello_cpu::Image {
-                    image: vello_cpu::ImageSource::Pixmap(pm.clone()),
-                    sampler: peniko::ImageSampler::default()
-                        .with_quality(peniko::ImageQuality::Medium),
-                });
-                ctx.set_paint_transform(
-                    Affine::translate((rect.x0, rect.y0))
-                        * Affine::scale_non_uniform(rect.width() / bw, rect.height() / bh),
-                );
-                ctx.fill_rect(&rect);
-                ctx.reset_paint_transform();
-            }),
-            PlacedItem::Pattern {
-                index,
-                path,
-                even_odd,
-                tile,
-                region,
-            } => clipped(&mut ctx, region.as_deref(), |ctx| {
-                let Some(Item::Pattern { tile: t, .. }) = pic.items.get(index) else {
-                    return;
-                };
-                let key = Arc::as_ptr(t);
-                let (pm, avg) = tiles
-                    .entry(key)
-                    .or_insert_with(|| (premul(t.width, t.height, &t.rgba), average(&t.rgba)))
-                    .clone();
-                ctx.set_fill_rule(if even_odd {
-                    peniko::Fill::EvenOdd
-                } else {
-                    peniko::Fill::NonZero
-                });
-                let cell = tile.determinant().abs().sqrt();
-                match pm {
-                    Some(pm) if cell >= MIN_CELL_PX => {
-                        ctx.set_paint(vello_cpu::Image {
-                            image: vello_cpu::ImageSource::Pixmap(pm),
-                            sampler: peniko::ImageSampler {
-                                x_extend: peniko::Extend::Repeat,
-                                y_extend: peniko::Extend::Repeat,
-                                quality: peniko::ImageQuality::Low,
-                                alpha: 1.0,
-                            },
-                        });
-                        ctx.set_paint_transform(tile);
-                        ctx.fill_path(&path);
-                        ctx.reset_paint_transform();
-                    }
-                    _ => {
-                        ctx.set_paint(avg);
-                        ctx.fill_path(&path);
-                    }
-                }
-            }),
-            PlacedItem::Text {
-                index,
-                transform,
-                clip,
-                region,
-            } => clipped(&mut ctx, region.as_deref(), |ctx| {
-                let Some(Item::Text(t)) = pic.items.get(index) else {
-                    return;
-                };
-                if let Some(c) = clip {
-                    ctx.push_clip_layer(&c.to_path(0.1));
-                }
-                draw_text(ctx, t, transform);
-                if clip.is_some() {
-                    ctx.pop_layer();
-                }
-            }),
-        }
+    let viewport = Rect::new(0.0, 0.0, w as f64, h as f64);
+    ctx.push_clip_layer(&viewport.to_path(0.1));
+    let mut painter = PicturePainter::default();
+    for item in pic.place(viewport, [0.0; 4]) {
+        painter.paint(&mut ctx, &mut pic.items, item);
     }
     ctx.set_fill_rule(peniko::Fill::NonZero);
     ctx.pop_layer();
@@ -188,6 +74,142 @@ pub fn rasterize(bytes: &[u8], side: u32) -> Option<image::RgbaImage> {
         }
     }
     image::RgbaImage::from_raw(w as u32, h as u32, px)
+}
+
+#[derive(Default)]
+struct PicturePainter {
+    tiles: HashMap<*const Tile, PreparedTile>,
+}
+
+struct PreparedTile {
+    pixels: Option<Arc<Pixmap>>,
+    color: peniko::Color,
+}
+
+impl PicturePainter {
+    fn paint(&mut self, ctx: &mut RenderContext, source: &mut [Item], item: PlacedItem) {
+        let region = match &item {
+            PlacedItem::Path { region, .. }
+            | PlacedItem::Bitmap { region, .. }
+            | PlacedItem::Pattern { region, .. }
+            | PlacedItem::Text { region, .. } => region.clone(),
+        };
+        clipped(ctx, region.as_deref(), |ctx| match item {
+            PlacedItem::Path {
+                path,
+                fill,
+                stroke,
+                even_odd,
+                ..
+            } => {
+                if let Some(fill) = fill {
+                    ctx.set_fill_rule(fill_rule(even_odd));
+                    ctx.set_paint(rgba(fill));
+                    ctx.fill_path(&path);
+                }
+                if let Some((color, width)) = stroke {
+                    ctx.set_paint(rgba(color));
+                    ctx.set_stroke(
+                        kurbo::Stroke::new(width.max(1.0))
+                            .with_caps(kurbo::Cap::Round)
+                            .with_join(kurbo::Join::Round),
+                    );
+                    ctx.stroke_path(&path);
+                }
+            }
+            PlacedItem::Bitmap { index, rect, .. } => {
+                // The decoded pixel buffer is consumed when this record is painted.
+                let Some((w, h, pixels)) = source.get_mut(index).and_then(Item::take_pixels) else {
+                    return;
+                };
+                let Some(image) = premul(w, h, &pixels) else {
+                    return;
+                };
+                let transform = Affine::translate((rect.x0, rect.y0))
+                    * Affine::scale_non_uniform(
+                        rect.width() / f64::from(w),
+                        rect.height() / f64::from(h),
+                    );
+                image_paint(
+                    ctx,
+                    image,
+                    peniko::ImageSampler::default().with_quality(peniko::ImageQuality::Medium),
+                    transform,
+                    |ctx| ctx.fill_rect(&rect),
+                );
+            }
+            PlacedItem::Pattern {
+                index,
+                path,
+                even_odd,
+                tile,
+                ..
+            } => {
+                let Some(Item::Pattern { tile: t, .. }) = source.get(index) else {
+                    return;
+                };
+                let prepared = self
+                    .tiles
+                    .entry(Arc::as_ptr(t))
+                    .or_insert_with(|| PreparedTile {
+                        pixels: premul(t.width, t.height, &t.rgba),
+                        color: average(&t.rgba),
+                    });
+                ctx.set_fill_rule(fill_rule(even_odd));
+                if let Some(image) = &prepared.pixels
+                    && tile.determinant().abs().sqrt() >= MIN_CELL_PX
+                {
+                    let sampler = peniko::ImageSampler {
+                        x_extend: peniko::Extend::Repeat,
+                        y_extend: peniko::Extend::Repeat,
+                        quality: peniko::ImageQuality::Low,
+                        alpha: 1.0,
+                    };
+                    image_paint(ctx, image.clone(), sampler, tile, |ctx| {
+                        ctx.fill_path(&path)
+                    });
+                } else {
+                    ctx.set_paint(prepared.color);
+                    ctx.fill_path(&path);
+                }
+            }
+            PlacedItem::Text {
+                index,
+                transform,
+                clip,
+                ..
+            } => {
+                if let Some(Item::Text(t)) = source.get(index) {
+                    let clip = clip.map(|r| r.to_path(0.1));
+                    clipped(ctx, clip.as_ref(), |ctx| draw_text(ctx, t, transform));
+                }
+            }
+        });
+    }
+}
+
+fn fill_rule(even_odd: bool) -> peniko::Fill {
+    if even_odd {
+        peniko::Fill::EvenOdd
+    } else {
+        peniko::Fill::NonZero
+    }
+}
+
+fn image_paint(
+    ctx: &mut RenderContext,
+    image: Arc<Pixmap>,
+    sampler: peniko::ImageSampler,
+    transform: Affine,
+    paint: impl FnOnce(&mut RenderContext),
+) {
+    ctx.set_paint(vello_cpu::Image {
+        image: vello_cpu::ImageSource::Pixmap(image),
+        sampler,
+    });
+    ctx.set_paint_transform(transform);
+    paint(ctx);
+    ctx.reset_paint_transform();
 }
 
 /// Draws `draw` inside the device-context clip. No region is the default clip.

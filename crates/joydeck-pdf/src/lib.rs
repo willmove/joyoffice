@@ -134,29 +134,60 @@ pub fn export(pres: &Presentation, opts: &PdfOptions) -> Result<Vec<u8>> {
     export_with(pres, opts, &|| false)
 }
 
-fn plan_pages(
-    pres: &Presentation,
-    opts: &PdfOptions,
-    slides: &[usize],
-    sw: f64,
-    sh: f64,
-) -> Vec<Vec<(usize, Rect)>> {
-    match opts.layout {
-        PageLayout::Slides => slides
-            .iter()
-            .map(|&i| vec![(i, Rect::new(0.0, 0.0, sw, sh))])
-            .collect(),
-        PageLayout::Notes => {
-            let b = notes_frames(pres, opts.paper).0;
-            slides.iter().map(|&i| vec![(i, b)]).collect()
+struct PagePlan {
+    paper: (f64, f64),
+    sheets: Vec<Vec<(usize, Rect)>>,
+    destinations: HashMap<usize, usize>,
+}
+
+impl PagePlan {
+    fn for_export(pres: &Presentation, opts: &PdfOptions) -> Result<Self> {
+        let slide = (
+            pres.slide_size.width.max(1.0),
+            pres.slide_size.height.max(1.0),
+        );
+        let paper = if opts.layout == PageLayout::Slides {
+            slide
+        } else {
+            opts.paper
+        };
+        let slots = match opts.layout {
+            PageLayout::Slides => vec![Rect::new(0.0, 0.0, slide.0, slide.1)],
+            PageLayout::Notes => vec![notes_frames(pres, paper).0],
+            PageLayout::Handouts { per_page } => handout_boxes(per_page, paper, slide.0 / slide.1),
+        };
+        let mut plan = Self {
+            paper,
+            sheets: Vec::new(),
+            destinations: HashMap::new(),
+        };
+        let selected = opts.slides.as_deref().map_or_else(
+            || {
+                (0..pres.slides.len())
+                    .filter(|&i| opts.include_hidden || !pres.slides[i].hidden)
+                    .collect()
+            },
+            |indices| {
+                indices
+                    .iter()
+                    .copied()
+                    .filter(|&i| i < pres.slides.len())
+                    .collect::<Vec<_>>()
+            },
+        );
+        if selected.is_empty() || slots.is_empty() {
+            return Err(PdfError::NoPages);
         }
-        PageLayout::Handouts { per_page } => {
-            let boxes = handout_boxes(per_page, opts.paper, sw / sh);
-            slides
-                .chunks(boxes.len())
-                .map(|c| c.iter().zip(&boxes).map(|(i, b)| (*i, *b)).collect())
-                .collect()
+        for (page, chunk) in selected.chunks(slots.len()).enumerate() {
+            let mut sheet = Vec::with_capacity(chunk.len());
+            for (&index, &rect) in chunk.iter().zip(&slots) {
+                // Explicit selections may repeat. Link destinations use the last occurrence.
+                plan.destinations.insert(index, page);
+                sheet.push((index, rect));
+            }
+            plan.sheets.push(sheet);
         }
+        Ok(plan)
     }
 }
 
@@ -185,19 +216,7 @@ fn export_inner(
     opts: &PdfOptions,
     cancelled: &dyn Fn() -> bool,
 ) -> Result<Vec<u8>> {
-    let slides: Vec<usize> = match &opts.slides {
-        Some(v) => v
-            .iter()
-            .copied()
-            .filter(|i| *i < pres.slides.len())
-            .collect(),
-        None => (0..pres.slides.len())
-            .filter(|i| opts.include_hidden || !pres.slides[*i].hidden)
-            .collect(),
-    };
-    if slides.is_empty() {
-        return Err(PdfError::NoPages);
-    }
+    let plan = PagePlan::for_export(pres, opts)?;
     let title = opts
         .title
         .clone()
@@ -210,10 +229,6 @@ fn export_inner(
     let mut pdf = krilla::Document::new();
     pdf.set_metadata(metadata);
 
-    let (sw, sh) = (
-        pres.slide_size.width.max(1.0),
-        pres.slide_size.height.max(1.0),
-    );
     let mut ex = Exporter {
         pres,
         opts,
@@ -221,24 +236,13 @@ fn export_inner(
         fonts: HashMap::new(),
         backdrops: Backdrops::default(),
     };
-    // Page plan: per page, the slides on it with their boxes (page points).
-    let pages = plan_pages(pres, opts, &slides, sw, sh);
-    // Bookmarks and slide → page lookup for internal links.
-    let page_of: HashMap<usize, usize> = pages
-        .iter()
-        .enumerate()
-        .flat_map(|(p, v)| v.iter().map(move |(i, _)| (*i, p)))
-        .collect();
-    pdf.set_outline(build_outline(pres, &pages));
+    pdf.set_outline(build_outline(pres, &plan.sheets));
 
-    for v in &pages {
+    let (pw, ph) = plan.paper;
+    for (page_index, v) in plan.sheets.iter().enumerate() {
         if cancelled() {
             return Err(PdfError::Write("operation cancelled".into()));
         }
-        let (pw, ph) = match opts.layout {
-            PageLayout::Slides => (sw, sh),
-            _ => opts.paper,
-        };
         let size = Size::from_wh(pw as f32, ph as f32).ok_or(PdfError::NoPages)?;
         let mut page = pdf.start_page_with(PageSettings::new(size));
         let mut annots = Vec::new();
@@ -246,7 +250,7 @@ fn export_inner(
             let mut s = page.surface();
             for (i, b) in v {
                 ex.slide(&mut s, *i, *b)?;
-                annots.extend(ex.links(*i, *b, &page_of));
+                annots.extend(ex.links(*i, *b, &plan.destinations));
             }
             match opts.layout {
                 PageLayout::Notes => {
@@ -273,7 +277,7 @@ fn export_inner(
                         pres.handout_master.as_deref(),
                         pw,
                         ph,
-                        page_of.get(&v[0].0).map(|p| p + 1).unwrap_or(1),
+                        page_index + 1,
                     )?;
                 }
                 PageLayout::Slides => {}
@@ -534,7 +538,7 @@ struct Exporter<'a> {
     pres: &'a Presentation,
     opts: &'a PdfOptions,
     field_time: Option<joydeck_text::datetime::DateTime>,
-    fonts: HashMap<u32, Font>,
+    fonts: HashMap<joydeck_fonts::FontIdentity, Font>,
     backdrops: Backdrops,
 }
 
@@ -681,11 +685,11 @@ fn raster_scale(box_width: f64, slide: (f64, f64), dpi: f64) -> f64 {
 
 impl Exporter<'_> {
     fn font(&mut self, face: &joydeck_fonts::FontFace) -> Result<Font> {
-        if let Some(font) = self.fonts.get(&face.id()) {
+        if let Some(font) = self.fonts.get(face.identity()) {
             return Ok(font.clone());
         }
         let font = write::font(face.data(), face.index(), &face.coords)?;
-        self.fonts.insert(face.id(), font.clone());
+        self.fonts.insert(face.identity().clone(), font.clone());
         Ok(font)
     }
 
@@ -1001,7 +1005,7 @@ fn glyph_text_ranges(
     cells: &[(usize, char)],
     n: usize,
 ) -> Vec<std::ops::Range<usize>> {
-    let starts: Vec<usize> = text.char_indices().map(|(b, _)| b).collect();
+    let starts: Vec<_> = text.char_indices().map(|(offset, _)| offset).collect();
     let byte = |ci: usize| {
         ci.checked_sub(chars.0)
             .and_then(|i| starts.get(i).copied())
@@ -1010,17 +1014,25 @@ fn glyph_text_ranges(
     let mut heads: Vec<usize> = cells.iter().map(|c| c.0).collect();
     heads.sort_unstable();
     heads.dedup();
-    let end = |ci: usize| {
-        heads
-            .get(heads.partition_point(|&h| h <= ci))
-            .copied()
-            .unwrap_or(chars.1)
-    };
+    let clusters: HashMap<_, _> = heads
+        .iter()
+        .copied()
+        .zip(
+            heads
+                .iter()
+                .copied()
+                .skip(1)
+                .chain(std::iter::once(chars.1)),
+        )
+        .map(|(head, next)| (head, byte(head)..byte(next)))
+        .collect();
     (0..n)
         .map(|gi| {
             cells
                 .get(gi)
-                .map_or(text.len()..text.len(), |&(ci, _)| byte(ci)..byte(end(ci)))
+                .and_then(|&(ci, _)| clusters.get(&ci))
+                .cloned()
+                .unwrap_or(text.len()..text.len())
         })
         .collect()
 }

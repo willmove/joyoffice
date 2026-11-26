@@ -54,32 +54,9 @@ pub fn composite_transition(
         pixels: [0u8, 0, 0, 255].repeat(n),
     };
     for l in layers {
-        let src = match (l.source.is_part(), parts) {
-            (true, None) => match l.source.whole() {
-                Some(s) => s,
-                None => continue,
-            },
-            _ => l.source,
-        };
-        let tex = match (src, parts) {
-            (Source::Old, _) => old.map(Tex::Image).unwrap_or(Tex::Solid([0.0, 0.0, 0.0])),
-            (Source::New, _) => Tex::Image(new),
-            (Source::Black, _) => Tex::Solid([0.0, 0.0, 0.0]),
-            (Source::White, _) => Tex::Solid([255.0, 255.0, 255.0]),
-            (Source::OldBack, Some(p)) => p
-                .old_back
-                .as_ref()
-                .map(Tex::Image)
-                .unwrap_or(Tex::Solid([0.0, 0.0, 0.0])),
-            (Source::NewBack, Some(p)) => Tex::Image(&p.new_back),
-            (Source::OldContent, Some(p)) => match &p.old_content {
-                Some(i) => Tex::Image(i),
-                None => continue,
-            },
-            (Source::NewContent, Some(p)) => Tex::Image(&p.new_content),
-            (_, None) => continue,
-        };
-        draw_layer(&mut out, l, &tex);
+        if let Some(texture) = Tex::for_source(l.source, old, new, parts) {
+            draw_layer(&mut out, l, &texture);
+        }
     }
     out
 }
@@ -202,7 +179,28 @@ enum Tex<'a> {
     Solid([f32; 3]),
 }
 
-impl Tex<'_> {
+impl<'a> Tex<'a> {
+    fn for_source(
+        source: Source,
+        old: Option<&'a Image>,
+        new: &'a Image,
+        parts: Option<&'a SlideParts>,
+    ) -> Option<Self> {
+        let black = Self::Solid([0.; 3]);
+        Some(match source {
+            Source::Old => old.map_or(black, Self::Image),
+            Source::New => Self::Image(new),
+            Source::Black => black,
+            Source::White => Self::Solid([255.; 3]),
+            Source::OldBack => parts
+                .map_or(old, |p| p.old_back.as_ref())
+                .map_or(black, Self::Image),
+            Source::NewBack => Self::Image(parts.map_or(new, |p| &p.new_back)),
+            Source::OldContent => Self::Image(parts?.old_content.as_ref()?),
+            Source::NewContent => Self::Image(&parts?.new_content),
+        })
+    }
+
     /// Premultiplied RGBA (0..255) at texture coordinate (u, v), bilinear, clamped to the edge.
     fn sample(&self, u: f64, v: f64) -> [f32; 4] {
         match self {
@@ -224,14 +222,11 @@ impl Tex<'_> {
                         None => [0.0; 4],
                     }
                 };
-                let (a, b, c, d) = (px(x0, y0), px(x1, y0), px(x0, y1), px(x1, y1));
-                let mut o = [0.0f32; 4];
-                for k in 0..4 {
-                    let top = a[k] + (b[k] - a[k]) * fx;
-                    let bot = c[k] + (d[k] - c[k]) * fx;
-                    o[k] = top + (bot - top) * fy;
-                }
-                o
+                let mix =
+                    |a: [f32; 4], b: [f32; 4], f| std::array::from_fn(|i| a[i] + (b[i] - a[i]) * f);
+                let top = mix(px(x0, y0), px(x1, y0), fx);
+                let bottom = mix(px(x0, y1), px(x1, y1), fx);
+                mix(top, bottom, fy)
             }
         }
     }
@@ -293,12 +288,7 @@ fn draw_pixel_aligned_rect(out: &mut Image, l: &Layer, tex: &Tex) -> bool {
             }
             Tex::Solid(color) => {
                 for dst in row.as_chunks_mut::<4>().0 {
-                    for k in 0..4 {
-                        let src = if k == 3 { 255. } else { color[k] };
-                        dst[k] = (src * alpha + dst[k] as f32 * (1. - alpha))
-                            .round()
-                            .clamp(0., 255.) as u8;
-                    }
+                    blend_sample(dst, [color[0], color[1], color[2], 255.], alpha, 1. - alpha);
                 }
             }
         }
@@ -388,13 +378,22 @@ fn composite_translucent_row(row: &mut [u8], source: &[u8], opacity: f32) {
             .iter_mut()
             .zip(input.as_chunks::<4>().0)
         {
-            let keep = 1. - f32::from(pixel[3]) * opacity / 255.;
-            for (dst, src) in dest.iter_mut().zip(pixel) {
-                *dst = (f32::from(*src) * opacity + f32::from(*dst) * keep)
-                    .round()
-                    .clamp(0., 255.) as u8;
-            }
+            source_over(dest, pixel.map(f32::from), opacity);
         }
+    }
+}
+
+#[inline]
+fn source_over(dest: &mut [u8; 4], src: [f32; 4], opacity: f32) {
+    blend_sample(dest, src, opacity, 1. - src[3] * opacity / 255.);
+}
+
+#[inline]
+fn blend_sample(dest: &mut [u8; 4], src: [f32; 4], opacity: f32, keep: f32) {
+    for (out, value) in dest.iter_mut().zip(src) {
+        *out = (value * opacity + f32::from(*out) * keep)
+            .round()
+            .clamp(0., 255.) as u8;
     }
 }
 
@@ -432,11 +431,18 @@ fn draw_mesh_layer(out: &mut Image, l: &Layer, tex: &Tex) {
 /// Rasterize only the scanline span covered by the projected triangle. Keep the established
 /// subpixel sample position so adjacent triangles agree about ownership of their shared edge.
 fn fill_triangle(out: &mut Image, p: [[f64; 2]; 3], uv: [[f64; 2]; 3], al: [f64; 3], tex: &Tex) {
-    let area = triangle_edge(p[0], p[1], p[2]);
+    let edges = [
+        Edge::between(p[1], p[2]),
+        Edge::between(p[2], p[0]),
+        Edge::between(p[0], p[1]),
+    ];
+    let area = edges[2].at(p[2]);
     if !area.is_finite() || area.abs() < 1e-12 || out.width == 0 {
         return;
     }
     let width = out.width as usize;
+    let u = uv.map(|v| v[0]);
+    let v = uv.map(|v| v[1]);
     let height = f64::from(out.height);
     let y0 = p
         .iter()
@@ -467,7 +473,8 @@ fn fill_triangle(out: &mut Image, p: [[f64; 2]; 3], uv: [[f64; 2]; 3], al: [f64;
             .iter_mut()
             .enumerate()
         {
-            let w = triangle_weights(p, [sample_x(x0 + offset), sy], area);
+            let point = [sample_x(x0 + offset), sy];
+            let w = edges.map(|edge| edge.at(point) / area);
             if w.iter().any(|&weight| weight < 0.) {
                 continue;
             }
@@ -477,13 +484,7 @@ fn fill_triangle(out: &mut Image, p: [[f64; 2]; 3], uv: [[f64; 2]; 3], al: [f64;
             if opacity <= 0. {
                 continue;
             }
-            let source = tex.sample(interpolate(uv.map(|v| v[0])), interpolate(uv.map(|v| v[1])));
-            let keep = 1. - source[3] * opacity / 255.;
-            for (dest, value) in pixel.iter_mut().zip(source) {
-                *dest = (value * opacity + f32::from(*dest) * keep)
-                    .round()
-                    .clamp(0., 255.) as u8;
-            }
+            source_over(pixel, tex.sample(interpolate(u), interpolate(v)), opacity);
         }
     }
 }
@@ -496,10 +497,31 @@ pub(crate) fn sample_y(y: usize) -> f64 {
     y as f64 + 0.5 + 2.31e-6
 }
 
-pub(crate) fn triangle_edge(a: [f64; 2], b: [f64; 2], sample: [f64; 2]) -> f64 {
-    (b[0] - a[0]) * (sample[1] - a[1]) - (b[1] - a[1]) * (sample[0] - a[0])
+#[derive(Clone, Copy)]
+struct Edge {
+    origin: [f64; 2],
+    gradient: [f64; 2],
 }
 
+impl Edge {
+    fn between(origin: [f64; 2], end: [f64; 2]) -> Self {
+        Self {
+            origin,
+            gradient: [end[0] - origin[0], end[1] - origin[1]],
+        }
+    }
+
+    fn at(self, [x, y]: [f64; 2]) -> f64 {
+        self.gradient[0] * (y - self.origin[1]) - self.gradient[1] * (x - self.origin[0])
+    }
+}
+
+#[cfg(feature = "transition-gpu")]
+pub(crate) fn triangle_edge(a: [f64; 2], b: [f64; 2], sample: [f64; 2]) -> f64 {
+    Edge::between(a, b).at(sample)
+}
+
+#[cfg(feature = "transition-gpu")]
 pub(crate) fn triangle_weights(p: [[f64; 2]; 3], sample: [f64; 2], area: f64) -> [f64; 3] {
     [
         triangle_edge(p[1], p[2], sample) / area,

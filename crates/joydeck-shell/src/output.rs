@@ -485,29 +485,7 @@ pub fn print(doc: &Document, opts: &Options, cancel: &Cancellation) -> Result<St
     }
     let helper = crate::helpers::find("print")?;
     let scratch = crate::helpers::Scratch::new()?;
-    let directory = scratch.0.join("pages");
-    let report = export(
-        doc,
-        &directory,
-        &Options {
-            format: "png".into(),
-            scale: opts.dpi / 72.,
-            pages: opts.pages.clone(),
-            ..Default::default()
-        },
-        cancel,
-    )?;
-    let names = report
-        .pages
-        .iter()
-        .map(|p| format!("slide-{p:04}.png"))
-        .collect::<Vec<_>>();
-    let manifest = directory.join("print.json");
-    std::fs::write(
-        &manifest,
-        serde_json::to_vec(&serde_json::json!({"pages":names})).map_err(|e| e.to_string())?,
-    )
-    .map_err(|e| e.to_string())?;
+    let manifest = stage_print_pages(doc, opts, &scratch.0, cancel)?;
     cancel.check()?;
     let mut child = crate::helpers::command(helper)
         .arg(crate::helpers::native_path(&manifest)?)
@@ -531,5 +509,105 @@ pub fn print(doc: &Document, opts: &Options, cancel: &Cancellation) -> Result<St
             };
         }
         std::thread::sleep(Duration::from_millis(50));
+    }
+}
+
+/// Materialize a private spool snapshot. Physical page numbers follow the requested order,
+/// independently of slide IDs or any filename ordering on the host.
+fn stage_print_pages(
+    doc: &Document,
+    opts: &Options,
+    directory: &Path,
+    cancel: &Cancellation,
+) -> Result<std::path::PathBuf, String> {
+    #[derive(Serialize)]
+    struct PrintManifest {
+        pages: Vec<String>,
+    }
+
+    let scale = opts.dpi / 72.;
+    let selected = pages(
+        doc,
+        &Options {
+            scale,
+            pages: opts.pages.clone(),
+            ..Default::default()
+        },
+    )?;
+    let mut seen = std::collections::HashSet::new();
+    if selected.iter().any(|&index| !seen.insert(index)) {
+        return Err("duplicate pages are not supported in raster or MP4 output".into());
+    }
+    let fonts = joydeck_fonts::FontDb::global();
+    let revision = fonts.environment_revision();
+    let mut manifest = PrintManifest {
+        pages: Vec::with_capacity(selected.len()),
+    };
+    let mut total = 0;
+    for (physical_page, slide) in selected.into_iter().enumerate() {
+        cancel.check()?;
+        let page = doc.render_output(slide, scale, false, cancel)?;
+        if page.width > 8192
+            || page.height > 8192
+            || u64::from(page.width) * u64::from(page.height) > 16_000_000
+        {
+            return Err("Print raster budget exceeded".into());
+        }
+        let png = page.to_png_at(opts.dpi);
+        total += png.len();
+        if png.is_empty() || total > 64 << 20 {
+            return Err("print snapshot cannot be encoded within 64 MiB".into());
+        }
+        let name = format!("page-{:04}.png", physical_page + 1);
+        storage::save(&directory.join(&name), &png, None)?;
+        manifest.pages.push(name);
+    }
+    cancel.check()?;
+    if revision != fonts.environment_revision() {
+        return Err(
+            "font environment changed during print preparation; retry with the current fonts"
+                .into(),
+        );
+    }
+    let path = directory.join("print.json");
+    let bytes = serde_json::to_vec(&manifest).map_err(|e| e.to_string())?;
+    storage::save(&path, &bytes, None)?;
+    Ok(path)
+}
+
+#[cfg(test)]
+mod print_tests {
+    use super::*;
+
+    #[test]
+    fn print_snapshot_keeps_selected_slide_order_and_publishes_manifest_last() {
+        let file = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../tests/fixtures/joydeck/r6-r7/delivery-media.pptx");
+        let cancel = Cancellation::default();
+        let doc = Document::open(&file, &cancel).unwrap();
+        let scratch = crate::helpers::Scratch::new().unwrap();
+        let opts = Options {
+            dpi: 36.,
+            pages: Some(vec![2, 0]),
+            ..Default::default()
+        };
+        let path = stage_print_pages(&doc, &opts, &scratch.0, &cancel).unwrap();
+        let manifest: serde_json::Value =
+            serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
+        assert_eq!(
+            manifest["pages"],
+            serde_json::json!(["page-0001.png", "page-0002.png"])
+        );
+        for (slide, file) in [(2, "page-0001.png"), (0, "page-0002.png")] {
+            let expected = doc.render_output(slide, 0.5, false, &cancel).unwrap();
+            assert_eq!(
+                std::fs::read(scratch.0.join(file)).unwrap(),
+                expected.to_png_at(36.)
+            );
+        }
+        let interrupted = crate::helpers::Scratch::new().unwrap();
+        cancel.cancel();
+        assert!(stage_print_pages(&doc, &opts, &interrupted.0, &cancel).is_err());
+        assert!(!interrupted.0.join("print.json").exists());
     }
 }

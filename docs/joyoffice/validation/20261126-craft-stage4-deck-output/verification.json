@@ -1,0 +1,197 @@
+{
+  "frozenRevision": "14cbb29616d7c0ababbf40a8f6c0218b996e7ae8",
+  "frozenCliSha256": "f8fd32a31570e241f17ced00dbce66f7e2ae53739b18e3c70bea03c2e78794f7",
+  "candidateCliSha256": "617750197e9a77e7bddb22ade9e7ad8ab41322d170947472ae3ceacd17f7aca7",
+  "pdf": [
+    {
+      "name": "slides",
+      "sourceSha256": "2644d3e6925aa788f7a4629c9a639ecfb4a5f9ba37951135a08db35102949067",
+      "pages": 2,
+      "embeddedFonts": [
+        "ArialMT",
+        "Calibri",
+        "MicrosoftYaHei"
+      ],
+      "bookmarks": 2,
+      "links": 1
+    },
+    {
+      "name": "notes",
+      "sourceSha256": "2644d3e6925aa788f7a4629c9a639ecfb4a5f9ba37951135a08db35102949067",
+      "pages": 3,
+      "embeddedFonts": [
+        "ArialMT",
+        "Calibri",
+        "MicrosoftYaHei"
+      ],
+      "bookmarks": 3,
+      "links": 1
+    },
+    {
+      "name": "handouts-3",
+      "sourceSha256": "2644d3e6925aa788f7a4629c9a639ecfb4a5f9ba37951135a08db35102949067",
+      "pages": 2,
+      "embeddedFonts": [
+        "ArialMT",
+        "Calibri",
+        "MicrosoftYaHei"
+      ],
+      "bookmarks": 4,
+      "links": 2
+    },
+    {
+      "name": "handouts-6",
+      "sourceSha256": "2644d3e6925aa788f7a4629c9a639ecfb4a5f9ba37951135a08db35102949067",
+      "pages": 2,
+      "embeddedFonts": [
+        "ArialMT",
+        "Calibri",
+        "MicrosoftYaHei"
+      ],
+      "bookmarks": 7,
+      "links": 3
+    },
+    {
+      "name": "mixed-content",
+      "sourceSha256": "6e3aa914dd5f40cd261ab35ceff2f1b584f100fa0ffb0569f6cb9af53bed6933",
+      "pages": 3,
+      "embeddedFonts": [
+        "Calibri",
+        "Calibri-Bold",
+        "MicrosoftYaHei"
+      ],
+      "bookmarks": 3,
+      "links": 0
+    },
+    {
+      "name": "wmf",
+      "sourceSha256": "b125870b5449bee6d25b94bf544631085fabcb16bae0bef73475cb79024c906e",
+      "pages": 1,
+      "embeddedFonts": [
+        "Calibri",
+        "Calibri-Bold",
+        "MicrosoftYaHei"
+      ],
+      "bookmarks": 1,
+      "links": 0,
+      "metafileScene": {
+        "size": [
+          960,
+          540
+        ],
+        "sha256": "224d490d3bb534372bb1e56bc48a63824def6d955fc9644622662804f9e43ba6"
+      },
+      "matchingGreenPixels": 8960
+    },
+    {
+      "name": "emf",
+      "sourceSha256": "1060f083945919302aa3f278afced3cce85e30dd35828a90011749abafe026c2",
+      "pages": 1,
+      "embeddedFonts": [
+        "Calibri",
+        "Calibri-Bold",
+        "MicrosoftYaHei"
+      ],
+      "bookmarks": 1,
+      "links": 0,
+      "metafileScene": {
+        "size": [
+          960,
+          540
+        ],
+        "sha256": "a725d3bd5e6e39080a0d06af217e7d353025bd8c744083328ea34511c36718d6"
+      },
+      "matchingGreenPixels": 7048
+    }
+  ],
+  "handoutFooterFixes": {
+    "handouts-3": {
+      "firstPageBefore": 2,
+      "firstPageAfter": 1,
+      "changedPixelsWithin": [
+        540,
+        749,
+        545,
+        756
+      ]
+    },
+    "handouts-6": {
+      "firstPageBefore": 2,
+      "firstPageAfter": 1,
+      "changedPixelsWithin": [
+        540,
+        749,
+        545,
+        756
+      ]
+    }
+  },
+  "composition": [
+    {
+      "adapter": "Intel(R) Arc(TM) 140T GPU (16GB)",
+      "backend": "Vulkan",
+      "size": [
+        64,
+        36
+      ],
+      "cpuManifestSha256": "04c43864d6760bbed4555acc00d5a869ccb7affd73fcdf4be1d2cb0e4af5ab0a",
+      "missingSources": {
+        "frames": 48,
+        "maximumChannelDifference": 0
+      },
+      "frames": 925,
+      "maxChannelDifference": 1
+    },
+    {
+      "adapter": "Intel(R) Arc(TM) 140T GPU (16GB)",
+      "backend": "Vulkan",
+      "size": [
+        193,
+        109
+      ],
+      "cpuManifestSha256": "a615c2f1ac5bf0b69f6d781660dc80964087ea79b4c32db7a2017e5ba11e6fab",
+      "missingSources": {
+        "frames": 48,
+        "maximumChannelDifference": 1
+      },
+      "frames": 925,
+      "maxChannelDifference": 1
+    }
+  ],
+  "crossExchange": {
+    "kinds": 17,
+    "cases": 48,
+    "readerWriterPairs": 192,
+    "originalsUnchanged": true
+  },
+  "windowsVirtualPrint": {
+    "driver": "Microsoft Print to PDF",
+    "sharedAdapter": "PrepareDocument",
+    "artifactSha256": "c9a4c81666107d4dff3594c575048c5f82d32294b05e30f343f512f963d4299d",
+    "pages": 3,
+    "order": [
+      3,
+      1,
+      2
+    ],
+    "pageSizes": [
+      [
+        841.92004,
+        595.32001
+      ],
+      [
+        841.92004,
+        595.32001
+      ],
+      [
+        841.92004,
+        595.32001
+      ]
+    ]
+  },
+  "engineering": {
+    "passed": 1064,
+    "failed": 0,
+    "ignored": 0
+  }
+}

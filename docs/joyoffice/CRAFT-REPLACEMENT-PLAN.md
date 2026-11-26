@@ -36,6 +36,8 @@ JoyDeck 阶段 3 已完成。对象动画、主序列和交互序列，以及原
 
 JoyDeck 阶段 4 已切换文本字体选择、字形整形、断行、自适应布局和命中，以及放映时间线、对象触发与效果求值、Morph 对象／文字／轮廓匹配。三种 Morph 模式的首尾帧直接使用对应页的栅格。Windows 已完成冻结对照和实际观众窗口复验。[文本与放映验收](validation/20261126-craft-stage4-deck-runtime/README.md)
 
+JoyDeck 已切换 CPU 转场合成、WMF／EMF 记录回放与绘制、PDF 分页与文字层、Windows 打印快照与逐页输出。重复选页的讲义页脚按实际纸张编号。Windows 复验通过，功能区呈现继续推进。[渲染与输出验收](validation/20261126-craft-stage4-deck-output/README.md)
+
 | 剩余范围 | 人周 | 估算依据 |
 | --- | ---: | --- |
 | 阶段 0 其余路径的调用登记与专项基线 | 2–4 | 六个二进制及首批语料已集中冻结。复杂分页、放映与长尾文件需各补调用点、固定输入及预期结果。 |
@@ -43,8 +45,8 @@ JoyDeck 阶段 4 已切换文本字体选择、字形整形、断行、自适应
 | 阶段 1 · JoyDeck | 0 | 加密包、v1 预设迁移和最近文档路径已完成。 |
 | 阶段 1 · JoySheet | 4–7 | 扩展 ETS 参数与季节识别差异复核 1–2 人周，月底日历及金融计日 1–2 人周，按注册表收口剩余数学和查找分支 2–3 人周。 |
 | 阶段 1 · 公共图元读取 | 0 | 有界读取器已切换。两产品的 WMF／EMF 解释与绘制仍计入阶段 4。 |
-| 阶段 2–5 | 180–303 | JoyDeck 阶段 2、3 已验收，阶段 4 扣除本轮文本和放映运行路径。 |
-| **合计** | **191–323** | 阶段 1 待办共 9–16 人周，阶段 0 其余工作共 2–4 人周。 |
+| 阶段 2–5 | 172–289 | JoyDeck 阶段 4 仍有功能区呈现及实机补验。 |
+| **合计** | **183–309** | 阶段 1 待办共 9–16 人周，阶段 0 其余工作共 2–4 人周。 |
 
 第三批按完成范围从前次估算中扣减 6–11 人周。JoyWord 发布索引和资源清单扣减 1–2 人周，JoySheet 数值内核和边界复核扣减 3–5 人周，公共图元读取扣减 2–4 人周。
 
@@ -97,9 +99,9 @@ WordCraft 0.15.0 的文档模型、编辑会话和完整分页仍在桌面与 CL
 
 校对先运行建议顺序与语言包安装对照，分页则从桌面、PDF 和打印入口取证。Word 的 R8 交接列出了既有 CLI、恢复和另存契约。[拼写顺序脚本](../../scripts/joyword/check-spelling-order.py) · [语言包索引](../../crates/joyword-engine/src/packs/store.rs) · [分节重排脚本](../../scripts/joyword/check-section-splice.py) · [PDF 适配来源](../../crates/joyword-pdf/src/backend.rs) · [R8 兼容表](JOYWORD-R8-HANDOFF.md)
 
-## JoyDeck · 剩余 10–18 人周
+## JoyDeck · 剩余 2–4 人周
 
-DeckCraft 0.14.1 的文件来源保留在账本中。现行编辑路径的 183 项预设形状、5 种文件连接线及 49 类 PresentationML 转场生成器继续参加回归。阶段 4 剩余工作覆盖图元解释、CPU 合成、PDF／打印和功能区呈现，以及这些路径的跨平台验收。[逐文件来源](../../licenses/deckcraft/file-map.json) · [产品移植说明](../../THIRD_PARTY-JOYDECK.md) · [已替换的生成器](validation/20261123-uos-refactor/README.md)
+DeckCraft 0.14.1 的文件来源保留在账本中。现行编辑路径的 183 项预设形状、5 种文件连接线及 49 类 PresentationML 转场生成器继续参加回归。阶段 4 剩余开发为功能区呈现，跨平台实机复验单独登记。[逐文件来源](../../licenses/deckcraft/file-map.json) · [产品移植说明](../../THIRD_PARTY-JOYDECK.md) · [已替换的生成器](validation/20261123-uos-refactor/README.md)
 
 | 阶段与优先级 | 仍在用的派生代码及替换内容 | 人周 | 兼容性验收标准 |
 | --- | --- | ---: | --- |
@@ -107,7 +109,7 @@ DeckCraft 0.14.1 的文件来源保留在账本中。现行编辑路径的 183 �
 | 2 · 高，演示模型与编辑 · 已验收 | 已切换撤销历史、媒体引用、跨文稿资源映射、静态形状与组变换、富文本编辑与继承、形状树和预设编辑、主题色与占位符外观解析。[历史](validation/20261125-craft-stage2-deck-history/README.md) · [跨文稿](validation/20261125-craft-stage2-deck-transfer/README.md) · [形状坐标](validation/20261125-craft-stage2-deck-coordinates/README.md) · [富文本](validation/20261125-craft-stage2-deck-rich-text/README.md) · [形状与主题色](validation/20261125-craft-stage2-deck-shapes-theme/README.md) | 0（原估 16–28） | 固定命令序列逐步比对页序、对象 ID、层级、主题绑定及撤销／重做。跨文稿粘贴验证 ID 冲突、图片复用、母版与版式、链接和清空历史后的资源引用。嵌套组、连接线端点、富文本及主题色通过渲染对照和双格式读回。双窗口共享模型及撤销重做，控制命令拒绝过时修订。 |
 | 3 · 高，原生格式与 PPTX · 已验收 | 原生项目容器、PPTX 包读写和保留保存，以及母版、版式、主题、表格、媒体、备注、审阅、图表、转场、绘图交换、对象动画时间节点和原生模型数值与修复路径已切换。 | 0（原估 18–30） | 在各自支持的读写方向上，两代 CLI 交叉读回，并用独立 XML 核对关系、ID、媒体散列、时间信息与保留部件。PowerPoint 打开代表样本、另存后由 JoyDeck 重开。超过能力的样本维持登记的保留、只读或拒绝行为。 |
 | 4 · 中，文本与放映运行时 · Windows 已验收 | 已切换字体匹配与整形、断行与字形命中、放映时钟和触发排序、对象效果与缓动、Morph 对象／词字／轮廓。公开格式与内部计时字段继续使用阶段 3 的读写契约。[本轮验收](validation/20261126-craft-stage4-deck-runtime/README.md) | 0（从原 20–34 扣除 12–20） | 同机固定字体对照换行、定位字形、命中和光标亲和性。对照触发顺序、对象中间和终态、Morph 首尾像素以及暂停、继续及退出，复跑 1,850 帧 GPU／CPU 对照和 192 组转场互读。 |
-| 4 · 中，合成、图元与 PDF | 替换 `joydeck-render` CPU 合成与相关转场采样辅助、`joydeck-metafile` WMF／EMF 解释与绘制、`joydeck-pdf` 定位字形和字体嵌入等输出。分别估算 3–5、2–4 和 3–5 人周。 | 8–14 | 核对 PDF 页、可选文字、链接、书签、字形与字体嵌入，复验图元占位和错误路径。跨平台 GPU 与 CPU 首尾逐像素等同，中间最大通道差沿用 Metal ≤1、UOS Vulkan ≤2 的基线。 |
+| 4 · 中，合成、图元与 PDF · Windows 已验收 | CPU 转场合成、WMF／EMF／EMF+、PDF 定位字形与字体嵌入、Windows 打印分页已切换。[本轮验收](validation/20261126-craft-stage4-deck-output/README.md) | 0（原估 8–14） | 核对 PDF 页、可选文字、链接、书签、字形与字体嵌入，复验图元占位和错误路径。跨平台 GPU 与 CPU 首尾逐像素等同，中间最大通道差沿用 Metal ≤1、UOS Vulkan ≤2 的基线。 |
 | 4 · 低，功能区呈现 | 用宿主 GPUI 组件替换 `joydeck-ui-gpui/src/chrome.rs` 中来自上游 Ribbon、控件与主题的布局逻辑。 | 2–4 | 在原生宽窗、窄窗和深浅主题下核对可见命令、折叠、禁用状态、键盘焦点与动作结果。 |
 
 来源账本保留旧几何导入路径和散列。v1 只读迁移仍沿用现有 R1–R7 产品验证入口。[历史几何映射](../../licenses/joyoffice/source-map.json) · [v1 预设参数表](../../crates/joydeck-legacy/src/model/preset/defaults.rs) · [旧文件转换入口](../../crates/joydeck-shell/src/document.rs) · [加密识别](../../crates/joydeck-pptx/src/cfb.rs) · [放映逐帧证据](validation/20261118-desktop-sharing/remaining-transitions.json) · [R9 兼容表](JOYDECK-R9-HANDOFF.md)

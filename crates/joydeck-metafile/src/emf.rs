@@ -9,6 +9,7 @@ use crate::canvas::{
 };
 use crate::dib::{self, Blend};
 use crate::geom::{self, ArcKind, P};
+use crate::records::{self, Format};
 use crate::text::{ETO_GLYPH_INDEX, ETO_PDY, Font, MAX_CHARS, decode_bytes, decode_utf16};
 use crate::{Error, Frame, MAX_PATH_OPS};
 
@@ -55,36 +56,18 @@ pub(crate) fn parse(input: Bytes) -> Result<(Canvas, Option<Frame>), Error> {
     let mut plus = crate::emfplus::Plus::new();
     plus.frame = frame.as_ref().map(|f| f.rect);
     let mut parsed = 0usize;
-    let mut pos = hsize.max(88);
-    while !cv.full() {
-        let (Some(typ), Some(size)) = (
-            input.u32(pos),
-            pos.checked_add(4).and_then(|o| input.u32(o)),
-        ) else {
-            break;
-        };
-        let size = size as usize;
-        if size < 8 || !size.is_multiple_of(4) {
+    for entry in records::read(input, hsize.max(88), Format::Emf) {
+        if cv.full() || entry.kind == 14 {
             break;
         }
-        let Some(rec) = input.slice(pos, size) else {
-            break;
-        };
-        if typ == 14 {
-            break;
-        }
-        if typ == 70 && Bytes(rec).u32(12) == Some(crate::emfplus::EMF_PLUS) {
-            if let Some(data) = Bytes(rec).tail(16) {
+        if entry.kind == 70 && entry.data.u32(12) == Some(crate::emfplus::EMF_PLUS) {
+            if let Some(data) = entry.data.tail(16) {
                 plus.comment(&mut cv, data);
             }
         } else {
-            record(&mut cv, typ, Bytes(rec));
+            record(&mut cv, entry.kind, entry.data);
         }
         parsed += 1;
-        let Some(next) = pos.checked_add(size) else {
-            break;
-        };
-        pos = next;
     }
     if parsed == 0 {
         return Err(Error::NoRecords);

@@ -7,6 +7,7 @@ use crate::bytes::Bytes;
 use crate::canvas::{BS_HATCHED, Brush, Canvas, LogFont, Obj, Pen, colorref};
 use crate::dib;
 use crate::geom::{self, ArcKind, P};
+use crate::records::{self, Format};
 use crate::text::{ETO_CLIPPED, ETO_OPAQUE, Font, MAX_CHARS, decode_bytes};
 use crate::{Error, Frame, MAX_PATH_OPS};
 
@@ -49,7 +50,7 @@ pub(crate) fn parse(input: Bytes) -> Result<(Canvas, Option<Frame>), Error> {
     if hsize < 9 {
         return Err(Error::BadHeader);
     }
-    let mut pos = hdr
+    let pos = hdr
         .checked_add(hsize.checked_mul(2).ok_or(Error::BadHeader)?)
         .ok_or(Error::BadHeader)?;
     // Played into a target like Word does: the placeable bounds are the first window, the target (the
@@ -62,33 +63,17 @@ pub(crate) fn parse(input: Bytes) -> Result<(Canvas, Option<Frame>), Error> {
     }
     let mut player_viewport = bounds.is_some();
     let mut parsed = 0usize;
-    while !cv.full() {
-        let (Some(words), Some(func)) = (
-            input.u32(pos),
-            pos.checked_add(4).and_then(|o| input.u16(o)),
-        ) else {
-            break;
-        };
-        let Some(len) = (words as usize).checked_mul(2).filter(|l| *l >= 6) else {
-            break;
-        };
-        let Some(rec) = input.slice(pos, len) else {
-            break;
-        };
-        if func == 0 {
+    for entry in records::read(input, pos, Format::Wmf) {
+        if cv.full() || entry.kind == 0 {
             break;
         }
-        record(&mut cv, func, Bytes(rec));
-        if func == 0x020C && cv.window_set && !player_viewport && !cv.viewport_set {
+        record(&mut cv, entry.kind as u16, entry.data);
+        if entry.kind == 0x020C && cv.window_set && !player_viewport && !cv.viewport_set {
             let we = cv.map.window_ext();
             cv.play_into(None, (we.0.abs(), we.1.abs()));
             player_viewport = true;
         }
         parsed += 1;
-        let Some(next) = pos.checked_add(len) else {
-            break;
-        };
-        pos = next;
     }
     if parsed == 0 {
         return Err(Error::NoRecords);

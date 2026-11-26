@@ -665,11 +665,11 @@ impl Canvas {
         } else {
             (n as usize).checked_sub(1)
         };
-        let Some(idx) = idx else { return };
-        let Some(s) = self.saved.get(idx).cloned() else {
+        let Some(idx) = idx.filter(|&i| i < self.saved.len()) else {
             return;
         };
-        self.saved.truncate(idx);
+        self.saved.truncate(idx + 1);
+        let Some(s) = self.saved.pop() else { return };
         self.map = s.map;
         self.pen = s.pen;
         self.brush = s.brush;
@@ -682,42 +682,31 @@ impl Canvas {
     /// The logical rectangle as a device rectangle. A scale or translation keeps the rectangle; a
     /// rotation stores the bounds of the rotated corners.
     fn device_rect(&self, [l, t, r, b]: [f64; 4]) -> Option<[f64; 4]> {
-        let corners = [(l, t), (r, t), (l, b), (r, b)].map(|p| self.map.device(p));
-        if !corners.iter().all(|p| p.0.is_finite() && p.1.is_finite()) {
+        let mut points = [(l, t), (r, t), (l, b), (r, b)]
+            .into_iter()
+            .map(|point| self.map.device(point));
+        let (left, top) = points.next()?;
+        let bounds = points.try_fold([left, top, left, top], |[l, t, r, b], (x, y)| {
+            (x.is_finite() && y.is_finite()).then_some([l.min(x), t.min(y), r.max(x), b.max(y)])
+        })?;
+        if !left.is_finite() || !top.is_finite() {
             return None;
         }
-        let (mut x0, mut y0, mut x1, mut y1) = (
-            f64::INFINITY,
-            f64::INFINITY,
-            f64::NEG_INFINITY,
-            f64::NEG_INFINITY,
-        );
-        for p in corners {
-            x0 = x0.min(p.0);
-            y0 = y0.min(p.1);
-            x1 = x1.max(p.0);
-            y1 = y1.max(p.1);
-        }
-        clip::normalize([x0, y0, x1, y1])
+        clip::normalize(bounds)
     }
 
     fn map_rects(&self, logical: &[[f64; 4]]) -> Vec<[f64; 4]> {
-        let mut out = Vec::new();
-        for r in logical.iter().take(MAX_CLIP_RECTS) {
-            if let Some(d) = self.device_rect(*r) {
-                out.push(d);
-            }
-            if out.len() >= MAX_CLIP_RECTS {
-                break;
-            }
-        }
-        out
+        logical
+            .iter()
+            .take(MAX_CLIP_RECTS)
+            .filter_map(|&rect| self.device_rect(rect))
+            .collect()
     }
 
     /// INTERSECTCLIPRECT: later drawing is limited to this logical rectangle as well.
     pub fn intersect_clip_rect(&mut self, logical: [f64; 4]) {
         self.clip = match self.device_rect(logical) {
-            Some(rect) => clip::intersect(self.clip.clone(), rect),
+            Some(rect) => clip::intersect(self.clip.take(), rect),
             None => Some(Vec::new()),
         };
     }
@@ -727,17 +716,13 @@ impl Canvas {
         let Some(rect) = self.device_rect(logical) else {
             return;
         };
-        self.clip = clip::exclude(self.clip.clone(), rect, self.surface);
+        self.clip = clip::exclude(self.clip.take(), rect, self.surface);
     }
 
     /// EXTSELECTCLIPRGN: combine these logical rectangles with the clip in a `RGN_*` mode.
     pub fn select_clip_rects(&mut self, logical: &[[f64; 4]], mode: u32) {
-        self.clip = clip::combine(
-            self.clip.clone(),
-            self.map_rects(logical),
-            mode,
-            self.surface,
-        );
+        let boxes = self.map_rects(logical);
+        self.clip = clip::combine(self.clip.take(), boxes, mode, self.surface);
     }
 
     /// The default clip: later records are not limited by a region.

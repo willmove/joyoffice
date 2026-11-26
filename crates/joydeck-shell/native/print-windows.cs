@@ -9,7 +9,6 @@ using System.Windows.Forms;
 
 public static class JoyDeckPrint {
     public class Manifest { public List<string> pages {get;set;} }
-    static int current;
     [STAThread]
     public static int Main(string[] args) {
         try {
@@ -33,23 +32,48 @@ public static class JoyDeckPrint {
                 }
                 files.Add(file);
             }
-            using(var document=new PrintDocument()) using(var dialog=new PrintDialog()) {
-                document.DocumentName="JoyDeck presentation";
-                using(var first=Image.FromFile(files[0])) document.DefaultPageSettings.Landscape=first.Width>first.Height;
-                document.PrintPage+=(sender,e)=> {
-                    using(var image=Image.FromFile(files[current])) {
-                        Rectangle area=e.MarginBounds;
-                        float scale=Math.Min((float)area.Width/image.Width,(float)area.Height/image.Height);
-                        float w=image.Width*scale,h=image.Height*scale;
-                        e.Graphics.DrawImage(image,area.X+(area.Width-w)/2,area.Y+(area.Height-h)/2,w,h);
-                    }
-                    current++;e.HasMorePages=current<files.Count;
-                };
+            using(var document=PrepareDocument(files)) using(var dialog=new PrintDialog()) {
                 dialog.Document=document;dialog.UseEXDialog=true;dialog.AllowPrintToFile=true;
                 if(dialog.ShowDialog()!=DialogResult.OK) {Console.WriteLine("cancelled");return 2;}
                 document.Print();Console.WriteLine("submitted");return 0;
             }
         } catch(Exception e) {Console.Error.WriteLine(e.Message);return 1;}
     }
+
+    internal static PrintDocument PrepareDocument(List<string> files) {
+        var document = new PrintDocument();
+        try {
+            document.DocumentName = "JoyDeck presentation";
+            using (var first = Image.FromFile(files[0])) {
+                document.DefaultPageSettings.Landscape = first.Width > first.Height;
+            }
+            var pages = files.GetEnumerator();
+            bool hasPage = false;
+            document.BeginPrint += (sender, e) => {
+                pages = files.GetEnumerator();
+                hasPage = pages.MoveNext();
+            };
+            document.PrintPage += (sender, e) => {
+                if (!hasPage) {
+                    e.HasMorePages = false;
+                    return;
+                }
+                using (var image = Image.FromFile(pages.Current)) {
+                    Rectangle area = e.MarginBounds;
+                    float scale = Math.Min((float)area.Width / image.Width, (float)area.Height / image.Height);
+                    float width = image.Width * scale, height = image.Height * scale;
+                    e.Graphics.DrawImage(image, area.X + (area.Width - width) / 2,
+                        area.Y + (area.Height - height) / 2, width, height);
+                }
+                hasPage = pages.MoveNext();
+                e.HasMorePages = hasPage;
+            };
+            return document;
+        } catch {
+            document.Dispose();
+            throw;
+        }
+    }
+
     static uint Read32(byte[] b,int i) {return ((uint)b[i]<<24)|((uint)b[i+1]<<16)|((uint)b[i+2]<<8)|b[i+3];}
 }

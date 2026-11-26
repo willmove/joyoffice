@@ -294,27 +294,11 @@ impl Plus {
 
     /// Plays the EMF+ records of one EMR_COMMENT payload (after the identifier).
     pub fn comment(&mut self, cv: &mut Canvas, data: Bytes) {
-        let mut pos = 0usize;
-        while !cv.full() {
-            let Some(tail) = data.0.get(pos..) else { break };
-            let tail = Bytes(tail);
-            let (Some(typ), Some(flags), Some(size), Some(dsize)) =
-                (tail.u16(0), tail.u16(2), tail.u32(4), tail.u32(8))
-            else {
-                break;
-            };
-            let (size, dsize) = (size as usize, dsize as usize);
-            if size < 12 || dsize > size - 12 {
+        for entry in crate::records::read(data, 0, crate::records::Format::EmfPlus) {
+            if cv.full() {
                 break;
             }
-            let Some(rec) = tail.slice(12, dsize) else {
-                break;
-            };
-            let _ = self.record(cv, typ, flags, Bytes(rec));
-            let Some(next) = pos.checked_add(size) else {
-                break;
-            };
-            pos = next;
+            let _ = self.record(cv, entry.kind as u16, entry.flags, entry.data);
         }
     }
 

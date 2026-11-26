@@ -31,6 +31,7 @@ mod emf;
 mod emfplus;
 mod geom;
 mod place;
+mod records;
 mod text;
 mod wmf;
 
