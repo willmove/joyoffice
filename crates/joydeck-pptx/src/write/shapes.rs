@@ -67,95 +67,7 @@ impl Ctx<'_> {
     }
 }
 
-fn preset_name(name: &str) -> &str {
-    if name == "textBox" || name.is_empty() || !name.chars().all(|c| c.is_ascii_alphanumeric()) {
-        "rect"
-    } else {
-        name
-    }
-}
-
-/// Non-adjust shape guides some presets carry in their `avLst` (ECMA-376 default values).
-fn extra_guides(name: &str) -> &'static [(&'static str, i64)] {
-    match name {
-        "star5" | "pentagon" => &[("hf", 105_146), ("vf", 110_557)],
-        "star7" | "heptagon" => &[("hf", 102_572), ("vf", 105_210)],
-        "star6" => &[("hf", 115_470)],
-        "star10" => &[("hf", 105_146)],
-        "hexagon" => &[("vf", 115_470)],
-        "decagon" => &[("vf", 105_146)],
-        _ => &[],
-    }
-}
-
-pub fn geometry(w: &mut W, g: &Geom) {
-    match g {
-        Geom::Preset { name, adj } => {
-            let name = preset_name(name);
-            w.open("a:prstGeom", A::new().a("prst", name));
-            if adj.is_empty() {
-                w.empty0("a:avLst");
-            } else {
-                // PowerPoint wants the complete guide list once any is given.
-                let defaults = joydeck_geom::preset::adjustment_defaults(name);
-                let mut vals: Vec<f64> = adj.iter().take(16).copied().collect();
-                while vals.len() < defaults.len() {
-                    vals.push(defaults.get(vals.len()).copied().unwrap_or(0.0));
-                }
-                w.open0("a:avLst");
-                // A lone guide is `adj`, except in these presets, which name it `adj1` (as PowerPoint
-                // writes them); PowerPoint won't open a file that renames it (#214).
-                let adj1 = matches!(
-                    name,
-                    "bentConnector3"
-                        | "curvedConnector3"
-                        | "frame"
-                        | "mathPlus"
-                        | "mathMinus"
-                        | "mathMultiply"
-                );
-                let single = !adj1
-                    && if defaults.is_empty() {
-                        vals.len() == 1
-                    } else {
-                        defaults.len() == 1
-                    };
-                for (i, v) in vals.iter().enumerate() {
-                    let n = if single && i == 0 {
-                        "adj".to_string()
-                    } else {
-                        format!("adj{}", i + 1)
-                    };
-                    let limit = if name == "borderCallout1" {
-                        f64::from(i32::MAX)
-                    } else {
-                        2.0e9
-                    };
-                    let v = if v.is_finite() {
-                        v.round().clamp(-limit, limit) as i64
-                    } else {
-                        0
-                    };
-                    w.empty("a:gd", A::new().a("name", n).a("fmla", format!("val {v}")));
-                }
-                for (n, v) in extra_guides(name) {
-                    w.empty("a:gd", A::new().a("name", *n).a("fmla", format!("val {v}")));
-                }
-                w.close("a:avLst");
-            }
-            w.close("a:prstGeom");
-        }
-        Geom::Custom { paths } => {
-            if paths.is_empty() {
-                w.open("a:prstGeom", A::new().a("prst", "rect"));
-                w.empty0("a:avLst");
-                w.close("a:prstGeom");
-            } else {
-                crate::custgeom::write_cust_geom(w, paths);
-            }
-        }
-    }
-}
+pub(crate) use crate::drawing_geometry::geometry;
 
 fn cnvpr(w: &mut W, x: &mut Exp, o: &mut Out, id: u32, s: &Shape) {
     let a = A::new()
@@ -319,11 +231,7 @@ fn sp_pr_tag(w: &mut W, x: &mut Exp, o: &mut Out, s: &Shape, geom: bool, tag: &s
     }
     if let Some(fx) = &s.effects {
         dml::effects(w, fx);
-        if let Some(raw) = &fx.raw3d {
-            w.raw(raw);
-        } else if let Some(xml) = fx.bevel.as_deref().and_then(dml::bevel_sp3d) {
-            w.raw(&xml);
-        }
+        crate::model3d_part::write_surface(w, fx);
     }
     w.close(tag);
 }
@@ -565,75 +473,55 @@ pub fn shape(w: &mut W, x: &mut Exp, o: &mut Out, cx: &mut Ctx, s: &Shape, depth
     }
 }
 
-fn model_rel(x: &mut Exp, o: &mut Out, media: joydeck_model::MediaId) -> Option<String> {
-    if x.p.media(media).is_none_or(|m| m.data.is_empty()) {
-        return None;
-    }
-    x.media_rel(o, media, crate::opc::RT_MODEL3D)
-}
-
-fn write_model_part(w: &mut W, x: &mut Exp, o: &mut Out, id: u32, s: &Shape, rid: &str) {
-    w.open("p:contentPart", A::new().a("r:id", rid));
-    w.open0("p:nvContentPartPr");
-    cnvpr(w, x, o, id, s);
-    w.empty0("p:cNvContentPartPr");
-    w.empty0("p:nvPr");
-    w.close("p:nvContentPartPr");
-    if let Some(xf) = &s.xfrm {
-        dml::xfrm(w, "p:xfrm", xf, None);
-    }
-    w.close("p:contentPart");
-}
-
 fn write_model(
-    w: &mut W,
-    x: &mut Exp,
-    o: &mut Out,
-    cx: &mut Ctx,
-    s: &Shape,
+    xml: &mut W,
+    exp: &mut Exp,
+    part: &mut Out,
+    context: &mut Ctx,
+    shape: &Shape,
     media: joydeck_model::MediaId,
     poster: Option<joydeck_model::MediaId>,
 ) {
-    let Some(rid) = model_rel(x, o, media) else {
-        log::warn!("pptx: 3-D model '{}' has no embedded part", s.name);
+    use crate::model3d_part::{NS, write_payload};
+    let model_id = exp
+        .p
+        .media(media)
+        .is_some_and(|model| !model.data.is_empty())
+        .then(|| exp.media_rel(part, media, crate::opc::RT_MODEL3D))
+        .flatten();
+    let Some(model_id) = model_id else {
+        log::warn!("pptx: missing embedded 3-D model for {}", shape.name);
         return;
     };
-    let id = cx.id_for(s);
-    let poster = poster.filter(|p| x.p.media(*p).is_some_and(|m| !m.data.is_empty()));
-    let Some(poster) = poster else {
-        write_model_part(w, x, o, id, s, &rid);
-        return;
-    };
-    // Older readers draw the fallback picture; readers that know `am3d` use the model.
-    w.open("mc:AlternateContent", A::new().a("xmlns:mc", NS_MC));
-    w.open(
+    let image = poster.filter(|&id| exp.p.media(id).is_some_and(|item| !item.data.is_empty()));
+    let image_id = image.and_then(|id| exp.media_rel(part, id, "image"));
+    let id = context.id_for(shape);
+    xml.open("mc:AlternateContent", A::new().a("xmlns:mc", NS_MC));
+    xml.open(
         "mc:Choice",
-        A::new()
-            .a(
-                "xmlns:am3d",
-                "http://schemas.microsoft.com/office/drawing/2017/model3d",
-            )
-            .a("Requires", "am3d"),
+        A::new().a("xmlns:am3d", NS).a("Requires", "am3d"),
     );
-    write_model_part(w, x, o, id, s, &rid);
-    w.close("mc:Choice");
-    w.open0("mc:Fallback");
-    let pic = Shape {
-        id: ShapeId(0),
-        name: s.name.clone(),
-        xfrm: s.xfrm,
-        kind: ShapeKind::Picture {
-            fill: joydeck_model::style::PictureFill {
-                media: poster,
-                ..Default::default()
+    frame_open(xml, exp, part, id, shape);
+    write_payload(xml, shape, &model_id, image_id.as_deref());
+    frame_close(xml);
+    xml.close("mc:Choice");
+    if let Some(media) = image.filter(|_| image_id.is_some()) {
+        xml.open0("mc:Fallback");
+        let picture = Shape {
+            name: shape.name.clone(),
+            xfrm: shape.xfrm,
+            kind: ShapeKind::Picture {
+                fill: joydeck_model::style::PictureFill {
+                    media,
+                    ..Default::default()
+                },
             },
-        },
-        ..Default::default()
-    };
-    let pid = cx.ids.fresh();
-    shape_with_id(w, x, o, cx, &pic, pid);
-    w.close("mc:Fallback");
-    w.close("mc:AlternateContent");
+            ..Default::default()
+        };
+        shape_with_id(xml, exp, part, context, &picture, id);
+        xml.close("mc:Fallback");
+    }
+    xml.close("mc:AlternateContent");
 }
 
 /// A SmartArt graphic: a graphic frame naming its data, layout, quick style and colour parts,

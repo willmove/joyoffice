@@ -165,27 +165,6 @@ fn chartex_readable(ch: &El) -> bool {
         .any(|g| g.attr("uri").is_some_and(|u| u.ends_with("/chartex")))
 }
 
-/// A relationship to an embedded 3-D model (`.glb`).
-pub(crate) fn is_model3d(rel: &opc::Rel) -> bool {
-    !rel.external && (rel.kind == "model3d" || rel.target.to_ascii_lowercase().ends_with(".glb"))
-}
-
-fn choice_has_model3d(el: &El, rels: &Rels) -> bool {
-    fn rec(el: &El, rels: &Rels, depth: usize) -> bool {
-        if depth > 16 {
-            return false;
-        }
-        if el.is("contentPart")
-            && let Some(id) = el.attr("r:id").filter(|s| !s.is_empty())
-            && rels.get(id).is_some_and(is_model3d)
-        {
-            return true;
-        }
-        el.elements().any(|c| rec(c, rels, depth + 1))
-    }
-    rec(el, rels, 0)
-}
-
 /// Add-in tags named by `holder`'s `p:custDataLst`: the name/value pairs of each tags part.
 pub fn tags(imp: &Imp, part: &Part, holder: &El) -> Vec<(String, String)> {
     let Some(list) = holder.child("custDataLst") else {
@@ -332,7 +311,7 @@ fn resolve_mc_rels(el: &mut El, depth: usize, rels: Option<&Rels>) {
                 Node::El(ac) if ac.is("AlternateContent") => {
                     if rels.is_some_and(|rels| {
                         ac.children_named("Choice")
-                            .any(|ch| choice_has_model3d(ch, rels))
+                            .any(|ch| crate::model3d_part::recognizes_choice(ch, rels))
                     }) {
                         out.push(Node::El(ac));
                         continue;

@@ -1,13 +1,13 @@
 //! DrawingML writing: colours, fills, lines, effects, transforms and text.
 
-use joydeck_geom::{Xfrm, pt_to_emu};
+use joydeck_geom::pt_to_emu;
 use joydeck_model::style::{
     ColorBase, ColorRef, Compound, Dash, Effects, Fill, GradientFlip, GradientShape, Line,
     LineAlign, LineCap, LineJoin, PictureFill, PictureMode,
 };
 use joydeck_model::text::{
-    Action, AutoFit, BodyProps, Bullet, Caps, Hyperlink, ListStyle, ParaProps, Paragraph, RunKind,
-    RunProps, Spacing, Strike, TextBody,
+    Action, AutoFit, BodyProps, Bullet, Caps, Hyperlink, ListStyle, ParaProps, RunProps, Spacing,
+    Strike,
 };
 
 use super::{Exp, Out};
@@ -517,31 +517,7 @@ pub fn bevel_sp3d(preset: &str) -> Option<String> {
     Some(format!("<a:sp3d><a:bevelT prst=\"{preset}\"/></a:sp3d>"))
 }
 
-pub fn xfrm(w: &mut W, tag: &str, x: &Xfrm, child: Option<&Xfrm>) {
-    let x = if x.is_finite() { *x } else { Xfrm::default() };
-    let rot = ang(x.rot);
-    w.open(
-        tag,
-        A::new()
-            .o("rot", (rot != 0).then_some(rot))
-            .t("flipH", x.flip_h)
-            .t("flipV", x.flip_v),
-    );
-    w.empty("a:off", A::new().a("x", emu(x.x)).a("y", emu(x.y)));
-    w.empty(
-        "a:ext",
-        A::new().a("cx", emu_pos(x.w)).a("cy", emu_pos(x.h)),
-    );
-    if let Some(c) = child {
-        let c = if c.is_finite() { *c } else { Xfrm::default() };
-        w.empty("a:chOff", A::new().a("x", emu(c.x)).a("y", emu(c.y)));
-        w.empty(
-            "a:chExt",
-            A::new().a("cx", emu_pos(c.w)).a("cy", emu_pos(c.h)),
-        );
-    }
-    w.close(tag);
-}
+pub(crate) use crate::drawing_geometry::write_transform as xfrm;
 
 // ---------------------------------------------------------------------------------------------
 // Text
@@ -1006,83 +982,7 @@ pub fn list_style(w: &mut W, x: &mut Exp, o: &mut Out, tag: &str, ls: &ListStyle
 }
 
 /// Write `<tag>` text body (`p:txBody`, `a:txBody`). `math` selects the OMML form of equations.
-pub fn text_body(w: &mut W, x: &mut Exp, o: &mut Out, tag: &str, tb: &TextBody, math: bool) {
-    w.open0(tag);
-    body_pr(w, &tb.body);
-    list_style(w, x, o, "a:lstStyle", &tb.list_style);
-    if tb.paragraphs.is_empty() {
-        w.empty0("a:p");
-    }
-    for p in &tb.paragraphs {
-        paragraph(w, x, o, p, math);
-    }
-    w.close(tag);
-}
-
-fn run_text(w: &mut W, x: &mut Exp, o: &mut Out, text: &str, props: &RunProps) {
-    for (i, piece) in text.split(['\n', '\u{b}']).enumerate() {
-        if i > 0 {
-            w.open0("a:br");
-            rpr(w, x, o, "a:rPr", props);
-            w.close("a:br");
-        }
-        if piece.is_empty() && i > 0 {
-            continue;
-        }
-        w.open0("a:r");
-        rpr(w, x, o, "a:rPr", props);
-        w.elt("a:t", piece);
-        w.close("a:r");
-    }
-}
-
-pub fn paragraph(w: &mut W, x: &mut Exp, o: &mut Out, p: &Paragraph, math: bool) {
-    w.open0("a:p");
-    let def = (p.def_props != RunProps::default()).then_some(&p.def_props);
-    if p.level > 0 || !is_default_ppr(&p.props) || def.is_some() {
-        ppr(w, x, o, "a:pPr", Some(p.level), &p.props, def);
-    }
-    for r in &p.runs {
-        match &r.kind {
-            RunKind::Text => run_text(w, x, o, &r.text, &r.props),
-            RunKind::Break => {
-                w.open0("a:br");
-                rpr(w, x, o, "a:rPr", &r.props);
-                w.close("a:br");
-            }
-            RunKind::Field { field } => {
-                let id = o.next_field_id();
-                let ty = (!field.is_empty()
-                    && field.chars().all(|c| c.is_ascii_alphanumeric() || c == '-'))
-                .then_some(field.as_str());
-                w.open("a:fld", A::new().a("id", id).o("type", ty));
-                rpr(w, x, o, "a:rPr", &r.props);
-                w.elt("a:t", &r.text);
-                w.close("a:fld");
-            }
-            RunKind::Math { omml } => {
-                if math && !omml.is_empty() {
-                    w.open("a14:m", A::new().a("xmlns:a14", crate::opc::NS_A14));
-                    w.raw(omml);
-                    w.close("a14:m");
-                } else {
-                    run_text(w, x, o, &r.text, &r.props);
-                }
-            }
-        }
-    }
-    if p.end_props != RunProps::default() {
-        rpr(w, x, o, "a:endParaRPr", &p.end_props);
-    }
-    w.close("a:p");
-}
-
-pub fn has_math(tb: &TextBody) -> bool {
-    tb.paragraphs
-        .iter()
-        .flat_map(|p| &p.runs)
-        .any(|r| matches!(&r.kind, RunKind::Math { omml } if !omml.is_empty()))
-}
+pub(crate) use crate::drawing_text::{has_math, write_body as text_body};
 
 #[cfg(test)]
 #[allow(

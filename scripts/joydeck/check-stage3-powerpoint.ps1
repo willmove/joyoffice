@@ -6,6 +6,7 @@ param(
     [Parameter(Mandatory)] [string] $CandidateCli,
     [string] $PowerPoint = "$env:ProgramFiles/Microsoft Office/root/Office16/POWERPNT.EXE",
     [switch] $ReportChartTypes,
+    [switch] $ReportDrawingObjects,
     [string[]] $ComboSeriesOrder
 )
 
@@ -60,6 +61,35 @@ function Get-DocumentShape($Presentation) {
         if ($ReportChartTypes) {
             $record.chartTypes = @(foreach ($shape in $slide.Shapes) {
                 if ($shape.HasChart -eq -1) { [int] $shape.Chart.ChartType }
+            })
+        }
+        if ($ReportDrawingObjects) {
+            $record.drawingObjects = @(foreach ($shape in $slide.Shapes) {
+                switch ([int] $shape.Type) {
+                    24 {
+                        [ordered] @{
+                            id = [int] $shape.Id
+                            layout = [string] $shape.SmartArt.Layout.Id
+                            nodes = @(foreach ($node in $shape.SmartArt.AllNodes) {
+                                [string] $node.TextFrame2.TextRange.Text
+                            })
+                        }
+                    }
+                    30 {
+                        $model = $shape.Model3D
+                        [ordered] @{
+                            id = [int] $shape.Id
+                            angles = @($model.RotationX, $model.RotationY, $model.RotationZ)
+                            camera = @($model.CameraPositionX, $model.CameraPositionY, $model.CameraPositionZ)
+                            fieldOfView = $model.FieldOfView
+                        }
+                    }
+                    default {
+                        if ($shape.HasTextFrame -eq -1 -and $shape.TextFrame.HasText -eq -1) {
+                            [ordered] @{ id = [int] $shape.Id; text = [string] $shape.TextFrame.TextRange.Text }
+                        }
+                    }
+                }
             })
         }
         $record
@@ -127,9 +157,9 @@ $records = foreach ($sample in $Samples) {
     $copy = $powerPointApp.Presentations.Open($output, -1, 0, 0)
     try {
         $after = @(Get-DocumentShape $copy)
-        if ((ConvertTo-Json -InputObject $before -Depth 4 -Compress) -cne
-            (ConvertTo-Json -InputObject $after -Depth 4 -Compress)) {
-            throw "PowerPoint changed slide IDs, shape types, effects, or notes during SaveCopyAs: $sample"
+        if ((ConvertTo-Json -InputObject $before -Depth 8 -Compress) -cne
+            (ConvertTo-Json -InputObject $after -Depth 8 -Compress)) {
+            throw "PowerPoint changed the checked slide properties during SaveCopyAs: $sample"
         }
     } finally {
         $copy.Close()
@@ -163,4 +193,4 @@ $records = foreach ($sample in $Samples) {
     frozenCliSha256 = (Get-FileHash -LiteralPath $FrozenCli -Algorithm SHA256).Hash.ToLowerInvariant()
     candidateCliSha256 = (Get-FileHash -LiteralPath $CandidateCli -Algorithm SHA256).Hash.ToLowerInvariant()
     cases = @($records)
-} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $Evidence 'verification.json') -Encoding utf8
+} | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath (Join-Path $Evidence 'verification.json') -Encoding utf8

@@ -1714,32 +1714,34 @@
       "source_path": "crates/pptx/src/custgeom.rs",
       "source_sha256": "5c3ee2587c4dca11e004b2c4228a70ce66c816ed33c880b4905162a1f8379984",
       "target_path": "crates/joydeck-pptx/src/custgeom.rs",
-      "adapted_sha256": "aa1d79ad2e62df8a0d56c4067fa9d218832a81925d9b39392324a5fe80c820f4",
+      "adapted_sha256": "031750a9c84a729fe251d8b353f3e04448af9e539041497c7741899fc53eb258",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
-        "Read custom path guides and elliptical arcs through JoyOffice DrawingML and reuse repeated path dimensions."
+        "Read custom path guides and elliptical arcs through JoyOffice DrawingML and reuse repeated path dimensions.",
+        "Route shape geometry, rich text, diagrams and Office 3-D payloads through the DrawingML exchange codecs."
       ]
     },
     {
       "source_path": "crates/pptx/src/dgm.rs",
       "source_sha256": "19ba2df552435ff4a3c9668267a1a325c2f66c0d1127fd57d7eb225c243f0e51",
       "target_path": "crates/joydeck-pptx/src/dgm.rs",
-      "adapted_sha256": "8ce4f195aaf0c1b5791c8813713fd93d1d42d20bea6c26cb8c18717e08972493",
+      "adapted_sha256": "06b7e059c7eedf5c1af51a21e9aafef165c69685dc8659ed13a9ddebfed876d9",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "Route shape geometry, rich text, diagrams and Office 3-D payloads through the DrawingML exchange codecs."
       ]
     },
     {
       "source_path": "crates/pptx/src/lib.rs",
       "source_sha256": "7886430c0095c036472d8a84d8b4d2eccf001b0c8660e5c2b43572f6a0f79c1f",
       "target_path": "crates/joydeck-pptx/src/lib.rs",
-      "adapted_sha256": "130b02eb53510be344cad74dba2445aedac6e0a8c755f9b3acb0b160bbeafdfb",
+      "adapted_sha256": "83bbe95277ec42afe523f3582b26b38cc47dfec54a5b195cfb795976291582c5",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -1749,7 +1751,8 @@
         "Reuse verified OPC buffers while preserving format reader budgets and ZIP name decoding.",
         "Route validated package members into the current PresentationML importer.",
         "Use the JoyOffice ChartEx reader on the import and source comparison paths.",
-        "Wire the independent series, axis, style-part and embedded SpreadsheetML codecs into PPTX exchange."
+        "Wire the independent series, axis, style-part and embedded SpreadsheetML codecs into PPTX exchange.",
+        "Route shape geometry, rich text, diagrams and Office 3-D payloads through the DrawingML exchange codecs."
       ],
       "safety_integration": "Register footer import and preservation regression tests (d28049dc)."
     },
@@ -1825,20 +1828,21 @@
       "source_path": "crates/pptx/src/read/dml.rs",
       "source_sha256": "17a01fb4afe822c403b621f3b8a550abe35a69abd90f134018fc19459415ab7a",
       "target_path": "crates/joydeck-pptx/src/read/dml.rs",
-      "adapted_sha256": "2afc93d72f1adc6788a59efc40979ca2e5de995bc665ca6be8e6f0f5b0692f9b",
+      "adapted_sha256": "eaeeff8cab0b89875c7b66e44654b6492fb9ef1169e6240b4e9c89cd5578747c",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
-        "Use JoyDeck sRGB encoding for DrawingML linear RGB color input."
+        "Use JoyDeck sRGB encoding for DrawingML linear RGB color input.",
+        "Route shape geometry, rich text, diagrams and Office 3-D payloads through the DrawingML exchange codecs."
       ]
     },
     {
       "source_path": "crates/pptx/src/read/shapes.rs",
       "source_sha256": "9df34bf672f801a9fe96569f10829fa82486d39b225c9231da2adbb0b4ced9f8",
       "target_path": "crates/joydeck-pptx/src/read/shapes.rs",
-      "adapted_sha256": "1ed4f660d30f6312b59674109efc165c43db5f9ebad5c89311286e2306cfef20",
+      "adapted_sha256": "f7567061f624a5581fa4be598ce6035fcc5266cacf2d1c7a5305b57eb020fee4",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -1846,7 +1850,8 @@
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
         "Derive straight, orthogonal and smoothed DrawingML connector paths and adjustments from the published coordinate guides, including multi-bend defaults when opening and writing PPTX.",
         "Use the same bounded preset reader to verify preservation writes.",
-        "Read table frames and chart sidecars through the new part readers."
+        "Read table frames and chart sidecars through the new part readers.",
+        "Route shape geometry, rich text, diagrams and Office 3-D payloads through the DrawingML exchange codecs."
       ]
     },
     {
@@ -1881,7 +1886,7 @@
       "source_path": "crates/pptx/src/read.rs",
       "source_sha256": "db5e0ece9be0db36fedf36fbd6efa95d9536be8060cce414b28ee94e298640ff",
       "target_path": "crates/joydeck-pptx/src/read.rs",
-      "adapted_sha256": "dadf8cc116c819cdb65092101f60e25386a90af2478db814e10237e5f020a4df",
+      "adapted_sha256": "67cf9ffb83475cdde1def8be9039829a70fc78387fac2f5db64b88acec0cedd7",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -1893,7 +1898,8 @@
         "Expose the bounded preset reader to the native save verifier.",
         "Use ordered, typed presentation references, shared media members and the dedicated notes and review reader.",
         "Read slide, notes, and handout masters, layout inheritance, and background and color mappings through the master part codec.",
-        "Move DrawingML table style regions and the ChartEx reader to JoyOffice codecs."
+        "Move DrawingML table style regions and the ChartEx reader to JoyOffice codecs.",
+        "Route shape geometry, rich text, diagrams and Office 3-D payloads through the DrawingML exchange codecs."
       ],
       "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained.",
       "safety_integration": "Retain header flag and automatic date format in footer summaries without changing per-slide shapes (d28049dc)."
@@ -1928,12 +1934,13 @@
       "source_path": "crates/pptx/src/write/dml.rs",
       "source_sha256": "eafa305488e0835c0527442229b658aab38d407f1d5f90eabf5ef341a372d683",
       "target_path": "crates/joydeck-pptx/src/write/dml.rs",
-      "adapted_sha256": "f5c85130409a95c6d939896cdd8c5be3566b6f61e1da2f8328b9999cf71dcf24",
+      "adapted_sha256": "60e690c90e031d5cd4c58aa876067e10d49f941ff0f83d2a1ddfc1ba81ac6e4a",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "Route shape geometry, rich text, diagrams and Office 3-D payloads through the DrawingML exchange codecs."
       ],
       "dynamic_text_fields": "Support atomic dynamic text fields, native authoring, and separate rendered/source offsets."
     },
@@ -1941,7 +1948,7 @@
       "source_path": "crates/pptx/src/write/shapes.rs",
       "source_sha256": "386f88a4a3ca7b7b1434028d1360f17ff16af7c0eca4b75cb5e73a38e7aced1a",
       "target_path": "crates/joydeck-pptx/src/write/shapes.rs",
-      "adapted_sha256": "1ac7d08b043a48b91ac8b3a1c75bb95ec392223d3ca4acc9eb0dea58c4bc4bc6",
+      "adapted_sha256": "24f6b549c05761efa9def6d90b46dc2ad433652527644f92731e7b80f1cabd20",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -1950,7 +1957,8 @@
         "Derive straight, orthogonal and smoothed DrawingML connector paths and adjustments from the published coordinate guides, including multi-bend defaults when opening and writing PPTX.",
         "Retain the signed DrawingML range of borderCallout1 through regeneration.",
         "Use the shared first-party DrawingML table codec.",
-        "Use the independent ChartEx writer for the extended chart branch."
+        "Use the independent ChartEx writer for the extended chart branch.",
+        "Route shape geometry, rich text, diagrams and Office 3-D payloads through the DrawingML exchange codecs."
       ]
     },
     {
@@ -1985,7 +1993,7 @@
       "source_path": "crates/pptx/src/write.rs",
       "source_sha256": "ca721cabd36b0853a69a1f2e69cf02211100fe1b4f499ced1c066a3321a92e65",
       "target_path": "crates/joydeck-pptx/src/write.rs",
-      "adapted_sha256": "f1ae816efa5cd8634f87ac87b827cbef81aa0974dcf1e6792f955435012c201c",
+      "adapted_sha256": "a01733440cddffc72e935c02e3aa915ee1efbc9695f1f2512f07fe25119de8a6",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -1995,7 +2003,8 @@
         "preserve recognized layout and master header/footer visibility flags without resolving inheritance",
         "Assemble resolved PresentationML members before writing, with first-party media, review and transition part writers.",
         "Build the master, layout, and theme relationship graph through the master part codec.",
-        "Write the ChartEx style pair, retained chart sidecars and new editable workbooks through one relationship list."
+        "Write the ChartEx style pair, retained chart sidecars and new editable workbooks through one relationship list.",
+        "Route shape geometry, rich text, diagrams and Office 3-D payloads through the DrawingML exchange codecs."
       ],
       "dynamic_text_fields": "Support atomic dynamic text fields, native authoring, and separate rendered/source offsets."
     },

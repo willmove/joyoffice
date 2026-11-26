@@ -7,9 +7,11 @@
 
 use std::collections::HashMap;
 
-use joydeck_model::{Diagram, DiagramNode};
+use joydeck_model::Diagram;
+#[cfg(test)]
+use joydeck_model::DiagramNode;
 
-use crate::xml::{A, El, W};
+use crate::xml::{A, W};
 
 pub const NS_DGM: &str = "http://schemas.openxmlformats.org/drawingml/2006/diagram";
 pub const NS_DSP: &str = "http://schemas.microsoft.com/office/drawing/2008/diagram";
@@ -115,8 +117,6 @@ pub fn colors_for(cs: &str) -> String {
         _ => String::new(),
     }
 }
-/// Most nodes read from one diagram.
-const MAX_NODES: usize = 2000;
 
 /// PowerPoint's built-in layout DeckCraft's layout `kind` is written as.
 pub fn layout_id(kind: &str) -> &'static str {
@@ -380,7 +380,12 @@ pub fn data_xml(d: &Diagram, seed: u32, drawing_rel: &str, pics: &[(usize, Strin
     w.close("dgm:pt");
     // Node k: model id 1 + 3k; its link's parent and sibling transitions 2 + 3k and 3 + 3k.
     let node = |k: usize| guid(seed, 1 + 3 * k);
-    for (k, n) in d.nodes.iter().enumerate() {
+    for (k, n) in d
+        .nodes
+        .iter()
+        .take(crate::diagram_graph::MAX_NODES)
+        .enumerate()
+    {
         let mut a = A::new().a("modelId", node(k));
         if n.assistant {
             a = a.a("type", "asst");
@@ -408,7 +413,12 @@ pub fn data_xml(d: &Diagram, seed: u32, drawing_rel: &str, pics: &[(usize, Strin
     // A node's picture sits on the presentation point of its picture placeholder, as PowerPoint
     // stores it (`presAssocID` names the node, the blip is a relationship of the data part).
     // Name and Title: a node's title is the text of its title box's presentation point.
-    for (k, n) in d.nodes.iter().enumerate() {
+    for (k, n) in d
+        .nodes
+        .iter()
+        .take(crate::diagram_graph::MAX_NODES)
+        .enumerate()
+    {
         if n.title.is_empty() {
             continue;
         }
@@ -431,7 +441,7 @@ pub fn data_xml(d: &Diagram, seed: u32, drawing_rel: &str, pics: &[(usize, Strin
         w.close("dgm:pt");
     }
     for (k, rid) in pics {
-        if *k >= d.nodes.len() {
+        if *k >= d.nodes.len().min(crate::diagram_graph::MAX_NODES) {
             continue;
         }
         w.open(
@@ -461,7 +471,12 @@ pub fn data_xml(d: &Diagram, seed: u32, drawing_rel: &str, pics: &[(usize, Strin
     w.open0("dgm:cxnLst");
     let mut stack: Vec<(u8, String)> = vec![];
     let mut ords: HashMap<String, usize> = HashMap::new();
-    for (k, n) in d.nodes.iter().enumerate() {
+    for (k, n) in d
+        .nodes
+        .iter()
+        .take(crate::diagram_graph::MAX_NODES)
+        .enumerate()
+    {
         while stack.last().is_some_and(|(l, _)| *l >= n.level) {
             stack.pop();
         }
@@ -508,147 +523,6 @@ pub fn data_xml(d: &Diagram, seed: u32, drawing_rel: &str, pics: &[(usize, Strin
     w.finish()
 }
 
-/// The outline of a data part: the `parOf` tree under the document point, depth first.
-pub fn outline(data: &El) -> Vec<DiagramNode> {
-    outline_ids(data).into_iter().map(|(_, n)| n).collect()
-}
-
-/// The relationship ids (of the data part) of node pictures, by node index in [`outline`]: the
-/// blip fill of a presentation point associated with the node.
-pub fn node_pictures(data: &El) -> Vec<(usize, String)> {
-    let ids: HashMap<String, usize> = outline_ids(data)
-        .into_iter()
-        .enumerate()
-        .map(|(k, (id, _))| (id, k))
-        .collect();
-    let Some(pts) = data.child("ptLst") else {
-        return vec![];
-    };
-    let mut out: Vec<(usize, String)> = vec![];
-    for pt in pts.children_named("pt").take(MAX_NODES * 8) {
-        if pt.attr("type") != Some("pres") {
-            continue;
-        }
-        let Some(k) = pt
-            .child("prSet")
-            .and_then(|p| p.attr("presAssocID"))
-            .and_then(|a| ids.get(a))
-        else {
-            continue;
-        };
-        let Some(rid) = pt
-            .child("spPr")
-            .and_then(|s| s.child("blipFill"))
-            .and_then(|b| b.child("blip"))
-            .and_then(|b| b.attr("r:embed"))
-        else {
-            continue;
-        };
-        if !out.iter().any(|(j, _)| j == k) {
-            out.push((*k, rid.to_string()));
-        }
-    }
-    out
-}
-
-fn outline_ids(data: &El) -> Vec<(String, DiagramNode)> {
-    let Some(pts) = data.child("ptLst") else {
-        return vec![];
-    };
-    let mut texts: HashMap<&str, String> = HashMap::new();
-    let mut assistants: std::collections::HashSet<&str> = std::collections::HashSet::new();
-    let mut titles: HashMap<&str, String> = HashMap::new();
-    let mut doc: Option<&str> = None;
-    for pt in pts.children_named("pt").take(MAX_NODES * 4) {
-        let Some(id) = pt.attr("modelId") else {
-            continue;
-        };
-        match pt.attr("type").unwrap_or("node") {
-            "doc" => doc = doc.or(Some(id)),
-            ty @ ("node" | "asst") => {
-                let t = pt.child("t").map(paragraphs).unwrap_or_default();
-                texts.insert(id, t);
-                if ty == "asst" {
-                    assistants.insert(id);
-                }
-            }
-            "pres" => {
-                // Name and Title: the title box's own text, on its presentation point.
-                let pr = pt.child("prSet");
-                if pr
-                    .and_then(|p| p.attr("presName"))
-                    .is_some_and(|n| n.starts_with("titleText"))
-                    && let Some(node) = pr.and_then(|p| p.attr("presAssocID"))
-                    && let Some(t) = pt.child("t").map(paragraphs).filter(|t| !t.is_empty())
-                {
-                    titles.insert(node, t);
-                }
-            }
-            _ => {}
-        }
-    }
-    let Some(doc) = doc else { return vec![] };
-    let mut kids: HashMap<&str, Vec<(i64, &str)>> = HashMap::new();
-    if let Some(cx) = data.child("cxnLst") {
-        for c in cx.children_named("cxn").take(MAX_NODES * 4) {
-            if c.attr("type").unwrap_or("parOf") != "parOf" {
-                continue;
-            }
-            let (Some(src), Some(dst)) = (c.attr("srcId"), c.attr("destId")) else {
-                continue;
-            };
-            if texts.contains_key(dst) {
-                kids.entry(src)
-                    .or_default()
-                    .push((c.i64("srcOrd").unwrap_or(0), dst));
-            }
-        }
-    }
-    for v in kids.values_mut() {
-        v.sort_by_key(|(o, _)| *o);
-    }
-    let mut out = vec![];
-    let mut seen = std::collections::HashSet::new();
-    // Depth first, iteratively; a node reached twice (a cycle in a hostile file) is skipped.
-    let mut stack: Vec<(&str, u8)> = kids
-        .get(doc)
-        .map(|v| v.iter().rev().map(|(_, id)| (*id, 0u8)).collect())
-        .unwrap_or_default();
-    while let Some((id, level)) = stack.pop() {
-        if out.len() >= MAX_NODES || !seen.insert(id) {
-            continue;
-        }
-        out.push((
-            id.to_string(),
-            DiagramNode {
-                text: texts.get(id).cloned().unwrap_or_default(),
-                level: level.min(8),
-                picture: None,
-                assistant: assistants.contains(id),
-                title: titles.get(id).cloned().unwrap_or_default(),
-            },
-        ));
-        if let Some(v) = kids.get(id) {
-            stack.extend(v.iter().rev().map(|(_, c)| (*c, level.saturating_add(1))));
-        }
-    }
-    out
-}
-
-/// A text body's paragraphs joined by spaces.
-fn paragraphs(t: &El) -> String {
-    t.children_named("p")
-        .map(|p| {
-            let mut v = vec![];
-            p.find_all("t", &mut v);
-            v.iter().map(|e| e.text()).collect::<String>()
-        })
-        .filter(|s| !s.trim().is_empty())
-        .collect::<Vec<_>>()
-        .join(" ")
-}
-
-/// The layout algorithm and node shape of a DeckCraft layout.
 fn alg(
     kind: &str,
 ) -> (
@@ -1100,7 +974,7 @@ mod tests {
         };
         let xml = data_xml(&d, 7, "rId9", &[]);
         let doc = crate::xml::parse(&xml).unwrap();
-        assert_eq!(outline(&doc.root), d.nodes);
+        assert_eq!(crate::diagram_graph::read(&doc.root).nodes, d.nodes);
         let s = String::from_utf8(xml).unwrap();
         assert!(s.contains("hierarchy1") && s.contains("relId=\"rId9\""));
         for x in [
@@ -1135,7 +1009,7 @@ mod tests {
                 .contains("type=\"asst\"")
         );
         let doc = crate::xml::parse(&xml).unwrap();
-        assert_eq!(outline(&doc.root), d.nodes);
+        assert_eq!(crate::diagram_graph::read(&doc.root).nodes, d.nodes);
     }
 
     #[test]
@@ -1147,7 +1021,10 @@ mod tests {
         };
         let xml = data_xml(&d, 3, "rId1", &[(2, "rId7".into()), (9, "rId8".into())]);
         let doc = crate::xml::parse(&xml).unwrap();
-        assert_eq!(node_pictures(&doc.root), vec![(2, "rId7".to_string())]);
+        assert_eq!(
+            crate::diagram_graph::read(&doc.root).pictures,
+            vec![(2, "rId7".to_string())]
+        );
     }
 
     #[test]
@@ -1228,7 +1105,10 @@ mod tests {
     fn hostile_links_are_bounded() {
         let xml = br#"<dgm:dataModel xmlns:dgm="d"><dgm:ptLst><dgm:pt modelId="0" type="doc"/><dgm:pt modelId="1"><dgm:t><a:p xmlns:a="a"><a:r><a:t>A</a:t></a:r></a:p></dgm:t></dgm:pt><dgm:pt modelId="2"/></dgm:ptLst><dgm:cxnLst><dgm:cxn srcId="0" destId="1"/><dgm:cxn srcId="1" destId="2"/><dgm:cxn srcId="2" destId="1"/><dgm:cxn type="presOf" srcId="0" destId="2"/></dgm:cxnLst></dgm:dataModel>"#;
         let doc = crate::xml::parse(xml).unwrap();
-        assert_eq!(outline(&doc.root), nodes(&[("A", 0), ("", 1)]));
+        assert_eq!(
+            crate::diagram_graph::read(&doc.root).nodes,
+            nodes(&[("A", 0), ("", 1)])
+        );
         assert_eq!(
             kind_for(
                 "urn:microsoft.com/office/officeart/2005/8/layout/orgChart1",

@@ -1,0 +1,322 @@
+{
+  "frozenCliSha256": "f8fd32a31570e241f17ced00dbce66f7e2ae53739b18e3c70bea03c2e78794f7",
+  "categories": [
+    {
+      "category": "shapes-text",
+      "inputSha256": "9a61ee3dfa3f96dbde9ef83c5e8262b18556f2907b1d6012f920f6b67769761d",
+      "preservedParts": 37,
+      "cases": [
+        {
+          "input": "craft-stage3-deck-drawing-20261126/powerpoint16-shapes-text.pptx",
+          "inputSha256": "9a61ee3dfa3f96dbde9ef83c5e8262b18556f2907b1d6012f920f6b67769761d",
+          "output": "01-powerpoint16-shapes-text-powerpoint.pptx",
+          "outputSha256": "212502a9ad258b06dc816fbb5185ffed0127ff070e1ad0c729a0ecca83b6395d",
+          "slides": [
+            {
+              "id": 256,
+              "shapeTypes": [
+                1,
+                1,
+                5
+              ],
+              "effects": 0,
+              "notes": 3,
+              "drawingObjects": [
+                {
+                  "id": 2,
+                  "text": "Stage 3 DrawingML\u000bLine break\rSecond paragraph"
+                }
+              ]
+            }
+          ],
+          "seriesOrderDifference": false
+        },
+        {
+          "input": "roundtrips/shapes-text-preserve.pptx",
+          "inputSha256": "6a0dee1daebc8988d6debc63fb712a3b8ebe940757fbf8e30314f30be126cc22",
+          "output": "02-shapes-text-preserve-powerpoint.pptx",
+          "outputSha256": "7295403e0414d367b14df129422a7f5ef7a2cc760a9a2cecb9fcd8d0bde1fb45",
+          "slides": [
+            {
+              "id": 256,
+              "shapeTypes": [
+                1,
+                1,
+                5
+              ],
+              "effects": 0,
+              "notes": 3,
+              "drawingObjects": [
+                {
+                  "id": 2,
+                  "text": "Stage 3 DrawingML\u000bLine break\rSecond paragraph"
+                }
+              ]
+            }
+          ],
+          "seriesOrderDifference": false
+        },
+        {
+          "input": "roundtrips/shapes-text-regenerate.pptx",
+          "inputSha256": "9aac3fad98eead35b7ce7ff94b2798c1cc65b7de7c650575d979234ed1ea3ae8",
+          "output": "03-shapes-text-regenerate-powerpoint.pptx",
+          "outputSha256": "8bc17ab76414842619328d046e5a02bba3d1d1ceab52519740f3835e8628ddc7",
+          "slides": [
+            {
+              "id": 256,
+              "shapeTypes": [
+                1,
+                1,
+                5
+              ],
+              "effects": 0,
+              "notes": 3,
+              "drawingObjects": [
+                {
+                  "id": 2,
+                  "text": "Stage 3 DrawingML\u000bLine break\rSecond paragraph"
+                }
+              ]
+            }
+          ],
+          "seriesOrderDifference": false
+        }
+      ],
+      "assets": []
+    },
+    {
+      "category": "smartart",
+      "inputSha256": "8bcaccd50aeae2e10206eec9b9e8516ac09a859ebb163ba0f1f577b27c2e5f2a",
+      "preservedParts": 42,
+      "cases": [
+        {
+          "input": "craft-stage3-deck-drawing-20261126/powerpoint16-smartart.pptx",
+          "inputSha256": "8bcaccd50aeae2e10206eec9b9e8516ac09a859ebb163ba0f1f577b27c2e5f2a",
+          "output": "04-powerpoint16-smartart-powerpoint.pptx",
+          "outputSha256": "45f6e1732080044415864b6d64f60fc172e365545d7d7682cb724b36610ad42a",
+          "slides": [
+            {
+              "id": 256,
+              "shapeTypes": [
+                24
+              ],
+              "effects": 0,
+              "notes": 3,
+              "drawingObjects": [
+                {
+                  "id": 2,
+                  "layout": "urn:microsoft.com/office/officeart/2005/8/layout/default",
+                  "nodes": [
+                    "Node 1",
+                    "Node 2",
+                    "Node 3",
+                    "Node 4",
+                    "Node 5"
+                  ]
+                }
+              ]
+            }
+          ],
+          "seriesOrderDifference": false
+        },
+        {
+          "input": "roundtrips/smartart-preserve.pptx",
+          "inputSha256": "cdac86896b1b826668f0efc2ab1a0e1d149649aff18aaeaafb3ef3a2fd5e8adc",
+          "output": "05-smartart-preserve-powerpoint.pptx",
+          "outputSha256": "dced3da4b26533335e3ae48cfd3ae145f86c2cc545ddcd90c8f7e8415af1c38f",
+          "slides": [
+            {
+              "id": 256,
+              "shapeTypes": [
+                24
+              ],
+              "effects": 0,
+              "notes": 3,
+              "drawingObjects": [
+                {
+                  "id": 2,
+                  "layout": "urn:microsoft.com/office/officeart/2005/8/layout/default",
+                  "nodes": [
+                    "Node 1",
+                    "Node 2",
+                    "Node 3",
+                    "Node 4",
+                    "Node 5"
+                  ]
+                }
+              ]
+            }
+          ],
+          "seriesOrderDifference": false
+        },
+        {
+          "input": "roundtrips/smartart-regenerate.pptx",
+          "inputSha256": "9d55f69becfd2b197ce8da584acc58101776c49bd2d3d6aa745aeaa15c725498",
+          "output": "06-smartart-regenerate-powerpoint.pptx",
+          "outputSha256": "6f8392caa2f7e632cfe1a930f3381747e2bf2eebb13226649dedb3ebdf1d819e",
+          "slides": [
+            {
+              "id": 256,
+              "shapeTypes": [
+                24
+              ],
+              "effects": 0,
+              "notes": 3,
+              "drawingObjects": [
+                {
+                  "id": 2,
+                  "layout": "urn:microsoft.com/office/officeart/2005/8/layout/default",
+                  "nodes": [
+                    "Node 1",
+                    "Node 2",
+                    "Node 3",
+                    "Node 4",
+                    "Node 5"
+                  ]
+                }
+              ]
+            }
+          ],
+          "seriesOrderDifference": false
+        }
+      ],
+      "assets": []
+    },
+    {
+      "category": "3d",
+      "inputSha256": "af32b92b97ccf54bb9f1e42cda56bbc17d7075b7264df716d6cc20747cd4ff38",
+      "preservedParts": 39,
+      "cases": [
+        {
+          "input": "craft-stage3-deck-drawing-20261126/powerpoint16-3d.pptx",
+          "inputSha256": "af32b92b97ccf54bb9f1e42cda56bbc17d7075b7264df716d6cc20747cd4ff38",
+          "output": "07-powerpoint16-3d-powerpoint.pptx",
+          "outputSha256": "65612daf74e9f2b578f12fb25e43690eb0d16996386e17f6ef1f277f6fee5d93",
+          "slides": [
+            {
+              "id": 256,
+              "shapeTypes": [
+                30
+              ],
+              "effects": 0,
+              "notes": 3,
+              "drawingObjects": [
+                {
+                  "id": 2,
+                  "angles": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "camera": [
+                    0.0,
+                    0.0,
+                    2.0915213
+                  ],
+                  "fieldOfView": 45.0
+                }
+              ]
+            }
+          ],
+          "seriesOrderDifference": false
+        },
+        {
+          "input": "roundtrips/3d-preserve.pptx",
+          "inputSha256": "10371116eac007e6c390d52dece0f4a5e6f5f4fc664ecff0dd94f04deb049e81",
+          "output": "08-3d-preserve-powerpoint.pptx",
+          "outputSha256": "477fd8c345ecdbfc8985beef2c69c79904c3a6006073b7d0b5c2b8171f2c6bae",
+          "slides": [
+            {
+              "id": 256,
+              "shapeTypes": [
+                30
+              ],
+              "effects": 0,
+              "notes": 3,
+              "drawingObjects": [
+                {
+                  "id": 2,
+                  "angles": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "camera": [
+                    0.0,
+                    0.0,
+                    2.0915213
+                  ],
+                  "fieldOfView": 45.0
+                }
+              ]
+            }
+          ],
+          "seriesOrderDifference": false
+        },
+        {
+          "input": "roundtrips/3d-regenerate.pptx",
+          "inputSha256": "a40b5bc5aa6efda05d38a67c4a820c16e1b896a29a98a750d0e94b18afa3b929",
+          "output": "09-3d-regenerate-powerpoint.pptx",
+          "outputSha256": "66fd28c916d24bedb342bd6568d697bb89505756117d1fb91ded53e449b58087",
+          "slides": [
+            {
+              "id": 256,
+              "shapeTypes": [
+                30
+              ],
+              "effects": 0,
+              "notes": 3,
+              "drawingObjects": [
+                {
+                  "id": 2,
+                  "angles": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "camera": [
+                    0.0,
+                    0.0,
+                    2.0915213
+                  ],
+                  "fieldOfView": 45.0
+                }
+              ]
+            }
+          ],
+          "seriesOrderDifference": false
+        }
+      ],
+      "assets": [
+        "0857eb41a65c12f29c8046b1914dbd424466dedab72d4e2fbc99dbb2487f1d79",
+        "92ad21937e508512aea31d5777dd7a73d859182754ee8e4443c5cfb88a56098c"
+      ]
+    }
+  ],
+  "startingPoint": "3ea4d5fb",
+  "frozen": "14cbb296",
+  "candidateCliSha256": "e03b093c4a52ddd5eae8d031ea512a4aaff97fe89bd538ed855d892875708400",
+  "powerPointVersion": "16.0.20625.20108",
+  "rustTestsPassed": 1054,
+  "frozenPackageRegression": {
+    "samples": 17,
+    "reads": 234,
+    "writes": 100,
+    "untouchedPptx": 11,
+    "untouchedParts": 510
+  },
+  "executableChecks": {
+    "r3": 20,
+    "r4-r5": 23
+  },
+  "workEstimateWeeks": {
+    "before": [
+      7,
+      13
+    ],
+    "after": [
+      3,
+      6
+    ]
+  }
+}

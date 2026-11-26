@@ -94,7 +94,7 @@ impl Out {
         }
     }
 
-    fn next_field_id(&mut self) -> String {
+    pub(crate) fn next_field_id(&mut self) -> String {
         self.field_seq += 1;
         crate::tables::guid(&format!("{}:field:{}", self.name, self.field_seq))
     }

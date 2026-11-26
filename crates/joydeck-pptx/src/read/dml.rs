@@ -1,7 +1,7 @@
 //! DrawingML reading: colours, fills, lines, effects, transforms and text.
 
 use joydeck_color::{ColorTransform, Rgba, SchemeSlot};
-use joydeck_geom::{Xfrm, emu_to_pt};
+use joydeck_geom::emu_to_pt;
 use joydeck_model::style::{
     ColorBase, ColorRef, Compound, Dash, Effects, Fill, Glow, Gradient, GradientFlip,
     GradientShape, GradientStop, Line, LineAlign, LineCap, LineEnd, LineJoin, PatternFill,
@@ -9,7 +9,7 @@ use joydeck_model::style::{
 };
 use joydeck_model::text::{
     Action, Align, Anchor, AutoFit, BodyProps, Bullet, Caps, Hyperlink, LevelStyle, ListStyle,
-    ParaProps, Paragraph, Run, RunKind, RunProps, Spacing, Strike, TabStop, TextBody, TextDir,
+    ParaProps, RunProps, Spacing, Strike, TabStop, TextDir,
 };
 
 use super::{Imp, Part};
@@ -424,34 +424,7 @@ pub fn effects(el: &El) -> Effects {
     fx
 }
 
-/// `a:xfrm` → (box, child box for groups).
-pub fn xfrm(x: &El) -> (Xfrm, Option<Xfrm>) {
-    let off = x.child("off");
-    let ext = x.child("ext");
-    let g = |e: Option<&El>, n: &str| e.and_then(|e| pt(e, n)).unwrap_or(0.0);
-    let mut xf = Xfrm::new(
-        g(off, "x"),
-        g(off, "y"),
-        g(ext, "cx").max(0.0),
-        g(ext, "cy").max(0.0),
-    );
-    xf.rot = ang(x, "rot").unwrap_or(0.0);
-    if !xf.rot.is_finite() {
-        xf.rot = 0.0;
-    }
-    xf.flip_h = x.bool("flipH").unwrap_or(false);
-    xf.flip_v = x.bool("flipV").unwrap_or(false);
-    let child = match (x.child("chOff"), x.child("chExt")) {
-        (Some(o), Some(e)) => Some(Xfrm::new(
-            g(Some(o), "x"),
-            g(Some(o), "y"),
-            g(Some(e), "cx").max(0.0),
-            g(Some(e), "cy").max(0.0),
-        )),
-        _ => None,
-    };
-    (xf, child)
-}
+pub(crate) use crate::drawing_geometry::read_transform as xfrm;
 
 // ---------------------------------------------------------------------------------------------
 // Text
@@ -501,43 +474,12 @@ pub fn body_pr(b: &El) -> BodyProps {
     p
 }
 
-/// `prstTxWarp/avLst` guides `adj` / `adj1`… as raw values by index (empty when none is given);
-/// slots the file leaves out keep the preset's default.
-fn warp_adjusts(preset: &str, e: &El) -> Vec<f64> {
-    let mut adj: Vec<f64> = Vec::new();
-    let Some(av) = e.child("avLst") else {
-        return adj;
-    };
+fn warp_adjusts(preset: &str, node: &El) -> Vec<f64> {
     let defaults = joydeck_geom::warp::adjust_defaults(preset);
-    for gd in av.children_named("gd").take(16) {
-        let n = gd.attr("name").unwrap_or("");
-        let idx = if n == "adj" {
-            0
-        } else if let Some(k) = n
-            .strip_prefix("adj")
-            .and_then(|k| k.parse::<usize>().ok())
-            .filter(|k| (1..=8).contains(k))
-        {
-            k - 1
-        } else {
-            continue;
-        };
-        let Some(v) = gd
-            .attr("fmla")
-            .and_then(|f| f.trim().strip_prefix("val"))
-            .and_then(|v| v.trim().parse::<f64>().ok())
-            .filter(|v| v.is_finite())
-        else {
-            continue;
-        };
-        while adj.len() <= idx {
-            adj.push(defaults.get(adj.len()).copied().unwrap_or(0.0));
-        }
-        if let Some(slot) = adj.get_mut(idx) {
-            *slot = v.clamp(-1.0e9, 1.0e9);
-        }
-    }
-    adj
+    crate::drawing_geometry::adjustments(node, defaults, 8)
+        .into_iter()
+        .map(|value| value.clamp(-1.0e9, 1.0e9))
+        .collect()
 }
 
 fn spacing(e: &El) -> Option<Spacing> {
@@ -760,121 +702,7 @@ pub fn list_style(imp: &mut Imp, part: &Part, ls: &El) -> ListStyle {
     out
 }
 
-pub fn text_body(imp: &mut Imp, part: &Part, tx: &El) -> TextBody {
-    let body = tx.child("bodyPr").map(body_pr).unwrap_or_default();
-    let list_style = tx
-        .child("lstStyle")
-        .map(|l| list_style(imp, part, l))
-        .unwrap_or_default();
-    let paragraphs = tx
-        .children_named("p")
-        .take(100_000)
-        .map(|p| paragraph(imp, part, p))
-        .collect();
-    TextBody {
-        body,
-        list_style,
-        paragraphs,
-    }
-}
-
-const MAX_PARAGRAPH_RUNS: usize = 10_000;
-
-/// The run properties of `e`'s `rPr` child, or the defaults.
-fn run_props(imp: &mut Imp, part: &Part, e: &El) -> RunProps {
-    e.child("rPr")
-        .map(|r| rpr(imp, part, r))
-        .unwrap_or_default()
-}
-
-/// Appends the runs of an `a:r` text, where a vertical tab or line feed is a line break, as it
-/// lays out and as export writes it.
-fn push_text_runs(para: &mut Paragraph, props: RunProps, text: &str) {
-    for (i, piece) in text.split(['\u{b}', '\n']).enumerate() {
-        if para.runs.len() >= MAX_PARAGRAPH_RUNS {
-            break;
-        }
-        if i > 0 {
-            para.runs.push(Run {
-                text: String::new(),
-                props: props.clone(),
-                kind: RunKind::Break,
-            });
-        }
-        if !piece.is_empty() {
-            if para.runs.len() >= MAX_PARAGRAPH_RUNS {
-                break;
-            }
-            para.runs.push(Run {
-                text: piece.to_string(),
-                props: props.clone(),
-                kind: RunKind::Text,
-            });
-        }
-    }
-}
-
-/// Appends an Office Math (a14:m) run: its plain text and its OMML.
-fn push_math_run(para: &mut Paragraph, part: &Part, e: &El) {
-    if para.runs.len() < MAX_PARAGRAPH_RUNS {
-        let mut text = String::new();
-        let mut ts = vec![];
-        e.find_all("t", &mut ts);
-        for t in ts {
-            text.push_str(&t.text());
-        }
-        let omml = e.elements().map(|c| part.keep_inner(c)).collect::<String>();
-        para.runs.push(Run {
-            text,
-            props: RunProps::default(),
-            kind: RunKind::Math { omml },
-        });
-    }
-}
-
-pub fn paragraph(imp: &mut Imp, part: &Part, p: &El) -> Paragraph {
-    let mut para = Paragraph::default();
-    for e in p.elements() {
-        match e.local() {
-            "pPr" => {
-                let (lvl, pp, def) = ppr(imp, part, e);
-                para.level = lvl.unwrap_or(0);
-                para.props = pp;
-                if let Some(d) = def {
-                    para.def_props = d;
-                }
-            }
-            "r" => {
-                let props = run_props(imp, part, e);
-                let text: String = e.child("t").map(|t| t.text()).unwrap_or_default();
-                push_text_runs(&mut para, props, &text);
-            }
-            "br" if para.runs.len() < MAX_PARAGRAPH_RUNS => {
-                let props = run_props(imp, part, e);
-                para.runs.push(Run {
-                    text: String::new(),
-                    props,
-                    kind: RunKind::Break,
-                });
-            }
-            "fld" if para.runs.len() < MAX_PARAGRAPH_RUNS => {
-                let props = run_props(imp, part, e);
-                let text = e.child("t").map(|t| t.text()).unwrap_or_default();
-                para.runs.push(Run {
-                    text,
-                    props,
-                    kind: RunKind::Field {
-                        field: e.attr("type").unwrap_or("").to_string(),
-                    },
-                });
-            }
-            "m" => push_math_run(&mut para, part, e),
-            "endParaRPr" => para.end_props = rpr(imp, part, e),
-            _ => {}
-        }
-    }
-    para
-}
+pub(crate) use crate::drawing_text::read_body as text_body;
 
 #[cfg(test)]
 #[allow(

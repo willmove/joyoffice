@@ -5,7 +5,7 @@ use std::collections::{HashMap, HashSet};
 
 use joydeck_color::SchemeSlot;
 use joydeck_geom::{Xfrm, preset};
-use joydeck_model::style::{ColorRef, Effects, Fill};
+use joydeck_model::style::{ColorRef, Fill};
 use joydeck_model::text::TextDir;
 use joydeck_model::{Geom, MediaClip, PhType, Placeholder, Shape, ShapeId, ShapeKind, ShapeStyle};
 
@@ -68,7 +68,9 @@ pub fn sp_tree(imp: &mut Imp, part: &Part, ctx: &mut IdCtx, tree: &El, depth: us
             "pic" => Some(pic(imp, part, ctx, e)),
             "grpSp" => Some(grp(imp, part, ctx, e, depth)),
             "cxnSp" => Some(cxn(imp, part, ctx, e)),
-            "graphicFrame" => Some(frame(imp, part, ctx, e, depth)),
+            "graphicFrame" => {
+                content_part(imp, part, ctx, e).or_else(|| Some(frame(imp, part, ctx, e, depth)))
+            }
             "contentPart" => content_part(imp, part, ctx, e).or_else(|| {
                 log::warn!("pptx: content part in {} not imported", part.name);
                 None
@@ -196,46 +198,7 @@ fn base(imp: &mut Imp, part: &Part, ctx: &mut IdCtx, nv: Option<&El>) -> Shape {
     s
 }
 
-pub(crate) fn preset_geom(pg: &El) -> Geom {
-    let name = pg.attr("prst").unwrap_or("rect").to_string();
-    let mut adj = preset::adjustment_defaults(&name).to_vec();
-    let mut any = false;
-    if let Some(av) = pg.child("avLst") {
-        for gd in av.children_named("gd").take(16) {
-            let n = gd.attr("name").unwrap_or("");
-            let idx = if n == "adj" {
-                0
-            } else if let Some(k) = n
-                .strip_prefix("adj")
-                .and_then(|k| k.parse::<usize>().ok())
-                .filter(|k| (1..=16).contains(k))
-            {
-                k - 1
-            } else {
-                continue;
-            };
-            let Some(v) = gd
-                .attr("fmla")
-                .and_then(|f| f.trim().strip_prefix("val"))
-                .and_then(|v| v.trim().parse::<f64>().ok())
-                .filter(|v| v.is_finite())
-            else {
-                continue;
-            };
-            if adj.len() <= idx {
-                adj.resize(idx + 1, 0.0);
-            }
-            if let Some(slot) = adj.get_mut(idx) {
-                *slot = v;
-                any = true;
-            }
-        }
-    }
-    if !any {
-        adj.clear();
-    }
-    Geom::Preset { name, adj }
-}
+pub(crate) use crate::drawing_geometry::preset_geometry as preset_geom;
 
 /// A placeholder whose `spPr` names no geometry takes its layout's (or master's) placeholder's:
 /// marked here with an empty custom geometry, filled in once the layouts are read
@@ -253,22 +216,8 @@ fn sp_pr(imp: &mut Imp, part: &Part, s: &mut Shape, pr: &El) {
     if let Some(x) = pr.child("xfrm") {
         s.xfrm = Some(dml::xfrm(x).0);
     }
-    if let Some(pg) = pr.child("prstGeom") {
-        s.geom = preset_geom(pg);
-    } else if let Some(cg) = pr.child("custGeom") {
-        let (w, h) = s
-            .xfrm
-            .map(|x| {
-                (
-                    joydeck_geom::pt_to_emu(x.w) as f64,
-                    joydeck_geom::pt_to_emu(x.h) as f64,
-                )
-            })
-            .unwrap_or((21600.0, 21600.0));
-        let paths = crate::custgeom::read_cust_geom(cg, w, h);
-        if !paths.is_empty() {
-            s.geom = Geom::Custom { paths };
-        }
+    if let Some(geometry) = crate::drawing_geometry::read_geometry(pr, s.xfrm) {
+        s.geom = geometry;
     }
     s.fill = dml::fill_of(imp, part, pr);
     if let Some(ln) = pr.child("ln") {
@@ -277,18 +226,7 @@ fn sp_pr(imp: &mut Imp, part: &Part, s: &mut Shape, pr: &El) {
     if let Some(fx) = pr.child("effectLst") {
         s.effects = Some(dml::effects(fx));
     }
-    let raw: String = pr
-        .elements()
-        .filter(|c| c.is("scene3d") || c.is("sp3d"))
-        .map(|c| part.keep(c))
-        .collect();
-    if !raw.is_empty() {
-        let fx = s.effects.get_or_insert_with(Effects::default);
-        fx.bevel = pr
-            .path(&["sp3d", "bevelT"])
-            .map(|b| b.attr("prst").unwrap_or("circle").to_string());
-        fx.raw3d = Some(raw);
-    }
+    crate::model3d_part::read_surface(part, pr, &mut s.effects);
 }
 
 fn style(st: &El) -> ShapeStyle {
@@ -337,63 +275,44 @@ fn ms(v: Option<&str>) -> u32 {
         .unwrap_or(0)
 }
 
-fn find_content_part(el: &El) -> Option<&El> {
-    fn rec(el: &El, depth: usize) -> Option<&El> {
-        if depth > 16 {
-            return None;
-        }
-        if el.is("contentPart") {
-            return Some(el);
-        }
-        el.elements().find_map(|c| rec(c, depth + 1))
-    }
-    rec(el, 0)
-}
-
-/// `p:contentPart` whose relationship is a 3-D model. Other content parts (ink) are left out.
-fn content_part(imp: &mut Imp, part: &Part, ctx: &mut IdCtx, e: &El) -> Option<Shape> {
-    let id = e.attr("r:id").filter(|s| !s.is_empty())?;
-    let rel = part.rels.get(id)?;
-    if !super::is_model3d(rel) {
-        return None;
-    }
-    let target = rel.target.clone();
-    let media = imp.media_for(&target).or_else(|| {
-        log::warn!("pptx: 3-D model part missing in {}", part.name);
-        None
-    })?;
-    let mut s = base(imp, part, ctx, e.child("nvContentPartPr"));
-    if let Some(x) = e.child("xfrm") {
-        s.xfrm = Some(dml::xfrm(x).0);
-    }
-    s.kind = ShapeKind::Model3d {
-        media,
-        poster: None,
+fn content_part(imp: &mut Imp, part: &Part, ctx: &mut IdCtx, element: &El) -> Option<Shape> {
+    let (media, poster, raw_ext) = crate::model3d_part::load_payload(imp, part, element)?;
+    let metadata = if element.is("contentPart") {
+        "nvContentPartPr"
+    } else {
+        "nvGraphicFramePr"
     };
-    Some(s)
+    let mut shape = base(imp, part, ctx, element.child(metadata));
+    shape.xfrm = element
+        .child("xfrm")
+        .map(|transform| dml::xfrm(transform).0);
+    shape.raw_ext = raw_ext;
+    shape.kind = ShapeKind::Model3d { media, poster };
+    Some(shape)
 }
 
-/// A 3-D model wrapped in `mc:AlternateContent`: the model choice, plus the fallback picture.
-/// If the model part is missing, the fallback picture is the shape.
-fn read_model_alternate(imp: &mut Imp, part: &Part, ctx: &mut IdCtx, e: &El) -> Option<Shape> {
-    if let Some(content) = e.children_named("Choice").find_map(find_content_part)
-        && let Some(mut s) = content_part(imp, part, ctx, content)
-    {
-        let poster = e.child("Fallback").and_then(|fb| {
-            let mut pics = vec![];
-            fb.find_all("blip", &mut pics);
-            pics.into_iter().find_map(|b| dml::media_ref(imp, part, b))
-        });
-        if let ShapeKind::Model3d { media, .. } = s.kind {
-            s.kind = ShapeKind::Model3d { media, poster };
+fn read_model_alternate(
+    imp: &mut Imp,
+    part: &Part,
+    ctx: &mut IdCtx,
+    element: &El,
+) -> Option<Shape> {
+    let fallback = element
+        .child("Fallback")
+        .and_then(|branch| branch.child("pic"));
+    for item in element.children_named("Choice").flat_map(El::elements) {
+        if let Some(mut shape) = content_part(imp, part, ctx, item) {
+            if let ShapeKind::Model3d { poster, .. } = &mut shape.kind
+                && poster.is_none()
+            {
+                *poster = fallback
+                    .and_then(|pic| pic.path(&["blipFill", "blip"]))
+                    .and_then(|blip| dml::media_ref(imp, part, blip));
+            }
+            return Some(shape);
         }
-        return Some(s);
     }
-    e.child("Fallback").and_then(|fb| {
-        fb.elements()
-            .find(|c| c.is("pic"))
-            .map(|p| pic(imp, part, ctx, p))
-    })
+    fallback.map(|element| pic(imp, part, ctx, element))
 }
 
 fn pic(imp: &mut Imp, part: &Part, ctx: &mut IdCtx, e: &El) -> Shape {
@@ -690,15 +609,22 @@ fn smartart(imp: &mut Imp, part: &Part, gd: &El, frame: &Shape, depth: usize) ->
         return None;
     }
     let rel_ids = gd.child("relIds")?;
-    let dm = part.rels.get(rel_ids.attr("r:dm").unwrap_or(""))?;
+    let dm = diagram_part(part, rel_ids, "r:dm", "diagramData")?;
     let data = imp.pkg.xml(&dm.target)?;
+    if !data.root.is("dataModel") {
+        return None;
+    }
     let drawing_rel = data
         .root
         .find("dataModelExt")
         .and_then(|x| x.attr("relId"))
         .and_then(|id| part.rels.get(id))
+        .filter(|edge| !edge.external && edge.ty == crate::dgm::RT_DRAWING)
         .map(|r| r.target.clone())?;
     let mut d = imp.pkg.xml(&drawing_rel)?;
+    if !d.root.is("drawing") {
+        return None;
+    }
     super::resolve_mc(&mut d.root, 0);
     let dpart = Part::new(imp.pkg, &drawing_rel, &d);
     let tree = d.root.child("spTree")?;
@@ -717,14 +643,15 @@ fn smartart(imp: &mut Imp, part: &Part, gd: &El, frame: &Shape, depth: usize) ->
         children,
         child: Xfrm::new(0.0, 0.0, x.w, x.h),
     };
-    g.diagram = diagram_outline(imp, part, rel_ids, &data.root);
+    let outline = crate::diagram_graph::read(&data.root);
+    g.diagram = diagram_outline(imp, part, rel_ids, &data.root, outline.nodes);
     // Node pictures, from the blips of the data model's presentation points.
     if let Some(d) = &mut g.diagram {
         let rels = imp.pkg.rels(&dm.target);
-        for (k, rid) in crate::dgm::node_pictures(&data.root) {
+        for (k, rid) in outline.pictures {
             let Some(target) = rels
                 .get(&rid)
-                .filter(|r| !r.external)
+                .filter(|r| !r.external && r.kind == "image")
                 .map(|r| r.target.clone())
             else {
                 continue;
@@ -869,19 +796,19 @@ fn diagram_outline(
     part: &Part,
     rel_ids: &El,
     data: &El,
+    nodes: Vec<joydeck_model::DiagramNode>,
 ) -> Option<joydeck_model::Diagram> {
-    let nodes = crate::dgm::outline(data);
     if nodes.is_empty() {
         return None;
     }
-    let raw = |attr: &str| -> Option<String> {
-        let rel = part.rels.get(rel_ids.attr(attr)?)?;
+    let raw = |attr: &str, kind: &str| -> Option<String> {
+        let rel = diagram_part(part, rel_ids, attr, kind)?;
         let bytes = imp.pkg.get(&rel.target)?;
         (bytes.len() <= 4 << 20)
             .then(|| String::from_utf8(bytes.to_vec()).ok())
             .flatten()
     };
-    let layout_xml = raw("r:lo");
+    let layout_xml = raw("r:lo", "diagramLayout");
     let (layout_id, cat) = layout_xml
         .as_deref()
         .and_then(|x| crate::xml::parse(x.as_bytes()).ok())
@@ -928,7 +855,18 @@ fn diagram_outline(
         imported: true,
         layout_id: id,
         layout_xml,
-        style_xml: raw("r:qs"),
-        colors_xml: raw("r:cs"),
+        style_xml: raw("r:qs", "diagramQuickStyle"),
+        colors_xml: raw("r:cs", "diagramColors"),
     })
+}
+
+fn diagram_part<'a>(
+    part: &'a Part,
+    ids: &El,
+    attr: &str,
+    kind: &str,
+) -> Option<&'a crate::opc::Rel> {
+    part.rels
+        .get(ids.attr(attr)?)
+        .filter(|edge| !edge.external && edge.kind == kind)
 }

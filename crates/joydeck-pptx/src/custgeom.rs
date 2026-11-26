@@ -33,11 +33,28 @@ fn num(s: &mut String, v: f64) {
     }
 }
 
-fn pt(g: &Guides, e: &El) -> (f64, f64) {
-    (
-        g.get(e.attr("x").unwrap_or("0")),
-        g.get(e.attr("y").unwrap_or("0")),
-    )
+fn points<const N: usize>(guides: &Guides, element: &El) -> Option<[(f64, f64); N]> {
+    let mut points = element.children_named("pt");
+    let mut result = [(0.0, 0.0); N];
+    for point in &mut result {
+        let node = points.next()?;
+        *point = (
+            guides.get(node.attr("x").unwrap_or("0")),
+            guides.get(node.attr("y").unwrap_or("0")),
+        );
+    }
+    points.next().is_none().then_some(result)
+}
+
+fn path_command(path: &mut String, command: char, points: &[(f64, f64)]) {
+    path.push(command);
+    path.push(' ');
+    for &(x, y) in points {
+        num(path, x);
+        path.push(' ');
+        num(path, y);
+        path.push(' ');
+    }
 }
 
 /// Convert `a:custGeom` to custom paths. `w`/`h` is the shape size in EMU (used for guides and for
@@ -71,52 +88,22 @@ pub fn read_cust_geom(cg: &El, w_emu: f64, h_emu: f64) -> Vec<CustomPath> {
         let mut start = (0.0, 0.0);
         for c in p.elements().take(100_000) {
             match c.local() {
-                "moveTo" => {
-                    if let Some(q) = c.child("pt") {
-                        cur = pt(g, q);
-                        start = cur;
-                        d.push_str("M ");
-                        num(&mut d, cur.0);
-                        d.push(' ');
-                        num(&mut d, cur.1);
-                        d.push(' ');
-                    }
+                "moveTo" if let Some([point]) = points(g, c) => {
+                    cur = point;
+                    start = point;
+                    path_command(&mut d, 'M', &[point]);
                 }
-                "lnTo" => {
-                    if let Some(q) = c.child("pt") {
-                        cur = pt(g, q);
-                        d.push_str("L ");
-                        num(&mut d, cur.0);
-                        d.push(' ');
-                        num(&mut d, cur.1);
-                        d.push(' ');
-                    }
+                "lnTo" if let Some([point]) = points(g, c) => {
+                    cur = point;
+                    path_command(&mut d, 'L', &[point]);
                 }
-                "cubicBezTo" => {
-                    let pts: Vec<(f64, f64)> = c.children_named("pt").map(|q| pt(g, q)).collect();
-                    if let [a, b, e] = pts.as_slice() {
-                        d.push_str("C ");
-                        for (x, y) in [a, b, e] {
-                            num(&mut d, *x);
-                            d.push(' ');
-                            num(&mut d, *y);
-                            d.push(' ');
-                        }
-                        cur = *e;
-                    }
+                "cubicBezTo" if let Some([first, second, end]) = points(g, c) => {
+                    cur = end;
+                    path_command(&mut d, 'C', &[first, second, end]);
                 }
-                "quadBezTo" => {
-                    let pts: Vec<(f64, f64)> = c.children_named("pt").map(|q| pt(g, q)).collect();
-                    if let [a, e] = pts.as_slice() {
-                        d.push_str("Q ");
-                        for (x, y) in [a, e] {
-                            num(&mut d, *x);
-                            d.push(' ');
-                            num(&mut d, *y);
-                            d.push(' ');
-                        }
-                        cur = *e;
-                    }
+                "quadBezTo" if let Some([control, end]) = points(g, c) => {
+                    cur = end;
+                    path_command(&mut d, 'Q', &[control, end]);
                 }
                 "arcTo" => {
                     let wr = g.get(c.attr("wR").unwrap_or("0"));
