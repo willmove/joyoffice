@@ -5,8 +5,9 @@
     "target_path": "crates/joyoffice-ui/Cargo.toml",
     "source_sha256": "567500515b66356c40ea3e65f11f160093b88f78edf1a834ae138e7047a52da9",
     "local_changes": "CRLF normalized to LF; inherit the unified JoyOffice workspace version; 2026-11-11: shared application theme catalog, persistent preset selection and palette projection; preserve document colors and original source identity",
-    "adapted_sha256": "d36a0a5e43308904e02cc76b7932ba3e1fb6eea9f214239b63447b9b2d7937b9",
-    "desktop_product_icons": "2026-11-18: embedded native product icons/logos for every product window; portable desktop registration and complete shared artwork source fingerprints; original attribution retained."
+    "adapted_sha256": "1cd741c9dd20d3bca650c1db7844f35a07affc6a8fc07f88bf978bc8d69a70cb",
+    "desktop_product_icons": "2026-11-18: embedded native product icons/logos for every product window; portable desktop registration and complete shared artwork source fingerprints; original attribution retained.",
+    "l10n": "2026-11-26: shared joyoffice-l10n locale architecture and JoyDeck bilingual UI localization"
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -14,9 +15,10 @@
     "target_path": "crates/joyoffice-ui/src/lib.rs",
     "source_sha256": "08e23515fe8a44ea93dda33be7d47554c6c6fc4240f35f2fb27b6339fcd7c5cc",
     "local_changes": "CRLF normalized to LF; 2026-11-11: shared application theme catalog, persistent preset selection and palette projection; preserve document colors and original source identity; 2026-11-18: export the shared Word and Sheet save changes dialog; 2026-11-18: Linux software graphics fallback bootstrap; 2026-11-24: share the Windows path display conversion used by Word and Deck",
-    "adapted_sha256": "835b308325c1733b0e086df480c4b675d89348439e80d74c08213340652fec36",
+    "adapted_sha256": "3fbc74793d3123a4f7b021ec8d3b15e572084a5978d43538eda129ead321fd72",
     "desktop_product_icons": "2026-11-18: embedded native product icons/logos for every product window; portable desktop registration and complete shared artwork source fingerprints; original attribution retained.",
-    "roadmap_refactor": "Expose accessible ribbon groups and launcher footers for all three desktops."
+    "roadmap_refactor": "Expose accessible ribbon groups and launcher footers for all three desktops.",
+    "l10n": "2026-11-26: shared joyoffice-l10n locale architecture and JoyDeck bilingual UI localization"
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -163,7 +165,7 @@
     "source_path": "apps/joydeck/src/viewer.rs",
     "target_path": "crates/joydeck-ui-gpui/src/viewer.rs",
     "source_sha256": "249104bdece51947664a50fe4b8166f358662e78d0000ed7d0024b10fade5584",
-    "adapted_sha256": "a073819281502e33b54f839dd597de0ea10abcd3c5373fc74be7ad8dd86fd73b",
+    "adapted_sha256": "9bb914acea4af942832300b0faa4a328bea1a3ba839a6c3cd557612aa4a34b2c",
     "local_changes": "Reuse asynchronous read-only viewer, generation guards, cancellation, virtual thumbnail rail and bounded cache; adapt to DeckCraft model and shared CPU renderer; R1 branding and aspect fit; upstream validation modules deferred; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt; R4/R5 scene/content workspace adaptation; R6/R7 adapter additions and repository rustfmt/LF normalization.; R8 native editor, clipboard or product package version adaptation; R9-UI1 native formatting controls and schema-2 validation/history compatibility (see slice evidence); 2026-11-11: shared application theme catalog, persistent preset selection and palette projection; preserve document colors and original source identity Store the selected JoyDeck ribbon tab by command identity.",
     "r9_ui2_adaptation": "Formatting, desktop control and reviewed preservation validation; LF source representation.",
     "r9_ui2_gui_fix": "Synchronize every editor palette with GPUI Kit application theme during render",
@@ -182,7 +184,8 @@
     "ribbon_collapse_navigation": "2026-11-13: retain ribbon selection while collapsed, render the File tab strip, and bind Up/Down to existing slide navigation outside text input.",
     "desktop_product_icons": "2026-11-18: embedded native product icons/logos for every product window; portable desktop registration and complete shared artwork source fingerprints; original attribution retained.",
     "native_save_target": "Bind the native save panel and its callback to the originating document.",
-    "roadmap_refactor": "Expose the Home ribbon collapse action through desktop keyboard navigation keys."
+    "roadmap_refactor": "Expose the Home ribbon collapse action through desktop keyboard navigation keys.",
+    "l10n": "2026-11-26: shared joyoffice-l10n locale architecture and JoyDeck bilingual UI localization"
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -198,12 +201,13 @@
     "source_path": "crates/joydeck-shell/src/storage.rs",
     "target_path": "crates/joydeck-shell/src/storage.rs",
     "source_sha256": "a13a4e50806f4c4e6b78c75208d11325254ffed035617e56336939f1221c7ebc",
-    "adapted_sha256": "cb1db1cf85c44445cc8c8b1d74aa40664a7c29ab5c78977574ccea70fb465752",
+    "adapted_sha256": "188e559cf84f3616e0825044c9016a46148f01059ec88c92d5ae13d883e704d3",
     "local_changes": "R2 adapt bounded IO/fingerprints and leased revision recovery to encoded JoyDeck v2 packages; recovery indexes read under bound; tests replaced by new-model integration tests; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt; 2026-11-11: shared application theme catalog, persistent preset selection and palette projection; preserve document colors and original source identity",
     "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained.",
     "cancellable_open": "Stream file fingerprints in bounded, cancellable chunks and allow parsed bytes to supply the expected fingerprint.",
     "concurrent_save": "Serialize in-process publication under the optimistic fingerprint guard and clean up only owned staging files.",
-    "powerpoint_file_page": "Read bounded recent-file display metadata while retaining unavailable paths and MRU order."
+    "powerpoint_file_page": "Read bounded recent-file display metadata while retaining unavailable paths and MRU order.",
+    "l10n": "2026-11-26: shared joyoffice-l10n locale architecture and JoyDeck bilingual UI localization"
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -225,7 +229,7 @@
     "target_path": "crates/joydeck-ui-gpui/src/inline_text.rs",
     "source_sha256": "e6caa4311e30aaa39f91b1da6d328e8bba46ae9afcf4a890e44e43278e5ef4f4",
     "local_changes": "Adapt EntityInputHandler, selection/clipboard/composition routing to new pure engine; consume shared CPU text/table layout for all geometry; add bounded text metadata/TSV and notes Textarea flow from apps/joydeck/src/chrome.rs.; R8 native editor, clipboard or product package version adaptation; R9-UI1 native formatting controls and schema-2 validation/history compatibility (see slice evidence); JD-307 route Linux rich clipboard reads through the active compositor",
-    "adapted_sha256": "4d809ebcf9dad16dcd87b3a286efbb7170d6a2af224aecb6f7ed34b42c705d5e",
+    "adapted_sha256": "8c3cce3377322a595b3d2137138e4b9538c8e029307b3e481b24c2db338daebf",
     "additional_sources": [
       {
         "source_path": "apps/joydeck/src/chrome.rs",
@@ -240,7 +244,8 @@
     "native_text_ranges": "Protect committed graphemes, normalize native composition offsets and project input range geometry.",
     "ime_lifecycle": "Stage native composition commits until mouse-down dispatch, and normalize platform cancellation callbacks.",
     "dynamic_text_fields": "Support atomic dynamic text fields, native authoring, and separate rendered/source offsets.",
-    "safety_integration": "Respect native character-input priority and consume hidden-only rich paste without deleting the selected text (R3 local integration)."
+    "safety_integration": "Respect native character-input priority and consume hidden-only rich paste without deleting the selected text (R3 local integration).",
+    "l10n": "2026-11-26: shared joyoffice-l10n locale architecture and JoyDeck bilingual UI localization"
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -256,9 +261,10 @@
     "target_path": "crates/joydeck-ui-gpui/src/scene_view.rs",
     "source_sha256": "4d948c8511b32763611b6327ea3d773b37a3ba8e6898b80e45eb0d9a6c7ef973",
     "local_changes": "R4/R5 adapts native path/cache/retirement or asynchronous scene dispatch to the current model; no legacy document model; R4/R5 scene/content workspace adaptation; R8 native editor, clipboard or product package version adaptation",
-    "adapted_sha256": "a105964d9a47d06b625428844a0a887db6b48c96dc233b99a786fa1afa978919",
+    "adapted_sha256": "91061e627dc74262328a3079d25014c7abec1e9f88528c31fabd0fca01c6b04b",
     "shared_document_view": "Separate window selection and state from the shared editor session and preserve revision guards.",
-    "font_environment": "Refresh font selection, editor geometry and rendering caches when installed font files change."
+    "font_environment": "Refresh font selection, editor geometry and rendering caches when installed font files change.",
+    "l10n": "2026-11-26: shared joyoffice-l10n locale architecture and JoyDeck bilingual UI localization"
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -526,13 +532,14 @@
     "target_path": "crates/joydeck-ui-gpui/src/slideshow.rs",
     "source_sha256": "ba57a296c7911ccd7767e4b655906fb1cc9b479ccc0f4e442f00e878acb1e17c",
     "local_changes": "Audience/presenter ownership, separate clocks/windows and media worker adapted to new immutable model; new GPUI controls, frame guards and CPU rendering.; 2026-11-13: device-pixel slideshow targets, single-flight resolution-aware invalidation and bounded static media raster reuse; retain animation, transition and media sampling",
-    "adapted_sha256": "04888e236deef8230a31813c1436aaa2cc708dbf63ccd3c44b58b07a876e2bcc",
+    "adapted_sha256": "5a6c0ad3afe5eac460ae0fc7c8b7758814b9c1be9eb233d411a7bff748b82cb1",
     "font_environment": "Refresh font selection, editor geometry and rendering caches when installed font files change.",
     "text_hyperlinks": "Dispatch a validated URL returned by the slide show click player.",
     "product_branding": "Group audience and presenter windows with the JoyDeck desktop launcher.",
     "ribbon_collapse_navigation": "2026-11-13: route Up/Down through existing previous/next slideshow navigation, preserving animation and media behavior.",
     "desktop_product_icons": "2026-11-18: embedded native product icons/logos for every product window; portable desktop registration and complete shared artwork source fingerprints; original attribution retained.",
-    "transition_presentation": "The audience opts into the JoyOffice device compositor. Validation builds optionally report completed frame preparation and the sampled transition clock."
+    "transition_presentation": "The audience opts into the JoyOffice device compositor. Validation builds optionally report completed frame preparation and the sampled transition clock.",
+    "l10n": "2026-11-26: shared joyoffice-l10n locale architecture and JoyDeck bilingual UI localization"
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -647,12 +654,13 @@
     "source_path": "apps/joydeck/src/chrome.rs",
     "target_path": "crates/joydeck-ui-gpui/src/chrome_nav.rs",
     "source_sha256": "68b6b3800e63f68f65ccab43e81304728295aa7aaa407c3ba4a46408666e6328",
-    "adapted_sha256": "281e800d918fdfa1f23ac2505c5611aee211304a6349672485f9ddc0dca68927",
+    "adapted_sha256": "8aeaa81fc84650e97946c6f8ccc71c1423154a1ab0c4bee7a3615c57487dc1df",
     "local_changes": "R8 native Save As prompt and deferred window update pattern adapted to v2 save jobs; own notes/placeholder/navigation implementation; 2026-11-11: shared application theme catalog, persistent preset selection and palette projection; preserve document colors and original source identity",
     "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained.",
     "r9_save_as": "Leave the macOS Save As suggestion extensionless and submit the selected path directly.",
     "shared_document_view": "Separate window selection and state from the shared editor session and preserve revision guards.",
-    "native_save_target": "Bind the native save panel and its callback to the originating document."
+    "native_save_target": "Bind the native save panel and its callback to the originating document.",
+    "l10n": "2026-11-26: shared joyoffice-l10n locale architecture and JoyDeck bilingual UI localization"
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -660,7 +668,7 @@
     "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
     "source_sha256": "efd229d2bca36c8887fa16026f4946bbe3240cd9ea9b1b9b65c8c83c11933438",
     "local_changes": "R8 per-tab bounded GPUI construction frames follow the old JoyDeck ribbon pattern; split Home into groups and keep intrinsic horizontal scroll width on default MSVC stack.; 2026-11-11: shared application theme catalog, persistent preset selection and palette projection; preserve document colors and original source identity Build the ribbon from typed tab and command routes, with shared GPUI controls and bounded viewport scrolling.",
-    "adapted_sha256": "1daec0ad12d2bbc3286c0cee083db7fb3911df66e391b2e9f8f0e93a8f13c234",
+    "adapted_sha256": "82b51ac19bf224687b5c571fdabc0e8967d582e8fa9daebfd61563e109a4c82c",
     "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained.",
     "cancellable_open": "Add an explicit cancel action to the status bar while opening a document.",
     "shared_document_view": "Separate window selection and state from the shared editor session and preserve revision guards.",
@@ -672,6 +680,7 @@
     "powerpoint_file_page": "Retain the File ribbon tab on every desktop platform and route both file entries to the updated file page.",
     "ribbon_collapse_navigation": "2026-11-13: toggle the selected ribbon tab on double-click and retain the tab strip for expanded or collapsed File pages.",
     "desktop_product_icons": "2026-11-18: embedded native product icons/logos for every product window; portable desktop registration and complete shared artwork source fingerprints; original attribution retained.",
-    "roadmap_refactor": "Use the shared accessible group with the same compact layout and control ID."
+    "roadmap_refactor": "Use the shared accessible group with the same compact layout and control ID.",
+    "l10n": "2026-11-26: shared joyoffice-l10n locale architecture and JoyDeck bilingual UI localization"
   }
 ]

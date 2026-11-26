@@ -64,21 +64,22 @@ fn apply_theme_and_variant_preserve_round_trip() {
     let mut session = Session::new(imported.clone(), origins_for(&imported), true);
 
     let orig_name = session.model().masters[0].theme.name.clone();
+    assert_eq!(joydeck_model::theme::builtin_themes().len(), 10);
     session
         .execute(Command::Content {
             action: ContentAction::ApplyTheme {
-                name: "Nocturne".into(),
+                name: "深空科技".into(),
             },
         })
         .unwrap();
-    assert_eq!(session.model().masters[0].theme.name, "Nocturne");
+    assert_eq!(session.model().masters[0].theme.name, "深空科技");
     assert_eq!(
         session.model().masters[0].theme.colors.get(SchemeSlot::Lt1),
-        joydeck_model::Rgba::rgb(0x12, 0x18, 0x26)
+        joydeck_model::Rgba::rgb(0x0B, 0x11, 0x20)
     );
     assert_eq!(
         session.model().masters[0].theme.colors.get(SchemeSlot::Dk1),
-        joydeck_model::Rgba::rgb(0xFF, 0xFF, 0xFF)
+        joydeck_model::Rgba::rgb(0xF8, 0xFA, 0xFC)
     );
 
     let bindings = slide_bindings(&imported);
@@ -86,14 +87,14 @@ fn apply_theme_and_variant_preserve_round_trip() {
         joydeck_pptx::export_preserving(&original_bytes, &imported, session.model(), &bindings)
             .unwrap();
     let reloaded = joydeck_pptx::import(&saved).unwrap();
-    assert_eq!(reloaded.masters[0].theme.name, "Nocturne");
+    assert_eq!(reloaded.masters[0].theme.name, "深空科技");
     assert_eq!(
         reloaded.masters[0].theme.colors.get(SchemeSlot::Lt1),
-        joydeck_model::Rgba::rgb(0x12, 0x18, 0x26)
+        joydeck_model::Rgba::rgb(0x0B, 0x11, 0x20)
     );
     assert_eq!(
         reloaded.masters[0].theme.colors.get(SchemeSlot::Accent1),
-        joydeck_model::Rgba::rgb(0x7C, 0x5C, 0xFF)
+        joydeck_model::Rgba::rgb(0x38, 0xBD, 0xF8)
     );
 
     // Apply dark/swapped variant (index 3 swaps Lt1 <-> Dk1)
@@ -104,7 +105,7 @@ fn apply_theme_and_variant_preserve_round_trip() {
         .unwrap();
     assert_eq!(
         session.model().masters[0].theme.colors.get(SchemeSlot::Lt1),
-        joydeck_model::Rgba::rgb(0xFF, 0xFF, 0xFF)
+        joydeck_model::Rgba::rgb(0xF8, 0xFA, 0xFC)
     );
     let saved_v =
         joydeck_pptx::export_preserving(&original_bytes, &imported, session.model(), &bindings)
@@ -112,14 +113,14 @@ fn apply_theme_and_variant_preserve_round_trip() {
     let reloaded_v = joydeck_pptx::import(&saved_v).unwrap();
     assert_eq!(
         reloaded_v.masters[0].theme.colors.get(SchemeSlot::Lt1),
-        joydeck_model::Rgba::rgb(0xFF, 0xFF, 0xFF)
+        joydeck_model::Rgba::rgb(0xF8, 0xFA, 0xFC)
     );
 
     // Undo restores previous theme and original theme cleanly
     session.execute(Command::Undo).unwrap();
     assert_eq!(
         session.model().masters[0].theme.colors.get(SchemeSlot::Lt1),
-        joydeck_model::Rgba::rgb(0x12, 0x18, 0x26)
+        joydeck_model::Rgba::rgb(0x0B, 0x11, 0x20)
     );
     session.execute(Command::Undo).unwrap();
     assert_eq!(session.model().masters[0].theme.name, orig_name);

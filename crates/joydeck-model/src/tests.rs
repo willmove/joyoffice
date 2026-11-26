@@ -16,7 +16,7 @@ fn new_presentation_is_valid() {
     let s = &p.slides[0];
     let (m, l) = p.master_for(s).unwrap();
     assert_eq!(l.unwrap().kind, LayoutType::Title);
-    assert_eq!(m.theme.name, "DeckCraft");
+    assert_eq!(m.theme.name, "现代商务");
     // Title slide has a centred title and a subtitle.
     let kinds: Vec<_> = s.shapes.iter().filter_map(|x| x.ph_type()).collect();
     assert_eq!(kinds, vec![PhType::CtrTitle, PhType::SubTitle]);
@@ -213,7 +213,7 @@ fn builtin_themes_have_distinct_names() {
     names.sort();
     names.dedup();
     assert_eq!(names.len(), t.len());
-    assert!(t.len() >= 8);
+    assert_eq!(t.len(), 10);
 }
 
 #[test]

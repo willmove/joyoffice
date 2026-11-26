@@ -4,9 +4,10 @@ use super::ribbon_reference::{
 };
 use super::ribbon_tabs::{RibbonTab, TabAction};
 use super::*;
+use crate::l10n::{presentation_theme_hint, presentation_theme_name, t, tf};
 use gpui_kit::component::{Icon, Selectable, Sizable, button::ButtonVariants, popover::Popover};
 use joydeck_engine::{AlignEdge, Command, DistributeAxis};
-use joyoffice_ui::{IconName as I, Palette};
+use joyoffice_ui::{IconName as I, Palette, UiLocale};
 
 pub(super) fn small(id: &'static str, icon: I, label: &'static str) -> Button {
     Button::new(id)
@@ -26,15 +27,22 @@ pub(super) fn tool(id: &'static str, icon: I, label: &'static str, tint: u32) ->
     let lines = label.split('\n');
     let width = lines
         .clone()
-        .map(|line| line.chars().count())
-        .max()
-        .unwrap_or(0);
-    let accessible = label.replace('\n', "");
+        .map(|line| {
+            line.chars()
+                .map(|ch| if ch.is_ascii() { 6.5_f32 } else { 11.0_f32 })
+                .sum::<f32>()
+        })
+        .fold(0.0_f32, f32::max);
+    let accessible = if label.is_ascii() {
+        label.replace('\n', " ")
+    } else {
+        label.replace('\n', "")
+    };
     Button::new(id)
         .ghost()
         .accessibility_label(accessible.clone())
         .tooltip(accessible)
-        .w(px((width as f32 * 11. + 8.).max(38.)))
+        .w(px((width + 10.).max(40.)))
         .h(px(63.))
         .p_0()
         .rounded(px(3.))
@@ -84,55 +92,71 @@ pub(super) fn col() -> Div {
 
 use gpui_kit::component::tooltip::Tooltip;
 
-fn theme_swatch_body(theme: &joydeck_model::Theme, current: bool, p: Palette) -> Div {
+fn theme_swatch_body(
+    theme: &joydeck_model::Theme,
+    locale: UiLocale,
+    current: bool,
+    p: Palette,
+) -> Div {
     use joydeck_model::SchemeSlot as Slot;
     let color = |slot| {
         let c = theme.colors.get(slot);
         rgb(u32::from_be_bytes([0, c.r, c.g, c.b]))
     };
+    let display_name = presentation_theme_name(locale, &theme.name);
     div()
-        .w(px(83.))
-        .h(px(48.))
-        .px_2()
-        .py(px(3.))
+        .w(px(88.))
+        .h(px(50.))
+        .rounded(px(3.))
+        .overflow_hidden()
         .flex()
         .flex_col()
-        .justify_between()
         .border_1()
         .border_color(rgb(if current { p.accent } else { p.border }))
         .bg(color(Slot::Lt1))
         .text_color(color(Slot::Dk1))
+        .child(div().h(px(3.)).w_full().bg(color(Slot::Accent1)))
         .child(
             div()
+                .flex_1()
+                .px(px(6.))
+                .py(px(3.))
                 .flex()
-                .items_baseline()
+                .flex_col()
                 .justify_between()
                 .child(
                     div()
-                        .text_size(px(17.))
-                        .font_weight(FontWeight::SEMIBOLD)
-                        .child("Aa"),
+                        .flex()
+                        .items_baseline()
+                        .justify_between()
+                        .gap(px(2.))
+                        .child(
+                            div()
+                                .text_size(px(15.))
+                                .font_weight(FontWeight::SEMIBOLD)
+                                .child("Aa"),
+                        )
+                        .child(
+                            div()
+                                .text_size(px(10.))
+                                .truncate()
+                                .max_w(px(52.))
+                                .child(display_name),
+                        ),
                 )
                 .child(
-                    div()
-                        .text_size(px(9.))
-                        .truncate()
-                        .max_w(px(44.))
-                        .child(theme.name.clone()),
+                    row().gap(px(2.)).children(
+                        [
+                            Slot::Accent1,
+                            Slot::Accent2,
+                            Slot::Accent3,
+                            Slot::Accent4,
+                            Slot::Accent5,
+                            Slot::Accent6,
+                        ]
+                        .map(|slot| div().w(px(10.)).h(px(5.)).rounded(px(1.)).bg(color(slot))),
+                    ),
                 ),
-        )
-        .child(
-            row().children(
-                [
-                    Slot::Accent1,
-                    Slot::Accent2,
-                    Slot::Accent3,
-                    Slot::Accent4,
-                    Slot::Accent5,
-                    Slot::Accent6,
-                ]
-                .map(|slot| div().w(px(9.)).h(px(5.)).bg(color(slot))),
-            ),
         )
 }
 
@@ -199,9 +223,11 @@ impl Viewer {
     }
 
     pub(super) fn title_chrome(&self, cx: &mut Context<Self>) -> Div {
+        let locale = self.locale;
         let p = self.palette();
         let dirty = self.editor.as_ref().is_some_and(|e| e.session.dirty());
         let name = self.document_name();
+        let lang_view = cx.entity().downgrade();
         div()
             .h(px(33.))
             .flex_shrink_0()
@@ -217,8 +243,8 @@ impl Viewer {
                     .ghost()
                     .xsmall()
                     .icon(I::House)
-                    .accessibility_label("文件")
-                    .tooltip("文件")
+                    .accessibility_label(t(locale, "quick.file"))
+                    .tooltip(t(locale, "quick.file"))
                     .on_click(cx.listener(|s, _, w, cx| {
                         s.open_file_page(w, cx);
                     })),
@@ -228,8 +254,8 @@ impl Viewer {
                     .ghost()
                     .xsmall()
                     .icon(I::Save)
-                    .accessibility_label("保存")
-                    .tooltip("保存 · Ctrl+S")
+                    .accessibility_label(t(locale, "quick.save"))
+                    .tooltip(t(locale, "quick.save_tip"))
                     .disabled(self.save_unavailable().is_some())
                     .on_click(cx.listener(|s, _, w, cx| s.save(&Save, w, cx))),
             )
@@ -239,8 +265,8 @@ impl Viewer {
                         .ghost()
                         .xsmall()
                         .icon(I::Undo2)
-                        .accessibility_label("撤销")
-                        .tooltip("撤销 · Ctrl+Z"),
+                        .accessibility_label(t(locale, "quick.undo"))
+                        .tooltip(t(locale, "quick.undo_tip")),
                     BasicEdit::Undo,
                     cx,
                 ),
@@ -251,8 +277,8 @@ impl Viewer {
                         .ghost()
                         .xsmall()
                         .icon(I::Redo2)
-                        .accessibility_label("重做")
-                        .tooltip("重做 · Ctrl+Y"),
+                        .accessibility_label(t(locale, "quick.redo"))
+                        .tooltip(t(locale, "quick.redo_tip")),
                     BasicEdit::Redo,
                     cx,
                 ),
@@ -262,8 +288,8 @@ impl Viewer {
                     .ghost()
                     .xsmall()
                     .icon(I::Presentation)
-                    .accessibility_label("从头开始放映")
-                    .tooltip("从头开始 · F5")
+                    .accessibility_label(t(locale, "quick.present_start"))
+                    .tooltip(t(locale, "quick.present_start_tip"))
                     .on_click(cx.listener(|s, _, _, cx| s.start_show(true, false, cx))),
             )
             .child(
@@ -281,24 +307,33 @@ impl Viewer {
                     .ghost()
                     .xsmall()
                     .icon(I::Search)
-                    .accessibility_label("查找文字")
-                    .tooltip("查找文字")
+                    .accessibility_label(t(locale, "quick.find"))
+                    .tooltip(t(locale, "quick.find"))
                     .on_click(cx.listener(|s, _, w, cx| s.find_dialog(w, cx))),
             )
+            .child(joyoffice_ui::language_menu(
+                "quick-language-menu",
+                locale,
+                p,
+                joyoffice_ui::language_header_trigger("quick-language", locale, p),
+                move |next, w, cx| {
+                    let _ = lang_view.update(cx, |s, cx| s.select_locale(next, w, cx));
+                },
+            ))
             .child(
                 Button::new("quick-theme")
                     .ghost()
                     .xsmall()
                     .icon(if self.dark { I::Sun } else { I::Moon })
-                    .accessibility_label("切换明暗主题")
-                    .tooltip("切换明暗主题")
+                    .accessibility_label(t(locale, "quick.theme"))
+                    .tooltip(t(locale, "quick.theme"))
                     .on_click(cx.listener(|s, _, w, cx| {
                         s.select_theme(s.theme.with_dark(!s.dark), w, cx);
                     })),
             )
             .child(
                 Button::new("present")
-                    .label("放映")
+                    .label(t(locale, "quick.present"))
                     .icon(I::Play)
                     .h(px(26.))
                     .rounded(px(16.))
@@ -308,6 +343,7 @@ impl Viewer {
             )
     }
     pub(super) fn editor_ribbon(&self, w: &Window, cx: &mut Context<Self>) -> Div {
+        let locale = self.locale;
         let palette = self.palette();
         let selected = self.editor.as_ref().and_then(|e| {
             let id = *e.session.selection().shapes.first()?;
@@ -318,7 +354,7 @@ impl Viewer {
         let tabs = div()
             .id("ribbon-tabs")
             .role(gpui::Role::TabList)
-            .aria_label("功能区")
+            .aria_label(t(locale, "ribbon.aria"))
             .h(px(29.))
             .flex_shrink_0()
             .flex()
@@ -337,7 +373,7 @@ impl Viewer {
                     .ghost()
                     .xsmall()
                     .icon(I::MessageSquare)
-                    .label("批注")
+                    .label(t(locale, "ribbon.comments"))
                     .on_click(cx.listener(|s, _, w, cx| s.comments_dialog(w, cx))),
             );
         let ribbon = div().flex_shrink_0().child(tabs);
@@ -363,7 +399,7 @@ impl Viewer {
             div()
                 .id("ribbon-command-panel")
                 .role(gpui::Role::Group)
-                .aria_label(active.label())
+                .aria_label(active.label(locale))
                 .h(px(75.))
                 .pt(px(5.))
                 .pb(px(3.))
@@ -401,18 +437,19 @@ impl Viewer {
     }
 
     fn ribbon_scroll_button(&self, forward: bool, cx: &mut Context<Self>) -> Button {
+        let locale = self.locale;
         let (id, icon, label, step) = if forward {
             (
                 "ribbon-right",
                 I::ChevronRight,
-                "向右滚动功能区",
+                t(locale, "ribbon.scroll_right"),
                 -RIBBON_SCROLL_STEP,
             )
         } else {
             (
                 "ribbon-left",
                 I::ChevronLeft,
-                "向左滚动功能区",
+                t(locale, "ribbon.scroll_left"),
                 RIBBON_SCROLL_STEP,
             )
         };
@@ -439,8 +476,8 @@ impl Viewer {
         accent: u32,
         cx: &mut Context<Self>,
     ) -> Button {
-        let label = tab.label();
-        Button::new(label)
+        let label = tab.label(self.locale);
+        Button::new(tab.id())
             .ghost()
             .xsmall()
             .h(px(28.))
@@ -487,6 +524,7 @@ impl Viewer {
     // Keep ribbon construction in bounded frames on the Windows default stack.
     #[inline(never)]
     fn ribbon_home(&self, cx: &mut Context<Self>, disabled: bool, selected: bool) -> Div {
+        let locale = self.locale;
         let mut bar = row().h(px(RIBBON_HEIGHT)).items_start();
         bar = bar
             .child(self.home_clipboard(cx, disabled, selected))
@@ -496,28 +534,37 @@ impl Viewer {
             .child(self.home_drawing(cx, disabled))
             .child(self.home_arrange(cx))
             .child(group(
-                "扩展",
-                unavailable_row(&[
-                    ("home-addins", I::LayoutGrid, "加载项"),
-                    ("home-designer", I::Zap, "设计器"),
-                ]),
+                t(locale, "home.group.extensions"),
+                unavailable_row(
+                    locale,
+                    &[
+                        ("home-addins", I::LayoutGrid, t(locale, "home.addins")),
+                        ("home-designer", I::Zap, t(locale, "home.designer")),
+                    ],
+                ),
             ));
         bar
     }
     #[inline(never)]
     fn home_clipboard(&self, cx: &mut Context<Self>, disabled: bool, selected: bool) -> Div {
+        let locale = self.locale;
         group(
-            "剪贴板",
+            t(locale, "home.group.clipboard"),
             row()
                 .child(
-                    tool("paste", I::ClipboardPaste, "粘贴", 0x2e6fd8)
-                        .disabled(disabled || self.composing())
-                        .on_click(cx.listener(|s, _, w, cx| s.paste_grid(w, cx))),
+                    tool(
+                        "paste",
+                        I::ClipboardPaste,
+                        t(locale, "home.paste"),
+                        0x2e6fd8,
+                    )
+                    .disabled(disabled || self.composing())
+                    .on_click(cx.listener(|s, _, w, cx| s.paste_grid(w, cx))),
                 )
                 .child(
                     col()
                         .child(
-                            small("cut", I::Scissors, "剪切")
+                            small("cut", I::Scissors, t(locale, "home.cut"))
                                 .disabled(
                                     self.inline.is_none()
                                         && self
@@ -529,34 +576,51 @@ impl Viewer {
                                 })),
                         )
                         .child(
-                            small("copy", I::Copy, "复制").disabled(!selected).on_click(
-                                cx.listener(|s, _, w, cx| s.clipboard_copy(false, w, cx)),
-                            ),
+                            small("copy", I::Copy, t(locale, "home.copy"))
+                                .disabled(!selected)
+                                .on_click(
+                                    cx.listener(|s, _, w, cx| s.clipboard_copy(false, w, cx)),
+                                ),
                         )
-                        .child(small_unavailable("format-painter", I::Paintbrush, "格式刷")),
+                        .child(small_unavailable(
+                            locale,
+                            "format-painter",
+                            I::Paintbrush,
+                            t(locale, "home.format_painter"),
+                        )),
                 ),
         )
     }
     #[inline(never)]
     fn home_slides(&self, cx: &mut Context<Self>, disabled: bool) -> Div {
+        let locale = self.locale;
         let view = cx.entity().downgrade();
         group(
-            "幻灯片",
+            t(locale, "home.group.slides"),
             row().child(self.new_slide_split(cx, "new-slide")).child(
                 col()
                     .child(
-                        small("layout", I::PanelsTopLeft, "版式")
+                        small("layout", I::PanelsTopLeft, t(locale, "home.layout"))
                             .dropdown_caret(true)
                             .disabled(disabled)
                             .on_click(cx.listener(|s, _, w, cx| s.layout_gallery(w, cx))),
                     )
-                    .child(small_unavailable("reset-slide", I::RotateCw, "重置"))
+                    .child(small_unavailable(
+                        locale,
+                        "reset-slide",
+                        I::RotateCw,
+                        t(locale, "home.reset"),
+                    ))
                     .child(
                         Popover::new("slide-section-menu")
                             .trigger(
-                                small("section-slides", I::GalleryVerticalEnd, "节")
-                                    .dropdown_caret(true)
-                                    .disabled(disabled),
+                                small(
+                                    "section-slides",
+                                    I::GalleryVerticalEnd,
+                                    t(locale, "home.section"),
+                                )
+                                .dropdown_caret(true)
+                                .disabled(disabled),
                             )
                             .content(move |_, _, cx| {
                                 let popup = cx.entity().downgrade();
@@ -565,21 +629,36 @@ impl Viewer {
                                 div()
                                     .flex()
                                     .flex_col()
-                                    .child(small("create-section", I::Plus, "新建节…").on_click({
-                                        let popup = popup.clone();
-                                        move |_, w, cx| {
-                                            let _ = popup.update(cx, |p, cx| p.dismiss(w, cx));
-                                            let _ = new_section
-                                                .update(cx, |s, cx| s.create_slide_section(w, cx));
-                                        }
-                                    }))
-                                    .child(small("move-slides", I::Move, "移动幻灯片…").on_click(
-                                        move |_, w, cx| {
-                                            let _ = popup.update(cx, |p, cx| p.dismiss(w, cx));
-                                            let _ = move_slides
-                                                .update(cx, |s, cx| s.organize_dialog(w, cx));
-                                        },
-                                    ))
+                                    .child(
+                                        small(
+                                            "create-section",
+                                            I::Plus,
+                                            t(locale, "home.new_section"),
+                                        )
+                                        .on_click({
+                                            let popup = popup.clone();
+                                            move |_, w, cx| {
+                                                let _ = popup.update(cx, |p, cx| p.dismiss(w, cx));
+                                                let _ = new_section.update(cx, |s, cx| {
+                                                    s.create_slide_section(w, cx)
+                                                });
+                                            }
+                                        }),
+                                    )
+                                    .child(
+                                        small(
+                                            "move-slides",
+                                            I::Move,
+                                            t(locale, "home.move_slides"),
+                                        )
+                                        .on_click(
+                                            move |_, w, cx| {
+                                                let _ = popup.update(cx, |p, cx| p.dismiss(w, cx));
+                                                let _ = move_slides
+                                                    .update(cx, |s, cx| s.organize_dialog(w, cx));
+                                            },
+                                        ),
+                                    )
                             }),
                     ),
             ),
@@ -587,6 +666,7 @@ impl Viewer {
     }
 
     fn new_slide_split(&self, cx: &mut Context<Self>, id: &'static str) -> Div {
+        let locale = self.locale;
         let view = cx.entity().downgrade();
         let can_duplicate = self
             .basic_edit_unavailable(BasicEdit::DuplicateSlides, cx)
@@ -597,7 +677,12 @@ impl Viewer {
         row()
             .gap_0()
             .child(self.basic_button(
-                tool(id, I::GalleryVerticalEnd, "新建\n幻灯片", GREEN),
+                tool(
+                    id,
+                    I::GalleryVerticalEnd,
+                    t(locale, "home.new_slide"),
+                    GREEN,
+                ),
                 BasicEdit::NewSlide,
                 cx,
             ))
@@ -611,7 +696,7 @@ impl Viewer {
                             .w(px(14.))
                             .h(px(35.))
                             .icon(I::ChevronDown)
-                            .accessibility_label("幻灯片选项")
+                            .accessibility_label(t(locale, "home.slide_options"))
                             .disabled(self.editor.is_none() || self.loading || self.composing()),
                     )
                     .content(move |_, _, cx| {
@@ -621,14 +706,14 @@ impl Viewer {
                                 (
                                     "duplicate-slide",
                                     I::Copy,
-                                    "复制幻灯片",
+                                    t(locale, "home.duplicate_slide"),
                                     BasicEdit::DuplicateSlides,
                                     can_duplicate,
                                 ),
                                 (
                                     "delete-slide",
                                     I::Trash,
-                                    "删除幻灯片",
+                                    t(locale, "home.delete_slide"),
                                     BasicEdit::DeleteSlides,
                                     can_delete,
                                 ),
@@ -652,25 +737,31 @@ impl Viewer {
 
     #[inline(never)]
     fn home_drawing(&self, cx: &mut Context<Self>, disabled: bool) -> Div {
+        let locale = self.locale;
         group(
-            "绘图",
+            t(locale, "home.group.drawing"),
             row()
                 .child(
-                    tool("picture", I::Image, "图片", 0x2ea36f)
+                    tool("picture", I::Image, t(locale, "home.picture"), 0x2ea36f)
                         .disabled(disabled)
                         .on_click(cx.listener(|s, _, w, cx| {
                             s.content_form(content_ui::Form::ImportPicture(false), w, cx)
                         })),
                 )
                 .child(
-                    tool("shapes", I::Shapes, "形状", 0x2e6fd8)
+                    tool("shapes", I::Shapes, t(locale, "home.shapes"), 0x2e6fd8)
                         .disabled(disabled)
                         .on_click(cx.listener(|s, _, w, cx| s.shape_gallery(w, cx))),
                 )
                 .child(
-                    tool("text-box", I::TextCursorInput, "文本框", 0x2e6fd8)
-                        .disabled(disabled)
-                        .on_click(cx.listener(|s, _, w, cx| s.insert_textbox(w, cx))),
+                    tool(
+                        "text-box",
+                        I::TextCursorInput,
+                        t(locale, "home.text_box"),
+                        0x2e6fd8,
+                    )
+                    .disabled(disabled)
+                    .on_click(cx.listener(|s, _, w, cx| s.insert_textbox(w, cx))),
                 ),
         )
     }
@@ -681,17 +772,18 @@ impl Viewer {
         trigger: Button,
         cx: &mut Context<Self>,
     ) -> Popover {
+        let locale = self.locale;
         let view = cx.entity().downgrade();
         let p = self.palette();
-        let colors: &[(u32, &'static str)] = &[
-            (0x1f2937, "深灰"),
-            (0x2678d0, "蓝色"),
-            (0xd04020, "红橙"),
-            (0x25805d, "绿色"),
-            (0xd99b26, "金黄"),
-            (0x7c4dff, "紫色"),
-            (0x6b7280, "中灰"),
-            (0xffffff, "白色"),
+        let colors: [(u32, &'static str); 8] = [
+            (0x1f2937, t(locale, "swatch.dark_gray")),
+            (0x2678d0, t(locale, "swatch.blue")),
+            (0xd04020, t(locale, "swatch.red_orange")),
+            (0x25805d, t(locale, "swatch.green")),
+            (0xd99b26, t(locale, "swatch.gold")),
+            (0x7c4dff, t(locale, "swatch.purple")),
+            (0x6b7280, t(locale, "swatch.mid_gray")),
+            (0xffffff, t(locale, "swatch.white")),
         ];
         Popover::new(id)
             .trigger(trigger.disabled(!self.can_edit_outline()))
@@ -779,10 +871,10 @@ impl Viewer {
                 );
                 let dash_row = row().gap_1().children(
                     [
-                        ("solid", "实线"),
-                        ("dash", "虚线"),
-                        ("dot", "点线"),
-                        ("dashDot", "点划线"),
+                        ("solid", t(locale, "outline.dash_solid")),
+                        ("dash", t(locale, "outline.dash_dash")),
+                        ("dot", t(locale, "outline.dash_dot")),
+                        ("dashDot", t(locale, "outline.dash_dash_dot")),
                     ]
                     .into_iter()
                     .enumerate()
@@ -842,68 +934,108 @@ impl Viewer {
                 let custom_popup = popup.clone();
                 col()
                     .gap_2()
-                    .child(div().text_xs().text_color(rgb(p.muted)).child("轮廓颜色"))
+                    .child(
+                        div()
+                            .text_xs()
+                            .text_color(rgb(p.muted))
+                            .child(t(locale, "outline.color")),
+                    )
                     .child(color_row)
-                    .child(div().text_xs().text_color(rgb(p.muted)).child("粗细"))
+                    .child(
+                        div()
+                            .text_xs()
+                            .text_color(rgb(p.muted))
+                            .child(t(locale, "outline.weight")),
+                    )
                     .child(width_row)
-                    .child(div().text_xs().text_color(rgb(p.muted)).child("虚线"))
+                    .child(
+                        div()
+                            .text_xs()
+                            .text_color(rgb(p.muted))
+                            .child(t(locale, "outline.dashes")),
+                    )
                     .child(dash_row)
                     .child(
                         row()
                             .gap_2()
-                            .child(small("outline-none", I::ImageOff, "无轮廓").on_click(
-                                move |_, w, cx| {
-                                    let _ = clear_popup.update(cx, |pop, cx| pop.dismiss(w, cx));
-                                    let _ = clear_view.update(cx, |s, cx| {
-                                        s.set_shape_line(None, None, None, w, cx);
-                                    });
-                                },
-                            ))
-                            .child(small("outline-custom", I::PenLine, "自定义轮廓…").on_click(
-                                move |_, w, cx| {
-                                    let _ = custom_popup.update(cx, |pop, cx| pop.dismiss(w, cx));
-                                    let _ = custom_view.update(cx, |s, cx| {
-                                        s.content_form(content_ui::Form::ShapeLine, w, cx);
-                                    });
-                                },
-                            )),
+                            .child(
+                                small("outline-none", I::ImageOff, t(locale, "outline.none"))
+                                    .on_click(move |_, w, cx| {
+                                        let _ =
+                                            clear_popup.update(cx, |pop, cx| pop.dismiss(w, cx));
+                                        let _ = clear_view.update(cx, |s, cx| {
+                                            s.set_shape_line(None, None, None, w, cx);
+                                        });
+                                    }),
+                            )
+                            .child(
+                                small("outline-custom", I::PenLine, t(locale, "outline.custom"))
+                                    .on_click(move |_, w, cx| {
+                                        let _ =
+                                            custom_popup.update(cx, |pop, cx| pop.dismiss(w, cx));
+                                        let _ = custom_view.update(cx, |s, cx| {
+                                            s.content_form(content_ui::Form::ShapeLine, w, cx);
+                                        });
+                                    }),
+                            ),
                     )
             })
     }
 
     #[inline(never)]
     fn align_popover(&self, id: &'static str, cx: &mut Context<Self>) -> Popover {
+        let locale = self.locale;
         let view = cx.entity().downgrade();
         let can_align = self.can_align();
         let can_dist = self.can_distribute();
         Popover::new(id)
             .trigger(
-                tool("align-btn", I::LayoutGrid, "对齐", 0xa77436)
-                    .dropdown_caret(true)
-                    .disabled(!can_align),
+                tool(
+                    "align-btn",
+                    I::LayoutGrid,
+                    t(locale, "align.button"),
+                    0xa77436,
+                )
+                .dropdown_caret(true)
+                .disabled(!can_align),
             )
             .content(move |_, _, cx| {
                 let popup = cx.entity().downgrade();
                 let aligns = [
-                    ("align-left", I::TextAlignStart, "左对齐", AlignEdge::Left),
+                    (
+                        "align-left",
+                        I::TextAlignStart,
+                        t(locale, "align.left"),
+                        AlignEdge::Left,
+                    ),
                     (
                         "align-center-h",
                         I::TextAlignCenter,
-                        "水平居中",
+                        t(locale, "align.center_h"),
                         AlignEdge::CenterH,
                     ),
-                    ("align-right", I::TextAlignEnd, "右对齐", AlignEdge::Right),
-                    ("align-top", I::ArrowUpToLine, "顶端对齐", AlignEdge::Top),
+                    (
+                        "align-right",
+                        I::TextAlignEnd,
+                        t(locale, "align.right"),
+                        AlignEdge::Right,
+                    ),
+                    (
+                        "align-top",
+                        I::ArrowUpToLine,
+                        t(locale, "align.top"),
+                        AlignEdge::Top,
+                    ),
                     (
                         "align-middle-v",
                         I::Columns2,
-                        "垂直居中",
+                        t(locale, "align.middle_v"),
                         AlignEdge::MiddleV,
                     ),
                     (
                         "align-bottom",
                         I::ArrowLeftToLine,
-                        "底端对齐",
+                        t(locale, "align.bottom"),
                         AlignEdge::Bottom,
                     ),
                 ];
@@ -911,13 +1043,13 @@ impl Viewer {
                     (
                         "dist-h",
                         I::MoveHorizontal,
-                        "横向分布",
+                        t(locale, "align.distribute_h"),
                         DistributeAxis::Horizontal,
                     ),
                     (
                         "dist-v",
                         I::GalleryVerticalEnd,
-                        "纵向分布",
+                        t(locale, "align.distribute_v"),
                         DistributeAxis::Vertical,
                     ),
                 ];
@@ -948,12 +1080,13 @@ impl Viewer {
 
     #[inline(never)]
     fn group_popover(&self, id: &'static str, cx: &mut Context<Self>) -> Popover {
+        let locale = self.locale;
         let view = cx.entity().downgrade();
         let can_group = self.can_group();
         let can_ungroup = self.can_ungroup();
         Popover::new(id)
             .trigger(
-                tool("group-btn", I::Box, "组合", 0xa77436)
+                tool("group-btn", I::Box, t(locale, "group.button"), 0xa77436)
                     .dropdown_caret(true)
                     .disabled(!can_group && !can_ungroup),
             )
@@ -966,7 +1099,7 @@ impl Viewer {
                 col()
                     .gap_1()
                     .child(
-                        small("group-objs", I::Box, "组合")
+                        small("group-objs", I::Box, t(locale, "group.button"))
                             .disabled(!can_group)
                             .on_click(move |_, w, cx| {
                                 let _ = gp.update(cx, |p, cx| p.dismiss(w, cx));
@@ -974,18 +1107,23 @@ impl Viewer {
                             }),
                     )
                     .child(
-                        small("ungroup-objs", I::SquareSplitHorizontal, "取消组合")
-                            .disabled(!can_ungroup)
-                            .on_click(move |_, w, cx| {
-                                let _ = up.update(cx, |p, cx| p.dismiss(w, cx));
-                                let _ = uv.update(cx, |s, cx| s.ungroup_selected(w, cx));
-                            }),
+                        small(
+                            "ungroup-objs",
+                            I::SquareSplitHorizontal,
+                            t(locale, "group.ungroup"),
+                        )
+                        .disabled(!can_ungroup)
+                        .on_click(move |_, w, cx| {
+                            let _ = up.update(cx, |p, cx| p.dismiss(w, cx));
+                            let _ = uv.update(cx, |s, cx| s.ungroup_selected(w, cx));
+                        }),
                     )
             })
     }
 
     #[inline(never)]
     fn home_arrange(&self, cx: &mut Context<Self>) -> Div {
+        let locale = self.locale;
         let view = cx.entity().downgrade();
         let can_group = self.can_group();
         let can_ungroup = self.can_ungroup();
@@ -995,16 +1133,21 @@ impl Viewer {
             (
                 "forward",
                 I::BringToFront,
-                "上移一层",
+                t(locale, "order.bring_forward"),
                 BasicEdit::BringForward,
             ),
             (
                 "backward",
                 I::SendToBack,
-                "下移一层",
+                t(locale, "order.send_backward"),
                 BasicEdit::SendBackward,
             ),
-            ("duplicate", I::CopyPlus, "创建副本", BasicEdit::Duplicate),
+            (
+                "duplicate",
+                I::CopyPlus,
+                t(locale, "order.duplicate"),
+                BasicEdit::Duplicate,
+            ),
         ]
         .map(|(id, icon, label, edit)| {
             (
@@ -1016,11 +1159,14 @@ impl Viewer {
             )
         });
         group(
-            "排列",
+            t(locale, "home.group.arrange"),
             row()
                 .child(
                     Popover::new("arrange-menu")
-                        .trigger(tool("arrange", I::Layers2, "排列", 0xa77436).dropdown_caret(true))
+                        .trigger(
+                            tool("arrange", I::Layers2, t(locale, "home.arrange"), 0xa77436)
+                                .dropdown_caret(true),
+                        )
                         .content(move |_, _, cx| {
                             let popup = cx.entity().downgrade();
                             let selection_view = view.clone();
@@ -1029,20 +1175,40 @@ impl Viewer {
                             let uv = view.clone();
                             let up = popup.clone();
                             let aligns = [
-                                ("home-align-l", I::TextAlignStart, "左对齐", AlignEdge::Left),
+                                (
+                                    "home-align-l",
+                                    I::TextAlignStart,
+                                    t(locale, "align.left"),
+                                    AlignEdge::Left,
+                                ),
                                 (
                                     "home-align-c",
                                     I::TextAlignCenter,
-                                    "水平居中",
+                                    t(locale, "align.center_h"),
                                     AlignEdge::CenterH,
                                 ),
-                                ("home-align-r", I::TextAlignEnd, "右对齐", AlignEdge::Right),
-                                ("home-align-t", I::ArrowUpToLine, "顶端对齐", AlignEdge::Top),
-                                ("home-align-m", I::Columns2, "垂直居中", AlignEdge::MiddleV),
+                                (
+                                    "home-align-r",
+                                    I::TextAlignEnd,
+                                    t(locale, "align.right"),
+                                    AlignEdge::Right,
+                                ),
+                                (
+                                    "home-align-t",
+                                    I::ArrowUpToLine,
+                                    t(locale, "align.top"),
+                                    AlignEdge::Top,
+                                ),
+                                (
+                                    "home-align-m",
+                                    I::Columns2,
+                                    t(locale, "align.middle_v"),
+                                    AlignEdge::MiddleV,
+                                ),
                                 (
                                     "home-align-b",
                                     I::ArrowLeftToLine,
-                                    "底端对齐",
+                                    t(locale, "align.bottom"),
                                     AlignEdge::Bottom,
                                 ),
                             ];
@@ -1050,13 +1216,13 @@ impl Viewer {
                                 (
                                     "home-dist-h",
                                     I::MoveHorizontal,
-                                    "横向分布",
+                                    t(locale, "align.distribute_h"),
                                     DistributeAxis::Horizontal,
                                 ),
                                 (
                                     "home-dist-v",
                                     I::GalleryVerticalEnd,
-                                    "纵向分布",
+                                    t(locale, "align.distribute_v"),
                                     DistributeAxis::Vertical,
                                 ),
                             ];
@@ -1077,7 +1243,7 @@ impl Viewer {
                                     },
                                 ))
                                 .child(
-                                    small("home-group", I::Box, "组合")
+                                    small("home-group", I::Box, t(locale, "group.button"))
                                         .disabled(!can_group)
                                         .on_click(move |_, w, cx| {
                                             let _ = gp.update(cx, |p, cx| p.dismiss(w, cx));
@@ -1085,13 +1251,19 @@ impl Viewer {
                                         }),
                                 )
                                 .child(
-                                    small("home-ungroup", I::SquareSplitHorizontal, "取消组合")
-                                        .disabled(!can_ungroup)
-                                        .on_click(move |_, w, cx| {
+                                    small(
+                                        "home-ungroup",
+                                        I::SquareSplitHorizontal,
+                                        t(locale, "group.ungroup"),
+                                    )
+                                    .disabled(!can_ungroup)
+                                    .on_click(
+                                        move |_, w, cx| {
                                             let _ = up.update(cx, |p, cx| p.dismiss(w, cx));
                                             let _ =
                                                 uv.update(cx, |s, cx| s.ungroup_selected(w, cx));
-                                        }),
+                                        },
+                                    ),
                                 )
                                 .children(aligns.into_iter().map(|(id, icon, label, edge)| {
                                     let view = view.clone();
@@ -1116,37 +1288,57 @@ impl Viewer {
                                         },
                                     )
                                 }))
-                                .child(small("selection", I::PanelRight, "选择窗格").on_click(
-                                    move |_, w, cx| {
-                                        let _ = popup.update(cx, |p, cx| p.dismiss(w, cx));
-                                        let _ = selection_view.update(cx, |s, cx| {
-                                            s.inspector = !s.inspector;
-                                            cx.notify();
-                                        });
-                                    },
-                                ))
+                                .child(
+                                    small(
+                                        "selection",
+                                        I::PanelRight,
+                                        t(locale, "home.selection_pane"),
+                                    )
+                                    .on_click(
+                                        move |_, w, cx| {
+                                            let _ = popup.update(cx, |p, cx| p.dismiss(w, cx));
+                                            let _ = selection_view.update(cx, |s, cx| {
+                                                s.inspector = !s.inspector;
+                                                cx.notify();
+                                            });
+                                        },
+                                    ),
+                                )
                         }),
                 )
-                .child(unavailable("quick-shape-style", I::Brush, "快速样式"))
+                .child(unavailable(
+                    locale,
+                    "quick-shape-style",
+                    I::Brush,
+                    t(locale, "home.quick_styles"),
+                ))
                 .child(
                     col()
                         .pt(px(4.))
                         .child(
-                            small("home-shape-fill", I::PaintBucket, "形状填充")
-                                .disabled(
-                                    self.editor
-                                        .as_ref()
-                                        .is_none_or(|e| e.session.selection().shapes.is_empty())
-                                        || self.loading
-                                        || self.composing(),
-                                )
-                                .on_click(cx.listener(|s, _, w, cx| {
-                                    s.content_form(content_ui::Form::ShapeFill, w, cx)
-                                })),
+                            small(
+                                "home-shape-fill",
+                                I::PaintBucket,
+                                t(locale, "home.shape_fill"),
+                            )
+                            .disabled(
+                                self.editor
+                                    .as_ref()
+                                    .is_none_or(|e| e.session.selection().shapes.is_empty())
+                                    || self.loading
+                                    || self.composing(),
+                            )
+                            .on_click(cx.listener(|s, _, w, cx| {
+                                s.content_form(content_ui::Form::ShapeFill, w, cx)
+                            })),
                         )
                         .child(self.shape_outline_popover(
                             "home-shape-outline-pop",
-                            small("home-shape-outline", I::PenLine, "形状轮廓"),
+                            small(
+                                "home-shape-outline",
+                                I::PenLine,
+                                t(locale, "home.shape_outline"),
+                            ),
                             cx,
                         )),
                 ),
@@ -1156,100 +1348,155 @@ impl Viewer {
     // Keep ribbon construction in bounded frames on the Windows default stack.
     #[inline(never)]
     fn ribbon_insert(&self, cx: &mut Context<Self>) -> Div {
+        let locale = self.locale;
         let disabled = self.editor.is_none() || self.loading || self.composing();
         let mut bar = row().h(px(RIBBON_HEIGHT)).items_start();
         bar = bar
-            .child(group("幻灯片", self.new_slide_split(cx, "insert-slide")))
             .child(group(
-                "表格",
-                tool("insert-table", I::Table, "表格", BLUE)
+                t(locale, "home.group.slides"),
+                self.new_slide_split(cx, "insert-slide"),
+            ))
+            .child(group(
+                t(locale, "insert.group.table"),
+                tool("insert-table", I::Table, t(locale, "insert.table"), BLUE)
                     .dropdown_caret(true)
                     .disabled(disabled)
                     .on_click(cx.listener(|s, _, w, cx| s.insert_table_dialog(w, cx))),
             ))
             .child(group(
-                "图像",
+                t(locale, "insert.group.images"),
                 row()
                     .child(
-                        tool("insert-picture", I::Image, "图片", BLUE)
-                            .disabled(disabled)
-                            .on_click(cx.listener(|s, _, w, cx| {
-                                s.content_form(content_ui::Form::ImportPicture(false), w, cx)
-                            })),
+                        tool(
+                            "insert-picture",
+                            I::Image,
+                            t(locale, "insert.picture"),
+                            BLUE,
+                        )
+                        .disabled(disabled)
+                        .on_click(cx.listener(|s, _, w, cx| {
+                            s.content_form(content_ui::Form::ImportPicture(false), w, cx)
+                        })),
                     )
-                    .child(unavailable("insert-screenshot", I::Scan, "屏幕截图")),
+                    .child(unavailable(
+                        locale,
+                        "insert-screenshot",
+                        I::Scan,
+                        t(locale, "insert.screenshot"),
+                    )),
             ))
             .child(group(
-                "摄像头",
-                unavailable("insert-cameo", I::Camera, "Cameo"),
+                t(locale, "insert.camera"),
+                unavailable(locale, "insert-cameo", I::Camera, "Cameo"),
             ))
             .child(group(
-                "插图",
+                t(locale, "insert.group.illustrations"),
                 row()
                     .child(
-                        tool("insert-shapes", I::Shapes, "形状", BLUE)
+                        tool("insert-shapes", I::Shapes, t(locale, "insert.shapes"), BLUE)
                             .dropdown_caret(true)
                             .disabled(disabled)
                             .on_click(cx.listener(|s, _, w, cx| s.shape_gallery(w, cx))),
                     )
-                    .child(unavailable_row(&[
-                        ("insert-icons", I::Shapes, "图标"),
-                        ("insert-3d", I::Box, "3D 模型"),
-                        ("insert-smartart", I::Network, "SmartArt"),
-                        ("insert-chart", I::ChartColumn, "图表"),
-                    ])),
+                    .child(unavailable_row(
+                        locale,
+                        &[
+                            ("insert-icons", I::Shapes, t(locale, "insert.icons")),
+                            ("insert-3d", I::Box, t(locale, "insert.models_3d")),
+                            ("insert-smartart", I::Network, "SmartArt"),
+                            ("insert-chart", I::ChartColumn, t(locale, "insert.chart")),
+                        ],
+                    )),
             ))
             .child(group(
-                "链接",
+                t(locale, "insert.group.links"),
                 row()
-                    .child(unavailable("insert-zoom", I::Scan, "缩放定位"))
+                    .child(unavailable(
+                        locale,
+                        "insert-zoom",
+                        I::Scan,
+                        t(locale, "insert.zoom"),
+                    ))
                     .child(self.text_link_controls(cx))
-                    .child(unavailable("insert-action", I::MousePointer, "动作")),
+                    .child(unavailable(
+                        locale,
+                        "insert-action",
+                        I::MousePointer,
+                        t(locale, "insert.action"),
+                    )),
             ))
             .child(group(
-                "批注",
-                tool("insert-comment", I::MessageSquarePlus, "批注", GREEN)
-                    .disabled(disabled)
-                    .on_click(cx.listener(|s, _, w, cx| s.add_comment(w, cx))),
+                t(locale, "insert.group.comments"),
+                tool(
+                    "insert-comment",
+                    I::MessageSquarePlus,
+                    t(locale, "insert.comment"),
+                    GREEN,
+                )
+                .disabled(disabled)
+                .on_click(cx.listener(|s, _, w, cx| s.add_comment(w, cx))),
             ))
             .child(self.insert_text_group(disabled, cx))
             .child(group(
-                "符号",
-                unavailable_row(&[
-                    ("insert-equation", I::Sigma, "公式"),
-                    ("insert-symbol", I::Omega, "符号"),
-                ]),
+                t(locale, "insert.group.symbols"),
+                unavailable_row(
+                    locale,
+                    &[
+                        ("insert-equation", I::Sigma, t(locale, "insert.equation")),
+                        ("insert-symbol", I::Omega, t(locale, "insert.symbol")),
+                    ],
+                ),
             ))
             .child(group(
-                "媒体",
-                unavailable_row(&[
-                    ("insert-video", I::Video, "视频"),
-                    ("insert-audio", I::Volume2, "音频"),
-                ]),
+                t(locale, "insert.group.media"),
+                unavailable_row(
+                    locale,
+                    &[
+                        ("insert-video", I::Video, t(locale, "insert.video")),
+                        ("insert-audio", I::Volume2, t(locale, "insert.audio")),
+                    ],
+                ),
             ));
         bar
     }
 
     #[inline(never)]
     fn insert_text_group(&self, disabled: bool, cx: &mut Context<Self>) -> Div {
+        let locale = self.locale;
         group(
-            "文本",
+            t(locale, "insert.group.text"),
             row()
                 .child(
-                    tool("insert-textbox", I::TextCursorInput, "文本框", BLUE)
-                        .disabled(disabled)
-                        .on_click(cx.listener(|s, _, w, cx| s.insert_textbox(w, cx))),
+                    tool(
+                        "insert-textbox",
+                        I::TextCursorInput,
+                        t(locale, "insert.textbox"),
+                        BLUE,
+                    )
+                    .disabled(disabled)
+                    .on_click(cx.listener(|s, _, w, cx| s.insert_textbox(w, cx))),
                 )
                 .child(self.footer_control(cx))
-                .child(unavailable("insert-wordart", I::Type, "艺术字"))
+                .child(unavailable(
+                    locale,
+                    "insert-wordart",
+                    I::Type,
+                    t(locale, "insert.wordart"),
+                ))
                 .children(self.text_field_controls(cx))
-                .child(unavailable("insert-object", I::FileBox, "对象")),
+                .child(unavailable(
+                    locale,
+                    "insert-object",
+                    I::FileBox,
+                    t(locale, "insert.object"),
+                )),
         )
     }
 
     // Keep ribbon construction in bounded frames on the Windows default stack.
     #[inline(never)]
     fn ribbon_design(&self, cx: &mut Context<Self>, disabled: bool) -> Div {
+        let locale = self.locale;
         let editor = self.editor.as_ref();
         let master = editor.and_then(|e| {
             let model = e.session.model();
@@ -1268,30 +1515,39 @@ impl Viewer {
         if let Some(m) = master
             && !current_is_builtin
         {
-            let name = m.theme.name.clone();
+            let name = presentation_theme_name(locale, &m.theme.name);
+            let tip = tf(locale, "design.current_theme_tip", &[("name", &name)]);
             theme_cards.push(
                 div()
                     .id(("theme-preview", idx))
-                    .tooltip(move |w, cx| {
-                        Tooltip::new(format!("当前文档主题：{name}")).build(w, cx)
-                    })
-                    .child(theme_swatch_body(&m.theme, true, p))
+                    .tooltip(move |w, cx| Tooltip::new(tip.clone()).build(w, cx))
+                    .child(theme_swatch_body(&m.theme, locale, true, p))
                     .into_any_element(),
             );
             idx += 1;
         }
         for theme in &builtin {
             let is_current = current_name.as_deref() == Some(theme.name.as_str());
-            let name = theme.name.clone();
+            let apply_name = theme.name.clone();
+            let display_name = presentation_theme_name(locale, &apply_name);
+            let hint = presentation_theme_hint(locale, &apply_name);
             let tip = if is_current {
-                format!("当前主题：{name}（点击重新应用）")
+                tf(
+                    locale,
+                    "design.theme_reapply_tip",
+                    &[("name", &display_name), ("hint", hint)],
+                )
             } else {
-                format!("一键应用主题：{name}")
+                tf(
+                    locale,
+                    "design.theme_apply_tip",
+                    &[("name", &display_name), ("hint", hint)],
+                )
             };
-            let apply_name = name.clone();
             theme_cards.push(
                 div()
                     .id(("theme-preview", idx))
+                    .flex_shrink_0()
                     .when(!disabled, |d| d.cursor_pointer())
                     .tooltip(move |w, cx| Tooltip::new(tip.clone()).build(w, cx))
                     .when(!disabled, |d| {
@@ -1307,16 +1563,80 @@ impl Viewer {
                             );
                         }))
                     })
-                    .child(theme_swatch_body(theme, is_current, p))
+                    .child(theme_swatch_body(theme, locale, is_current, p))
                     .into_any_element(),
             );
             idx += 1;
         }
-        let themes = gallery(self.palette())
+        let themes_strip = gallery(self.palette())
             .id("design-themes-gallery")
-            .max_w(px(540.))
+            .max_w(px(580.))
             .overflow_x_scroll()
             .children(theme_cards);
+        let all_themes = builtin.clone();
+        let all_current = current_name.clone();
+        let themes_view = cx.entity().downgrade();
+        let all_themes_btn = Popover::new("design-themes-all")
+            .trigger(
+                tool(
+                    "design-themes-more",
+                    I::LayoutGrid,
+                    t(locale, "design.all_themes"),
+                    BLUE,
+                )
+                .dropdown_caret(true)
+                .disabled(disabled),
+            )
+            .content(move |_, _, _| {
+                let mut grid = div().flex().flex_wrap().gap_2().w(px(484.));
+                for (ti, theme) in all_themes.iter().enumerate() {
+                    let is_curr = all_current.as_deref() == Some(theme.name.as_str());
+                    let display_name = presentation_theme_name(locale, &theme.name);
+                    let hint = presentation_theme_hint(locale, &theme.name);
+                    let tip = format!("{display_name} — {hint}");
+                    let view = themes_view.clone();
+                    grid = grid.child(
+                        div()
+                            .id(("theme-all-card", ti))
+                            .w(px(90.))
+                            .flex()
+                            .flex_col()
+                            .gap(px(2.))
+                            .cursor_pointer()
+                            .tooltip(move |w, cx| Tooltip::new(tip.clone()).build(w, cx))
+                            .on_click({
+                                let apply_name = theme.name.clone();
+                                move |_, w, cx| {
+                                    let _ = view.update(cx, |s, cx| {
+                                        s.dispatch(
+                                            Command::Content {
+                                                action: joydeck_engine::ContentAction::ApplyTheme {
+                                                    name: apply_name.clone(),
+                                                },
+                                            },
+                                            w,
+                                            cx,
+                                        );
+                                    });
+                                }
+                            })
+                            .child(theme_swatch_body(theme, locale, is_curr, p)),
+                    );
+                }
+                div()
+                    .flex()
+                    .flex_col()
+                    .gap_2()
+                    .child(
+                        div()
+                            .text_xs()
+                            .font_weight(FontWeight::SEMIBOLD)
+                            .text_color(rgb(p.muted))
+                            .child(t(locale, "design.all_themes_heading")),
+                    )
+                    .child(grid)
+            });
+        let themes = row().gap_1().child(themes_strip).child(all_themes_btn);
 
         let variant_schemes = master
             .map(|m| joydeck_model::theme::theme_variants(&m.theme))
@@ -1325,16 +1645,27 @@ impl Viewer {
         let view = cx.entity().downgrade();
         let variant_btn = Popover::new("design-variants")
             .trigger(
-                tool("design-variants-trigger", I::Brush, "变体", BLUE)
-                    .dropdown_caret(true)
-                    .disabled(disabled || variant_schemes.is_empty()),
+                tool(
+                    "design-variants-trigger",
+                    I::Brush,
+                    t(locale, "design.variants"),
+                    BLUE,
+                )
+                .dropdown_caret(true)
+                .disabled(disabled || variant_schemes.is_empty()),
             )
             .content(move |_, _, _| {
-                let labels = ["默认配色", "配色变体 2", "配色变体 3", "深浅反色"];
+                let labels = [
+                    t(locale, "design.variant_default"),
+                    t(locale, "design.variant_2"),
+                    t(locale, "design.variant_3"),
+                    t(locale, "design.variant_invert"),
+                ];
+                let fallback_label = t(locale, "design.variants");
                 let mut grid = div().flex().flex_wrap().gap_2().w(px(236.));
                 for (vi, scheme) in variant_schemes.iter().enumerate() {
                     let is_curr = current_colors.as_ref() == Some(scheme);
-                    let label = labels.get(vi).copied().unwrap_or("变体");
+                    let label = labels.get(vi).copied().unwrap_or(fallback_label);
                     let view = view.clone();
                     grid = grid.child(
                         div()
@@ -1366,24 +1697,34 @@ impl Viewer {
                             .text_xs()
                             .font_weight(FontWeight::SEMIBOLD)
                             .text_color(rgb(p.muted))
-                            .child("主题配色变体（点击应用）"),
+                            .child(t(locale, "design.variants_heading")),
                     )
                     .child(grid)
             });
 
         let mut variants = row().child(variant_btn);
         for (id, label, icon, form) in [
-            ("theme-colors", "颜色", I::Palette, content_ui::Form::Accent),
-            ("theme-fonts", "字体", I::Type, content_ui::Form::Fonts),
+            (
+                "theme-colors",
+                t(locale, "design.colors"),
+                I::Palette,
+                content_ui::Form::Accent,
+            ),
+            (
+                "theme-fonts",
+                t(locale, "design.fonts"),
+                I::Type,
+                content_ui::Form::Fonts,
+            ),
             (
                 "slide-background",
-                "背景样式",
+                t(locale, "design.background_styles"),
                 I::PaintBucket,
                 content_ui::Form::Background,
             ),
             (
                 "master-background",
-                "母版背景",
+                t(locale, "design.master_background"),
                 I::PanelsTopLeft,
                 content_ui::Form::MasterBackground,
             ),
@@ -1396,93 +1737,140 @@ impl Viewer {
         }
         row()
             .h(px(RIBBON_HEIGHT))
-            .child(group("主题", themes))
-            .child(group("变体和背景", variants))
+            .child(group(t(locale, "design.group.themes"), themes))
+            .child(group(t(locale, "design.group.variants"), variants))
             .child(group(
-                "自定义",
+                t(locale, "design.group.customize"),
                 row()
                     .child(
-                        tool("design-layout", I::PanelsTopLeft, "版式", BLUE)
-                            .dropdown_caret(true)
-                            .disabled(disabled)
-                            .on_click(cx.listener(|s, _, w, cx| s.layout_gallery(w, cx))),
+                        tool(
+                            "design-layout",
+                            I::PanelsTopLeft,
+                            t(locale, "design.layout"),
+                            BLUE,
+                        )
+                        .dropdown_caret(true)
+                        .disabled(disabled)
+                        .on_click(cx.listener(|s, _, w, cx| s.layout_gallery(w, cx))),
                     )
                     .child(
-                        tool("slide-size", I::RectangleHorizontal, "幻灯片\n大小", BLUE)
-                            .disabled(disabled)
-                            .on_click(cx.listener(|s, _, w, cx| {
+                        tool(
+                            "slide-size",
+                            I::RectangleHorizontal,
+                            t(locale, "design.slide_size"),
+                            BLUE,
+                        )
+                        .disabled(disabled)
+                        .on_click(
+                            cx.listener(|s, _, w, cx| {
                                 s.content_form(content_ui::Form::Size, w, cx)
-                            })),
+                            }),
+                        ),
                     ),
             ))
             .child(group(
-                "设计建议",
-                unavailable("designer", I::Zap, "设计\n建议"),
+                t(locale, "design.group.designer"),
+                unavailable(locale, "designer", I::Zap, t(locale, "design.designer_btn")),
             ))
     }
 
     // Keep ribbon construction in bounded frames on the Windows default stack.
     #[inline(never)]
     fn ribbon_picture(&self, cx: &mut Context<Self>, selected: bool) -> Div {
+        let locale = self.locale;
         let adjustment = row()
-            .child(unavailable("picture-remove-bg", I::ImageOff, "删除\n背景"))
+            .child(unavailable(
+                locale,
+                "picture-remove-bg",
+                I::ImageOff,
+                t(locale, "pic.remove_bg"),
+            ))
             .child(
-                tool("picture-corrections", I::Sun, "更正", 0xae6f30)
-                    .disabled(!selected)
-                    .on_click(
-                        cx.listener(|s, _, w, cx| s.content_form(content_ui::Form::Picture, w, cx)),
-                    ),
+                tool(
+                    "picture-corrections",
+                    I::Sun,
+                    t(locale, "pic.corrections"),
+                    0xae6f30,
+                )
+                .disabled(!selected)
+                .on_click(
+                    cx.listener(|s, _, w, cx| s.content_form(content_ui::Form::Picture, w, cx)),
+                ),
             )
-            .child(unavailable("picture-color", I::Image, "颜色"))
-            .child(unavailable("picture-effects", I::Sparkles, "艺术效果"))
+            .child(unavailable(
+                locale,
+                "picture-color",
+                I::Image,
+                t(locale, "pic.color"),
+            ))
+            .child(unavailable(
+                locale,
+                "picture-effects",
+                I::Sparkles,
+                t(locale, "pic.artistic_effects"),
+            ))
             .child(
-                tool("picture-alpha", I::Blend, "透明度", BLUE)
-                    .disabled(!selected)
-                    .on_click(
-                        cx.listener(|s, _, w, cx| s.content_form(content_ui::Form::Picture, w, cx)),
-                    ),
+                tool(
+                    "picture-alpha",
+                    I::Blend,
+                    t(locale, "pic.transparency"),
+                    BLUE,
+                )
+                .disabled(!selected)
+                .on_click(
+                    cx.listener(|s, _, w, cx| s.content_form(content_ui::Form::Picture, w, cx)),
+                ),
             )
             .child(
                 col()
                     .child(small_unavailable(
+                        locale,
                         "picture-compress",
                         I::Minimize2,
-                        "压缩图片",
+                        t(locale, "pic.compress"),
                     ))
                     .child(
-                        small("replace-picture", I::ImagePlus, "更改图片")
+                        small("replace-picture", I::ImagePlus, t(locale, "pic.change"))
                             .disabled(!selected)
                             .on_click(cx.listener(|s, _, w, cx| {
                                 s.content_form(content_ui::Form::ImportPicture(true), w, cx)
                             })),
                     )
-                    .child(small_unavailable("picture-reset", I::RotateCw, "重置图片")),
+                    .child(small_unavailable(
+                        locale,
+                        "picture-reset",
+                        I::RotateCw,
+                        t(locale, "pic.reset"),
+                    )),
             );
         row()
             .h(px(RIBBON_HEIGHT))
-            .child(group("调整", adjustment))
+            .child(group(t(locale, "pic.group.adjust"), adjustment))
             .child(group(
-                "图片样式",
-                unavailable_row(&[
-                    ("picture-style", I::Image, "图片样式"),
-                    ("picture-border", I::PenLine, "图片边框"),
-                    ("picture-layout", I::PanelsTopLeft, "图片布局"),
-                ]),
+                t(locale, "pic.group.styles"),
+                unavailable_row(
+                    locale,
+                    &[
+                        ("picture-style", I::Image, t(locale, "pic.group.styles")),
+                        ("picture-border", I::PenLine, t(locale, "pic.border")),
+                        ("picture-layout", I::PanelsTopLeft, t(locale, "pic.layout")),
+                    ],
+                ),
             ))
             .child(self.object_alt_text(cx))
             .child(self.object_arrange(cx))
             .child(group(
-                "大小",
+                t(locale, "pic.group.size"),
                 row()
                     .child(
-                        tool("crop-picture", I::Crop, "裁剪", BLUE)
+                        tool("crop-picture", I::Crop, t(locale, "pic.crop"), BLUE)
                             .disabled(!selected)
                             .on_click(cx.listener(|s, _, w, cx| {
                                 s.content_form(content_ui::Form::Picture, w, cx)
                             })),
                     )
                     .child(
-                        tool("picture-size", I::Move, "大小和\n位置", BLUE)
+                        tool("picture-size", I::Move, t(locale, "pic.size_pos"), BLUE)
                             .disabled(!selected)
                             .on_click(cx.listener(|s, _, w, cx| s.geometry_dialog(w, cx))),
                     ),
@@ -1490,37 +1878,59 @@ impl Viewer {
     }
 
     fn object_alt_text(&self, cx: &mut Context<Self>) -> Div {
+        let locale = self.locale;
         group(
-            "辅助功能",
-            tool("object-alt-text", I::FilePenLine, "替代\n文本", BLUE)
-                .on_click(cx.listener(|s, _, w, cx| s.accessibility_dialog(w, cx))),
+            t(locale, "review.group.accessibility"),
+            tool(
+                "object-alt-text",
+                I::FilePenLine,
+                t(locale, "review.alt_text_long"),
+                BLUE,
+            )
+            .on_click(cx.listener(|s, _, w, cx| s.accessibility_dialog(w, cx))),
         )
     }
 
     fn object_arrange(&self, cx: &mut Context<Self>) -> Div {
+        let locale = self.locale;
         group(
-            "排列",
+            t(locale, "home.group.arrange"),
             row()
                 .child(self.basic_button(
-                    tool("object-forward", I::BringToFront, "前移一层", 0xa77436),
+                    tool(
+                        "object-forward",
+                        I::BringToFront,
+                        t(locale, "order.bring_forward_alt"),
+                        0xa77436,
+                    ),
                     BasicEdit::BringForward,
                     cx,
                 ))
                 .child(self.basic_button(
-                    tool("object-backward", I::SendToBack, "后移一层", 0xa77436),
+                    tool(
+                        "object-backward",
+                        I::SendToBack,
+                        t(locale, "order.send_backward_alt"),
+                        0xa77436,
+                    ),
                     BasicEdit::SendBackward,
                     cx,
                 ))
                 .child(self.align_popover("object-align-pop", cx))
                 .child(self.group_popover("object-group-pop", cx))
                 .child(
-                    tool("object-selection-pane", I::PanelRight, "选择\n窗格", BLUE)
-                        .toggled(self.inspector)
-                        .selected(self.inspector)
-                        .on_click(cx.listener(|s, _, _, cx| {
-                            s.inspector = !s.inspector;
-                            cx.notify();
-                        })),
+                    tool(
+                        "object-selection-pane",
+                        I::PanelRight,
+                        t(locale, "view.selection_pane"),
+                        BLUE,
+                    )
+                    .toggled(self.inspector)
+                    .selected(self.inspector)
+                    .on_click(cx.listener(|s, _, _, cx| {
+                        s.inspector = !s.inspector;
+                        cx.notify();
+                    })),
                 ),
         )
     }
@@ -1529,6 +1939,7 @@ impl Viewer {
     #[inline(never)]
     fn ribbon_chart(&self, cx: &mut Context<Self>, selected: bool) -> Div {
         use joydeck_model::chart::ChartType;
+        let locale = self.locale;
         let current = self.editor.as_ref().and_then(|e| {
             let id = e.session.selection().shapes.first()?;
             let shape = self.current_slide()?.shape(*id)?;
@@ -1539,9 +1950,24 @@ impl Viewer {
         });
         let mut kinds = gallery(self.palette());
         for (id, label, icon, kind) in [
-            ("chart-column", "柱形图", I::ChartColumn, ChartType::Column),
-            ("chart-line", "折线图", I::ChartLine, ChartType::Line),
-            ("chart-pie", "饼图", I::ChartPie, ChartType::Pie),
+            (
+                "chart-column",
+                t(locale, "chart.column"),
+                I::ChartColumn,
+                ChartType::Column,
+            ),
+            (
+                "chart-line",
+                t(locale, "chart.line"),
+                I::ChartLine,
+                ChartType::Line,
+            ),
+            (
+                "chart-pie",
+                t(locale, "chart.pie"),
+                I::ChartPie,
+                ChartType::Pie,
+            ),
         ] {
             kinds = kinds.child(
                 tool(id, icon, label, BLUE)
@@ -1565,99 +1991,155 @@ impl Viewer {
         row()
             .h(px(RIBBON_HEIGHT))
             .child(group(
-                "图表布局",
+                t(locale, "chart.group.layouts"),
                 row()
                     .child(
-                        tool("chart-title", I::Type, "图表\n标题", BLUE)
+                        tool("chart-title", I::Type, t(locale, "chart.title_btn"), BLUE)
                             .disabled(!selected)
                             .on_click(cx.listener(|s, _, w, cx| {
                                 s.content_form(content_ui::Form::ChartTitle, w, cx)
                             })),
                     )
-                    .child(unavailable("chart-layout", I::PanelsTopLeft, "快速布局")),
+                    .child(unavailable(
+                        locale,
+                        "chart-layout",
+                        I::PanelsTopLeft,
+                        t(locale, "chart.quick_layout"),
+                    )),
             ))
             .child(group(
-                "图表样式",
-                unavailable("chart-colors", I::Palette, "更改颜色"),
+                t(locale, "chart.group.styles"),
+                unavailable(
+                    locale,
+                    "chart-colors",
+                    I::Palette,
+                    t(locale, "chart.change_colors"),
+                ),
             ))
-            .child(group("更改图表类型", kinds))
+            .child(group(t(locale, "chart.group.change_type"), kinds))
             .child(group(
-                "数据",
+                t(locale, "chart.group.data"),
                 row()
-                    .child(unavailable("chart-select-data", I::Table, "选择\n数据"))
+                    .child(unavailable(
+                        locale,
+                        "chart-select-data",
+                        I::Table,
+                        t(locale, "chart.select_data"),
+                    ))
                     .child(
-                        tool("chart-data", I::Table, "编辑\n数据", BLUE)
+                        tool("chart-data", I::Table, t(locale, "chart.edit_data"), BLUE)
                             .disabled(!selected)
                             .on_click(cx.listener(|s, _, w, cx| {
                                 s.content_form(content_ui::Form::ChartValue, w, cx)
                             })),
                     )
-                    .child(unavailable("chart-refresh-data", I::RotateCw, "刷新\n数据")),
+                    .child(unavailable(
+                        locale,
+                        "chart-refresh-data",
+                        I::RotateCw,
+                        t(locale, "chart.refresh_data"),
+                    )),
             ))
     }
 
     #[inline(never)]
     fn ribbon_chart_format(&self, cx: &mut Context<Self>) -> Div {
+        let locale = self.locale;
         row()
             .h(px(RIBBON_HEIGHT))
             .child(group(
-                "当前所选内容",
-                unavailable("chart-selection", I::ChartColumn, "图表区域"),
+                t(locale, "chart.group.current_selection"),
+                unavailable(
+                    locale,
+                    "chart-selection",
+                    I::ChartColumn,
+                    t(locale, "chart.area"),
+                ),
             ))
             .child(group(
-                "形状样式",
-                unavailable_row(&[
-                    ("chart-shape-style", I::Brush, "快速样式"),
-                    ("chart-shape-outline", I::PenLine, "形状轮廓"),
-                ]),
+                t(locale, "chart.group.shape_styles"),
+                unavailable_row(
+                    locale,
+                    &[
+                        (
+                            "chart-shape-style",
+                            I::Brush,
+                            t(locale, "home.quick_styles"),
+                        ),
+                        (
+                            "chart-shape-outline",
+                            I::PenLine,
+                            t(locale, "home.shape_outline"),
+                        ),
+                    ],
+                ),
             ))
             .child(self.object_arrange(cx))
             .child(group(
-                "大小",
-                tool("chart-size", I::Move, "大小和\n位置", BLUE)
+                t(locale, "pic.group.size"),
+                tool("chart-size", I::Move, t(locale, "pic.size_pos"), BLUE)
                     .on_click(cx.listener(|s, _, w, cx| s.geometry_dialog(w, cx))),
             ))
     }
     // Keep ribbon construction in bounded frames on the Windows default stack.
     #[inline(never)]
     fn ribbon_shape(&self, cx: &mut Context<Self>) -> Div {
+        let locale = self.locale;
         let mut bar = row().h(px(RIBBON_HEIGHT)).items_start();
         bar = bar
             .child(group(
-                "插入形状",
+                t(locale, "shape.group.insert"),
                 row()
                     .child(
-                        tool("format-shapes", I::Shapes, "形状", BLUE)
+                        tool("format-shapes", I::Shapes, t(locale, "home.shapes"), BLUE)
                             .dropdown_caret(true)
                             .on_click(cx.listener(|s, _, w, cx| s.shape_gallery(w, cx))),
                     )
                     .child(
-                        tool("format-textbox", I::TextCursorInput, "文本框", BLUE)
-                            .on_click(cx.listener(|s, _, w, cx| s.insert_textbox(w, cx))),
+                        tool(
+                            "format-textbox",
+                            I::TextCursorInput,
+                            t(locale, "home.text_box"),
+                            BLUE,
+                        )
+                        .on_click(cx.listener(|s, _, w, cx| s.insert_textbox(w, cx))),
                     ),
             ))
             .child(group(
-                "形状样式",
+                t(locale, "shape.group.styles"),
                 row()
                     .child(
-                        tool("shape-fill", I::PaintBucket, "形状填充", 0xf26b1d).on_click(
-                            cx.listener(|s, _, w, cx| {
-                                s.content_form(content_ui::Form::ShapeFill, w, cx)
-                            }),
-                        ),
+                        tool(
+                            "shape-fill",
+                            I::PaintBucket,
+                            t(locale, "home.shape_fill"),
+                            0xf26b1d,
+                        )
+                        .on_click(cx.listener(|s, _, w, cx| {
+                            s.content_form(content_ui::Form::ShapeFill, w, cx)
+                        })),
                     )
                     .child(
-                        tool("shape-gradient", I::Blend, "渐变填充", 0x8a5cd8).on_click(
-                            cx.listener(|s, _, w, cx| {
-                                s.content_form(content_ui::Form::ShapeGradient, w, cx)
-                            }),
-                        ),
+                        tool(
+                            "shape-gradient",
+                            I::Blend,
+                            t(locale, "shape.gradient_fill"),
+                            0x8a5cd8,
+                        )
+                        .on_click(cx.listener(|s, _, w, cx| {
+                            s.content_form(content_ui::Form::ShapeGradient, w, cx)
+                        })),
                     )
                     .child(
                         self.shape_outline_popover(
                             "shape-outline-pop",
-                            tool("shape-outline", I::PenLine, "形状轮廓", 0x2678d0)
-                                .dropdown_caret(true),
+                            tool(
+                                "shape-outline",
+                                I::PenLine,
+                                t(locale, "home.shape_outline"),
+                                0x2678d0,
+                            )
+                            .dropdown_caret(true),
                             cx,
                         ),
                     ),
@@ -1668,14 +2150,25 @@ impl Viewer {
             .child(self.object_alt_text(cx))
             .child(self.object_arrange(cx))
             .child(group(
-                "大小与位置",
+                t(locale, "shape.group.size_pos"),
                 row()
                     .child(
-                        tool("geometry", I::Move, "大小和位置", 0x2e6fd8)
-                            .on_click(cx.listener(|s, _, w, cx| s.geometry_dialog(w, cx))),
+                        tool(
+                            "geometry",
+                            I::Move,
+                            t(locale, "shape.size_and_pos"),
+                            0x2e6fd8,
+                        )
+                        .on_click(cx.listener(|s, _, w, cx| s.geometry_dialog(w, cx))),
                     )
-                    .child(tool("rotate", I::RotateCw, "向右旋转", 0x2e6fd8).on_click(
-                        cx.listener(|s, _, w, cx| {
+                    .child(
+                        tool(
+                            "rotate",
+                            I::RotateCw,
+                            t(locale, "shape.rotate_right"),
+                            0x2e6fd8,
+                        )
+                        .on_click(cx.listener(|s, _, w, cx| {
                             s.dispatch(
                                 Command::Transform {
                                     dx: 0.,
@@ -1687,45 +2180,71 @@ impl Viewer {
                                 w,
                                 cx,
                             )
-                        }),
-                    )),
+                        })),
+                    ),
             ));
         bar
     }
     // Keep ribbon construction in bounded frames on the Windows default stack.
     #[inline(never)]
     fn ribbon_show(&self, cx: &mut Context<Self>) -> Div {
+        let locale = self.locale;
         let disabled = self.editor.is_none() || self.loading || self.composing();
         let hidden = self.current_slide().is_some_and(|slide| slide.hidden);
         let show = self.editor.as_ref().map(|e| &e.session.model().show);
         row()
             .h(px(RIBBON_HEIGHT))
             .child(group(
-                "开始放映",
+                t(locale, "show.group.start"),
                 row()
                     .child(
-                        tool("show-start", I::Presentation, "从头\n播放", GREEN)
-                            .disabled(disabled)
-                            .on_click(cx.listener(|s, _, _, cx| s.start_show(true, false, cx))),
+                        tool(
+                            "show-start",
+                            I::Presentation,
+                            t(locale, "show.from_beginning"),
+                            GREEN,
+                        )
+                        .disabled(disabled)
+                        .on_click(cx.listener(|s, _, _, cx| s.start_show(true, false, cx))),
                     )
                     .child(
-                        tool("show-current", I::MonitorPlay, "从当前\n幻灯片播放", GREEN)
-                            .disabled(disabled)
-                            .on_click(cx.listener(|s, _, _, cx| s.start_show(false, false, cx))),
+                        tool(
+                            "show-current",
+                            I::MonitorPlay,
+                            t(locale, "show.from_current"),
+                            GREEN,
+                        )
+                        .disabled(disabled)
+                        .on_click(cx.listener(|s, _, _, cx| s.start_show(false, false, cx))),
                     )
                     .child(
-                        tool("show-presenter", I::PanelsTopLeft, "演示者\n视图", BLUE)
-                            .disabled(disabled)
-                            .on_click(cx.listener(|s, _, _, cx| s.start_show(false, true, cx))),
+                        tool(
+                            "show-presenter",
+                            I::PanelsTopLeft,
+                            t(locale, "show.presenter_view"),
+                            BLUE,
+                        )
+                        .disabled(disabled)
+                        .on_click(cx.listener(|s, _, _, cx| s.start_show(false, true, cx))),
                     )
-                    .child(unavailable("custom-show", I::PanelsTopLeft, "自定义\n放映")),
+                    .child(unavailable(
+                        locale,
+                        "custom-show",
+                        I::PanelsTopLeft,
+                        t(locale, "show.custom_show"),
+                    )),
             ))
             .child(group(
-                "设置",
+                t(locale, "show.group.setup"),
                 row()
-                    .child(unavailable("show-setup", I::Settings, "设置\n幻灯片放映"))
+                    .child(unavailable(
+                        locale,
+                        "show-setup",
+                        I::Settings,
+                        t(locale, "show.setup"),
+                    ))
                     .child(
-                        tool("hide-slides", I::EyeOff, "隐藏\n幻灯片", BLUE)
+                        tool("hide-slides", I::EyeOff, t(locale, "show.hide_slide"), BLUE)
                             .toggled(hidden)
                             .selected(hidden)
                             .disabled(disabled)
@@ -1733,85 +2252,159 @@ impl Viewer {
                     ),
             ))
             .child(group(
-                "计时和录制",
+                t(locale, "show.group.timing"),
                 row()
-                    .child(unavailable("show-rehearse", I::Timer, "排练\n计时"))
-                    .child(unavailable("show-record", I::Video, "录制"))
-                    .child(ribbon_checks(&[
-                        ("保持幻灯片更新", false),
-                        (
-                            "播放旁白",
-                            show.is_some_and(|settings| !settings.without_narration),
-                        ),
-                    ]))
-                    .child(ribbon_checks(&[
-                        (
-                            "使用计时",
-                            show.is_some_and(|settings| settings.use_timings),
-                        ),
-                        (
-                            "显示媒体控件",
-                            show.is_some_and(|settings| settings.show_media_controls),
-                        ),
-                    ])),
+                    .child(unavailable(
+                        locale,
+                        "show-rehearse",
+                        I::Timer,
+                        t(locale, "show.rehearse"),
+                    ))
+                    .child(unavailable(
+                        locale,
+                        "show-record",
+                        I::Video,
+                        t(locale, "show.record"),
+                    ))
+                    .child(ribbon_checks(
+                        locale,
+                        &[
+                            (t(locale, "show.keep_updated"), false),
+                            (
+                                t(locale, "show.play_narrations"),
+                                show.is_some_and(|settings| !settings.without_narration),
+                            ),
+                        ],
+                    ))
+                    .child(ribbon_checks(
+                        locale,
+                        &[
+                            (
+                                t(locale, "show.use_timings"),
+                                show.is_some_and(|settings| settings.use_timings),
+                            ),
+                            (
+                                t(locale, "show.show_media_controls"),
+                                show.is_some_and(|settings| settings.show_media_controls),
+                            ),
+                        ],
+                    )),
             ))
     }
 
     // Keep ribbon construction in bounded frames on the Windows default stack.
     #[inline(never)]
     fn ribbon_review(&self, cx: &mut Context<Self>) -> Div {
+        let locale = self.locale;
         let disabled = self.editor.is_none() || self.loading || self.composing();
         let mut bar = row().h(px(RIBBON_HEIGHT));
         bar = bar
             .child(group(
-                "校对",
-                unavailable_row(&[
-                    ("review-spelling", I::SpellCheck, "拼写"),
-                    ("review-thesaurus", I::BookOpen, "同义词\n库"),
-                ]),
+                t(locale, "review.group.proofing"),
+                unavailable_row(
+                    locale,
+                    &[
+                        (
+                            "review-spelling",
+                            I::SpellCheck,
+                            t(locale, "review.spelling"),
+                        ),
+                        (
+                            "review-thesaurus",
+                            I::BookOpen,
+                            t(locale, "review.thesaurus"),
+                        ),
+                    ],
+                ),
             ))
             .child(group(
-                "辅助功能",
-                tool("accessibility", I::Accessibility, "替代\n文字", BLUE)
-                    .disabled(
-                        disabled
-                            || self
-                                .editor
-                                .as_ref()
-                                .is_none_or(|e| e.session.selection().shapes.is_empty()),
-                    )
-                    .on_click(cx.listener(|s, _, w, cx| s.accessibility_dialog(w, cx))),
+                t(locale, "review.group.accessibility"),
+                tool(
+                    "accessibility",
+                    I::Accessibility,
+                    t(locale, "review.alt_text"),
+                    BLUE,
+                )
+                .disabled(
+                    disabled
+                        || self
+                            .editor
+                            .as_ref()
+                            .is_none_or(|e| e.session.selection().shapes.is_empty()),
+                )
+                .on_click(cx.listener(|s, _, w, cx| s.accessibility_dialog(w, cx))),
             ))
             .child(group(
-                "语言",
-                unavailable_row(&[
-                    ("review-translate", I::Languages, "翻译"),
-                    ("review-language", I::Languages, "语言"),
-                ]),
+                t(locale, "review.group.language"),
+                unavailable_row(
+                    locale,
+                    &[
+                        (
+                            "review-translate",
+                            I::Languages,
+                            t(locale, "review.translate"),
+                        ),
+                        (
+                            "review-language",
+                            I::Languages,
+                            t(locale, "review.language"),
+                        ),
+                    ],
+                ),
             ))
             .child(group(
-                "比较",
-                tool("compare-documents", I::FileCheck, "比较\n文稿", BLUE)
-                    .disabled(disabled)
-                    .on_click(cx.listener(|s, _, w, cx| s.compare_file(w, cx))),
+                t(locale, "review.group.compare"),
+                tool(
+                    "compare-documents",
+                    I::FileCheck,
+                    t(locale, "review.compare_docs"),
+                    BLUE,
+                )
+                .disabled(disabled)
+                .on_click(cx.listener(|s, _, w, cx| s.compare_file(w, cx))),
             ))
             .child(group(
-                "批注",
+                t(locale, "review.group.comments"),
                 row()
                     .child(
-                        tool("add-comment", I::MessageSquarePlus, "新建\n批注", GREEN)
-                            .disabled(disabled)
-                            .on_click(cx.listener(|s, _, w, cx| s.add_comment(w, cx))),
+                        tool(
+                            "add-comment",
+                            I::MessageSquarePlus,
+                            t(locale, "review.new_comment"),
+                            GREEN,
+                        )
+                        .disabled(disabled)
+                        .on_click(cx.listener(|s, _, w, cx| s.add_comment(w, cx))),
                     )
-                    .child(unavailable_row(&[
-                        ("review-delete-comment", I::Trash, "删除"),
-                        ("review-prev-comment", I::ArrowLeft, "上一条"),
-                        ("review-next-comment", I::ArrowRight, "下一条"),
-                    ]))
+                    .child(unavailable_row(
+                        locale,
+                        &[
+                            (
+                                "review-delete-comment",
+                                I::Trash,
+                                t(locale, "common.delete"),
+                            ),
+                            (
+                                "review-prev-comment",
+                                I::ArrowLeft,
+                                t(locale, "review.prev_comment"),
+                            ),
+                            (
+                                "review-next-comment",
+                                I::ArrowRight,
+                                t(locale, "review.next_comment"),
+                            ),
+                        ],
+                    ))
                     .child(
-                        tool("comments", I::MessageSquare, "显示批注", BLUE)
-                            .disabled(disabled)
-                            .on_click(cx.listener(|s, _, w, cx| s.comments_dialog(w, cx))),
+                        tool(
+                            "comments",
+                            I::MessageSquare,
+                            t(locale, "review.show_comments"),
+                            BLUE,
+                        )
+                        .disabled(disabled)
+                        .on_click(cx.listener(|s, _, w, cx| s.comments_dialog(w, cx))),
                     ),
             ))
             .child(self.review_document_tools(cx));
@@ -1820,34 +2413,52 @@ impl Viewer {
 
     #[inline(never)]
     fn review_document_tools(&self, cx: &mut Context<Self>) -> Div {
+        let locale = self.locale;
         group(
-            "文稿",
+            t(locale, "review.group.document"),
             row()
                 .child(
-                    tool("compatibility", I::FileCheck, "兼容性\n检查", GREEN)
-                        .on_click(cx.listener(|s, _, w, cx| s.report(&Report, w, cx))),
+                    tool(
+                        "compatibility",
+                        I::FileCheck,
+                        t(locale, "review.compatibility"),
+                        GREEN,
+                    )
+                    .on_click(cx.listener(|s, _, w, cx| s.report(&Report, w, cx))),
                 )
                 .child(
-                    tool("metadata", I::FilePenLine, "文稿\n属性", BLUE).on_click(
+                    tool(
+                        "metadata",
+                        I::FilePenLine,
+                        t(locale, "review.properties"),
+                        BLUE,
+                    )
+                    .on_click(
                         cx.listener(|s, _, w, cx| {
                             s.content_form(content_ui::Form::Metadata, w, cx)
                         }),
                     ),
                 )
-                .child(unavailable("review-hide-ink", I::PenLine, "隐藏墨迹")),
+                .child(unavailable(
+                    locale,
+                    "review-hide-ink",
+                    I::PenLine,
+                    t(locale, "review.hide_ink"),
+                )),
         )
     }
 
     // Keep ribbon construction in bounded frames on the Windows default stack.
     #[inline(never)]
     fn ribbon_view(&self, cx: &mut Context<Self>) -> Div {
+        let locale = self.locale;
         row()
             .h(px(RIBBON_HEIGHT))
             .child(group(
-                "演示文稿视图",
+                t(locale, "view.group.presentation"),
                 row()
                     .child(
-                        tool("normal", I::PanelsTopLeft, "普通", BLUE)
+                        tool("normal", I::PanelsTopLeft, t(locale, "view.normal"), BLUE)
                             .toggled(!self.sorter)
                             .selected(!self.sorter)
                             .on_click(cx.listener(|s, _, _, cx| {
@@ -1855,9 +2466,14 @@ impl Viewer {
                                 cx.notify();
                             })),
                     )
-                    .child(unavailable("outline-view", I::ListTree, "大纲\n视图"))
+                    .child(unavailable(
+                        locale,
+                        "outline-view",
+                        I::ListTree,
+                        t(locale, "view.outline"),
+                    ))
                     .child(
-                        tool("sorter", I::LayoutGrid, "幻灯片\n浏览", BLUE)
+                        tool("sorter", I::LayoutGrid, t(locale, "view.sorter"), BLUE)
                             .toggled(self.sorter)
                             .selected(self.sorter)
                             .on_click(cx.listener(|s, _, _, cx| {
@@ -1866,29 +2482,57 @@ impl Viewer {
                             })),
                     )
                     .child(
-                        tool("review-notes", I::NotebookPen, "备注页", BLUE)
-                            .on_click(cx.listener(|s, _, w, cx| s.edit_notes(w, cx))),
+                        tool(
+                            "review-notes",
+                            I::NotebookPen,
+                            t(locale, "view.notes_page"),
+                            BLUE,
+                        )
+                        .on_click(cx.listener(|s, _, w, cx| s.edit_notes(w, cx))),
                     )
-                    .child(unavailable("reading-view", I::BookOpen, "阅读\n视图")),
+                    .child(unavailable(
+                        locale,
+                        "reading-view",
+                        I::BookOpen,
+                        t(locale, "view.reading"),
+                    )),
             ))
             .child(group(
-                "母版视图",
-                unavailable_row(&[
-                    ("slide-master", I::PanelsTopLeft, "幻灯片\n母版"),
-                    ("handout-master", I::LayoutGrid, "讲义\n母版"),
-                    ("notes-master", I::NotebookText, "备注\n母版"),
-                ]),
+                t(locale, "view.group.master"),
+                unavailable_row(
+                    locale,
+                    &[
+                        (
+                            "slide-master",
+                            I::PanelsTopLeft,
+                            t(locale, "view.slide_master"),
+                        ),
+                        (
+                            "handout-master",
+                            I::LayoutGrid,
+                            t(locale, "view.handout_master"),
+                        ),
+                        (
+                            "notes-master",
+                            I::NotebookText,
+                            t(locale, "view.notes_master"),
+                        ),
+                    ],
+                ),
             ))
             .child(group(
-                "显示",
+                t(locale, "view.group.show"),
                 row()
-                    .child(ribbon_checks(&[
-                        ("标尺", false),
-                        ("网格线", false),
-                        ("参考线", false),
-                    ]))
+                    .child(ribbon_checks(
+                        locale,
+                        &[
+                            (t(locale, "view.ruler"), false),
+                            (t(locale, "view.gridlines"), false),
+                            (t(locale, "view.guides"), false),
+                        ],
+                    ))
                     .child(
-                        tool("notes-view", I::NotebookPen, "备注", BLUE)
+                        tool("notes-view", I::NotebookPen, t(locale, "view.notes"), BLUE)
                             .toggled(self.notes_visible)
                             .selected(self.notes_visible)
                             .on_click(cx.listener(|s, _, _, cx| {
@@ -1898,14 +2542,14 @@ impl Viewer {
                     ),
             ))
             .child(group(
-                "缩放",
+                t(locale, "view.group.zoom"),
                 row()
                     .child(
-                        tool("view-zoom", I::Search, "缩放", BLUE)
+                        tool("view-zoom", I::Search, t(locale, "view.zoom"), BLUE)
                             .on_click(cx.listener(|s, _, w, cx| s.ribbon_zoom_dialog(w, cx))),
                     )
                     .child(
-                        tool("view-fit", I::Scan, "适应窗口\n大小", BLUE)
+                        tool("view-fit", I::Scan, t(locale, "view.fit_window"), BLUE)
                             .on_click(cx.listener(|s, _, w, cx| s.fit(&Fit, w, cx))),
                     ),
             ))
@@ -1913,10 +2557,11 @@ impl Viewer {
     }
 
     fn ribbon_zoom_dialog(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+        let locale = self.locale;
         self.fields_dialog(
-            "缩放",
+            t(locale, "view.zoom"),
             vec![(
-                "缩放百分比（10–400）",
+                t(locale, "view.zoom_field"),
                 format!("{:.0}", self.scale(w) * 100.),
             )],
             w,
@@ -1925,9 +2570,9 @@ impl Viewer {
                 let value = values[0]
                     .trim()
                     .parse::<f32>()
-                    .map_err(|_| "请输入 10–400 的数值")?;
+                    .map_err(|_| s.t("view.zoom_err_nan"))?;
                 if !(10. ..=400.).contains(&value) {
-                    return Err("缩放百分比须介于 10 与 400 之间".into());
+                    return Err(s.t("view.zoom_err_range").into());
                 }
                 s.zoom = Some(value / 100.);
                 cx.notify();
@@ -1938,26 +2583,42 @@ impl Viewer {
 
     #[inline(never)]
     fn view_window_tools(&self, cx: &mut Context<Self>) -> Div {
+        let locale = self.locale;
         group(
-            "窗口和诊断",
+            t(locale, "view.group.window"),
             row()
                 .child(
-                    tool("shared-view", I::PanelsTopLeft, "新建\n文稿视图", BLUE)
-                        .disabled(self.editor.is_none() || self.loading)
-                        .on_click(cx.listener(|s, _, _, cx| s.new_shared_view(cx))),
+                    tool(
+                        "shared-view",
+                        I::PanelsTopLeft,
+                        t(locale, "view.new_window"),
+                        BLUE,
+                    )
+                    .disabled(self.editor.is_none() || self.loading)
+                    .on_click(cx.listener(|s, _, _, cx| s.new_shared_view(cx))),
                 )
                 .child(
-                    tool("properties", I::PanelRight, "选择\n窗格", BLUE)
-                        .toggled(self.inspector)
-                        .selected(self.inspector)
-                        .on_click(cx.listener(|s, _, _, cx| {
-                            s.inspector = !s.inspector;
-                            cx.notify();
-                        })),
+                    tool(
+                        "properties",
+                        I::PanelRight,
+                        t(locale, "view.selection_pane"),
+                        BLUE,
+                    )
+                    .toggled(self.inspector)
+                    .selected(self.inspector)
+                    .on_click(cx.listener(|s, _, _, cx| {
+                        s.inspector = !s.inspector;
+                        cx.notify();
+                    })),
                 )
                 .child(
-                    tool("render-report", I::Activity, "渲染\n报告", GREEN)
-                        .on_click(cx.listener(|s, _, w, cx| s.scene_report(w, cx))),
+                    tool(
+                        "render-report",
+                        I::Activity,
+                        t(locale, "view.render_report"),
+                        GREEN,
+                    )
+                    .on_click(cx.listener(|s, _, w, cx| s.scene_report(w, cx))),
                 )
                 .child(
                     tool("render-mode", I::Layers, "CPU / GPUI", 0x8a5cd8).on_click(cx.listener(
@@ -1971,8 +2632,12 @@ impl Viewer {
         )
     }
     pub(super) fn status_chrome(&self, scale: f32, cx: &mut Context<Self>) -> Div {
+        let locale = self.locale;
         let p = self.palette();
         let count = self.deck.as_ref().map_or(0, |d| d.info.slides.len());
+        let current_str = (if count == 0 { 0 } else { self.page + 1 }).to_string();
+        let total_str = count.to_string();
+        let status_lang_view = cx.entity().downgrade();
         div()
             .h(px(26.))
             .flex_shrink_0()
@@ -1983,12 +2648,21 @@ impl Viewer {
             .items_center()
             .gap_2()
             .text_size(px(11.))
-            .child(format!(
-                "幻灯片 {} / {count}",
-                if count == 0 { 0 } else { self.page + 1 }
+            .child(tf(
+                locale,
+                "status.slide_of",
+                &[("current", &current_str), ("total", &total_str)],
             ))
             .child(div().w(px(1.)).h(px(12.)).bg(rgb(p.border)))
-            .child("简体中文")
+            .child(joyoffice_ui::language_menu(
+                "status-language-menu",
+                locale,
+                p,
+                joyoffice_ui::language_status_trigger("status-language", locale, p),
+                move |next, w, cx| {
+                    let _ = status_lang_view.update(cx, |s, cx| s.select_locale(next, w, cx));
+                },
+            ))
             .child(
                 div()
                     .flex_1()
@@ -1996,9 +2670,9 @@ impl Viewer {
                     .text_ellipsis()
                     .text_color(rgb(p.muted))
                     .child(if self.loading {
-                        "正在打开文稿…".into()
+                        t(locale, "status.opening").into()
                     } else if self.is_saving() {
-                        "正在保存…".into()
+                        t(locale, "status.saving").into()
                     } else {
                         self.message.clone()
                     }),
@@ -2008,7 +2682,7 @@ impl Viewer {
                     Button::new("cancel-open")
                         .ghost()
                         .xsmall()
-                        .label("取消打开")
+                        .label(t(locale, "status.cancel_open"))
                         .on_click(cx.listener(|s, _, _, cx| s.cancel_read(cx))),
                 )
             })
@@ -2017,7 +2691,7 @@ impl Viewer {
                     .ghost()
                     .xsmall()
                     .icon(I::NotebookPen)
-                    .label("备注")
+                    .label(t(locale, "status.notes"))
                     .on_click(cx.listener(|s, _, _, cx| {
                         s.notes_visible = !s.notes_visible;
                         cx.notify();
@@ -2028,7 +2702,7 @@ impl Viewer {
                     .ghost()
                     .xsmall()
                     .icon(I::PanelsTopLeft)
-                    .accessibility_label("普通视图")
+                    .accessibility_label(t(locale, "status.view_normal"))
                     .on_click(cx.listener(|s, _, _, cx| {
                         s.sorter = false;
                         cx.notify();
@@ -2039,7 +2713,7 @@ impl Viewer {
                     .ghost()
                     .xsmall()
                     .icon(I::LayoutGrid)
-                    .accessibility_label("幻灯片浏览")
+                    .accessibility_label(t(locale, "status.view_sorter"))
                     .on_click(cx.listener(|s, _, _, cx| {
                         s.sorter = true;
                         cx.notify();
@@ -2050,7 +2724,7 @@ impl Viewer {
                     .ghost()
                     .xsmall()
                     .icon(I::Presentation)
-                    .accessibility_label("从当前页放映")
+                    .accessibility_label(t(locale, "status.present_current"))
                     .on_click(cx.listener(|s, _, _, cx| s.start_show(false, false, cx))),
             )
             .child(
@@ -2058,7 +2732,7 @@ impl Viewer {
                     .ghost()
                     .xsmall()
                     .icon(I::Minus)
-                    .accessibility_label("缩小")
+                    .accessibility_label(t(locale, "status.zoom_out"))
                     .on_click(cx.listener(|s, _, w, cx| s.zoom_out(&ZoomOut, w, cx))),
             )
             .child(
@@ -2109,7 +2783,7 @@ impl Viewer {
                     .ghost()
                     .xsmall()
                     .icon(I::Plus)
-                    .accessibility_label("放大")
+                    .accessibility_label(t(locale, "status.zoom_in"))
                     .on_click(cx.listener(|s, _, w, cx| s.zoom_in(&ZoomIn, w, cx))),
             )
             .child(
@@ -2123,8 +2797,8 @@ impl Viewer {
                     .ghost()
                     .xsmall()
                     .icon(I::Scan)
-                    .accessibility_label("适应窗口")
-                    .tooltip("适应窗口 · Ctrl+0")
+                    .accessibility_label(t(locale, "status.fit_window"))
+                    .tooltip(t(locale, "status.fit_window_tip"))
                     .on_click(cx.listener(|s, _, w, cx| s.fit(&Fit, w, cx))),
             )
     }

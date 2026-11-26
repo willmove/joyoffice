@@ -87,9 +87,9 @@ impl Default for Theme {
             .into_iter()
             .next()
             .unwrap_or_else(|| Theme {
-                name: "DeckCraft".into(),
+                name: "现代商务".into(),
                 colors: ColorScheme {
-                    name: "DeckCraft".into(),
+                    name: "现代商务".into(),
                     colors: [Rgba::BLACK; 12],
                 },
                 fonts: FontScheme::default(),
@@ -225,7 +225,9 @@ pub fn theme_variants(t: &Theme) -> Vec<ColorScheme> {
     out
 }
 
-/// Our original built-in themes (shown in Design ▸ Themes). Colours and names are our own.
+/// Curated built-in themes (shown in Design ▸ Themes), covering the 10 most popular
+/// mainstream presentation scenarios (corporate, dark tech, minimalist, official,
+/// consulting, academic, neo-Chinese, eco/ESG, warm creative, and black-gold executive).
 pub fn builtin_themes() -> Vec<Theme> {
     let t = |name: &str, colors: ColorScheme, major: &str, minor: &str| Theme {
         name: name.into(),
@@ -245,101 +247,135 @@ pub fn builtin_themes() -> Vec<Theme> {
         raw_extra: None,
     };
     vec![
+        // 1. 现代商务 — 通用企业汇报、年度总结、商业计划书（经典信任蓝 + 高对比数据色）
         t(
-            "DeckCraft",
+            "现代商务",
             scheme(
-                "DeckCraft",
+                "现代商务",
                 [
-                    "000000", "FFFFFF", "1E2B3C", "EDEBE7", "2E6FD8", "F26B1D", "2EA36F", "8A5CD8",
-                    "D83F6B", "E3B21C", "2E6FD8", "7A5BA6",
+                    "1A1D21", "FFFFFF", "1E3A5F", "F1F5F9", "1D63DC", "0EA5A4", "F59E0B", "E11D48",
+                    "6366F1", "10B981", "1D63DC", "6366F1",
                 ],
             ),
             "Inter",
             "Inter",
         ),
+        // 2. 深空科技 — AI / 大数据 / 产品发布会、科技路演（深空暗底 + 霓虹青紫）
         t(
-            "Harbor",
+            "深空科技",
             scheme(
-                "Harbor",
+                "深空科技",
                 [
-                    "0B1F2A", "FFFFFF", "12384D", "E4EEF2", "1B7FA6", "36B3A8", "F2C14E", "F78154",
-                    "5D576B", "8AA29E", "1B7FA6", "5D576B",
+                    "F8FAFC", "0B1120", "E2E8F0", "162033", "38BDF8", "818CF8", "2DD4BF", "FB7185",
+                    "FBBF24", "34D399", "38BDF8", "818CF8",
+                ],
+            ),
+            "Inter",
+            "Inter",
+        ),
+        // 3. 极简留白 — Swiss 极简演讲、作品集、产品概念提案（大面积留白 + 炭黑 + 焦点单色）
+        t(
+            "极简留白",
+            scheme(
+                "极简留白",
+                [
+                    "18181B", "FFFFFF", "3F3F46", "F4F4F5", "18181B", "52525B", "2563EB", "EA580C",
+                    "059669", "7C3AED", "2563EB", "7C3AED",
+                ],
+            ),
+            "Helvetica Neue",
+            "Inter",
+        ),
+        // 4. 党政赤金 — 党政汇报、党建总结、政企正式报告（中国红 + 正统金 + 沉稳藏青）
+        t(
+            "党政赤金",
+            scheme(
+                "党政赤金",
+                [
+                    "1F1A17", "FFFFFF", "7F1D1D", "FDF6F2", "C81E1E", "D97706", "991B1B", "1E3A5F",
+                    "B45309", "4B5563", "C81E1E", "7F1D1D",
+                ],
+            ),
+            "Noto Serif SC",
+            "Noto Sans SC",
+        ),
+        // 5. 咨询藏青 — 管理咨询、财务分析、高管决策简报（深海藏青 + 变革青绿）
+        t(
+            "咨询藏青",
+            scheme(
+                "咨询藏青",
+                [
+                    "0F1E2E", "FFFFFF", "13344D", "EDF3F7", "0F4C81", "0D9488", "D97706", "DC2626",
+                    "475569", "2563EB", "0F4C81", "0D9488",
                 ],
             ),
             "Merriweather",
             "Open Sans",
         ),
+        // 6. 学术青蓝 — 毕业答辩、开题报告、科研学术会议（严谨学院蓝 + 护眼浅蓝底）
         t(
-            "Ember",
+            "学术青蓝",
             scheme(
-                "Ember",
+                "学术青蓝",
                 [
-                    "1A1A1A", "FFFCF7", "3D2B1F", "F6EDE3", "D9480F", "F59F00", "A61E4D", "5C940D",
-                    "1971C2", "862E9C", "D9480F", "862E9C",
+                    "16202A", "FAFCFF", "1E3A5F", "EBF1F8", "1E40AF", "0F766E", "B91C1C", "4338CA",
+                    "A16207", "475569", "1E40AF", "4338CA",
                 ],
             ),
-            "Montserrat",
-            "Lato",
+            "Georgia",
+            "Source Sans 3",
         ),
+        // 7. 新中式韵 — 东方美学、文旅推广、文创与文化展示（月白宣纸 + 远山黛 + 朱砂石青）
         t(
-            "Meadow",
+            "新中式韵",
             scheme(
-                "Meadow",
+                "新中式韵",
                 [
-                    "14281D", "FFFFFF", "2D4A37", "EEF5EE", "4C9A2A", "A4C639", "2F6F4E", "E9B44C",
-                    "9B2915", "50A2A7", "2F6F4E", "9B2915",
-                ],
-            ),
-            "Merriweather",
-            "Open Sans",
-        ),
-        t(
-            "Nocturne",
-            scheme(
-                "Nocturne",
-                [
-                    "FFFFFF", "121826", "F2F4F8", "1E2638", "7C5CFF", "00C2A8", "FF6B9A", "FFC53D",
-                    "4DA3FF", "B2F35F", "7C5CFF", "FF6B9A",
-                ],
-            ),
-            "Inter",
-            "Inter",
-        ),
-        t(
-            "Paper",
-            scheme(
-                "Paper",
-                [
-                    "262626", "FFFFFF", "404040", "F2F2F2", "595959", "8C8C8C", "C0504D", "4F81BD",
-                    "9BBB59", "F79646", "4F81BD", "8064A2",
+                    "23201D", "FAF7F2", "3E4A52", "EFE9DF", "3B5B6E", "B83B2A", "C69749", "4D7C6F",
+                    "7A5C43", "6D5D7B", "3B5B6E", "B83B2A",
                 ],
             ),
             "Playfair Display",
             "Lato",
         ),
+        // 8. 生态青绿 — ESG 报告、双碳新能源、健康医疗与环保主题（森林绿 + 生态青 + 暖麦金）
         t(
-            "Coral Reef",
+            "生态青绿",
             scheme(
-                "Coral Reef",
+                "生态青绿",
                 [
-                    "0F2A33", "FFFFFF", "0E4D64", "FDF1EC", "FF6F59", "254441", "43AA8B", "B2B09B",
-                    "EF3054", "3F88C5", "3F88C5", "EF3054",
+                    "13261B", "FCFEFC", "1F4430", "EDF5EF", "15803D", "0D9488", "65A30D", "CA8A04",
+                    "0284C7", "B45309", "15803D", "0D9488",
+                ],
+            ),
+            "Montserrat",
+            "Open Sans",
+        ),
+        // 9. 暖阳陶土 — 消费品营销、文创品牌、生活方式创意提案（燕麦暖底 + 陶土红棕 + 橄榄绿）
+        t(
+            "暖阳陶土",
+            scheme(
+                "暖阳陶土",
+                [
+                    "261B15", "FFFBF6", "4A3224", "F5ECE2", "C2592B", "D9822B", "7A8B4A", "9E3B4B",
+                    "2F6F7E", "7C5C48", "C2592B", "9E3B4B",
                 ],
             ),
             "Poppins",
             "Nunito Sans",
         ),
+        // 10. 黑金奢雅 — 高端发布会、金融资管、年终盛典与轻奢路演（曜石黑底 + 香槟金）
         t(
-            "Slate",
+            "黑金奢雅",
             scheme(
-                "Slate",
+                "黑金奢雅",
                 [
-                    "111827", "FFFFFF", "374151", "F3F4F6", "6366F1", "0EA5E9", "10B981", "F59E0B",
-                    "EF4444", "8B5CF6", "6366F1", "8B5CF6",
+                    "F5F3EE", "121316", "E5DFD3", "1D1F25", "D4AF37", "E6C975", "94A3B8", "38BDF8",
+                    "E07A5F", "52B788", "D4AF37", "E6C975",
                 ],
             ),
-            "Roboto",
-            "Roboto",
+            "Playfair Display",
+            "Inter",
         ),
     ]
 }

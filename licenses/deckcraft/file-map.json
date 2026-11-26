@@ -397,7 +397,7 @@
       "source_path": "crates/model/src/tests.rs",
       "source_sha256": "04dd0eb5316422a73480514039dec3e8728eb260afa81feefe422ed85eed2ca4",
       "target_path": "crates/joydeck-model/src/tests.rs",
-      "adapted_sha256": "0db71cd274d57d141b93179fc00f8e4d8c85c310290a5f104aa71e4fe4b00d6d",
+      "adapted_sha256": "b0e19ce30e08975e7dc31433dd70f971c52d347e38ea10a2f97e849503bef938",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
@@ -423,7 +423,7 @@
       "source_path": "crates/model/src/theme.rs",
       "source_sha256": "f5f856c5fd5dc3a8f070a2895ffdbc6737ec5d5c4447b20e56ad674f2b2dcbaf",
       "target_path": "crates/joydeck-model/src/theme.rs",
-      "adapted_sha256": "05e9b5adb73306f5be4bd1c161942a963038f490c6ede3a65ff81b21c37bcbf9",
+      "adapted_sha256": "4ec871ef34e8205da95ddf9b23a528fb25e081033188eb9a27a410a2878a4020",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
@@ -1530,7 +1530,7 @@
       "source_path": "crates/render/src/tests.rs",
       "source_sha256": "597d0d476a1c774f659cff05c2ac10ea35a55d10f2d3e51582a0110b8b304535",
       "target_path": "crates/joydeck-render/src/tests.rs",
-      "adapted_sha256": "6eca5a5a965d32ed1b106ff18adf56413e5532cfa9ee91ab746f1d79f4fd6117",
+      "adapted_sha256": "1b25ae45614d98a09bd6d3865b014914e2ae4b057eecb4ffc67666b1a0fb02cc",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -2489,7 +2489,7 @@
       "source_path": "crates/ui-egui/src/theme.rs",
       "source_sha256": "d8d6f55195ac5b0c22d49ec313b716fcfab6cb2c08b3c15445b1ed1fcbe97c6a",
       "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
-      "adapted_sha256": "1daec0ad12d2bbc3286c0cee083db7fb3911df66e391b2e9f8f0e93a8f13c234",
+      "adapted_sha256": "82b51ac19bf224687b5c571fdabc0e8967d582e8fa9daebfd61563e109a4c82c",
       "changes": [
         "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
         "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained",
@@ -2507,13 +2507,14 @@
       "macos_powerpoint_ribbon": "Arrange the native ribbon using the observed macOS PowerPoint tab order, spacing and command groups.",
       "powerpoint_file_page": "Retain the File ribbon tab on every desktop platform and route both file entries to the updated file page.",
       "ribbon_collapse_navigation": "2026-11-13: toggle the selected ribbon tab on double-click and retain the tab strip for expanded or collapsed File pages.",
-      "desktop_product_icons": "2026-11-18: embedded native product icons/logos for every product window; portable desktop registration and complete shared artwork source fingerprints; original attribution retained."
+      "desktop_product_icons": "2026-11-18: embedded native product icons/logos for every product window; portable desktop registration and complete shared artwork source fingerprints; original attribution retained.",
+      "l10n": "2026-11-26: shared joyoffice-l10n locale architecture and JoyDeck bilingual UI localization"
     },
     {
       "source_path": "crates/ui-egui/src/ribbon.rs",
       "source_sha256": "036692f8a885af7b61dfcd7e065f371f46c7db67854c0df9d205c91f35d9049a",
       "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
-      "adapted_sha256": "1daec0ad12d2bbc3286c0cee083db7fb3911df66e391b2e9f8f0e93a8f13c234",
+      "adapted_sha256": "82b51ac19bf224687b5c571fdabc0e8967d582e8fa9daebfd61563e109a4c82c",
       "changes": [
         "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
         "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained",
@@ -2531,13 +2532,14 @@
       "macos_powerpoint_ribbon": "Arrange the native ribbon using the observed macOS PowerPoint tab order, spacing and command groups.",
       "powerpoint_file_page": "Retain the File ribbon tab on every desktop platform and route both file entries to the updated file page.",
       "ribbon_collapse_navigation": "2026-11-13: toggle the selected ribbon tab on double-click and retain the tab strip for expanded or collapsed File pages.",
-      "desktop_product_icons": "2026-11-18: embedded native product icons/logos for every product window; portable desktop registration and complete shared artwork source fingerprints; original attribution retained."
+      "desktop_product_icons": "2026-11-18: embedded native product icons/logos for every product window; portable desktop registration and complete shared artwork source fingerprints; original attribution retained.",
+      "l10n": "2026-11-26: shared joyoffice-l10n locale architecture and JoyDeck bilingual UI localization"
     },
     {
       "source_path": "crates/ui-egui/src/widgets.rs",
       "source_sha256": "d62cc3cce0436f1118c6486f52c5d90175aeaa79751602a89dbf01aa8d233bf9",
       "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
-      "adapted_sha256": "1daec0ad12d2bbc3286c0cee083db7fb3911df66e391b2e9f8f0e93a8f13c234",
+      "adapted_sha256": "82b51ac19bf224687b5c571fdabc0e8967d582e8fa9daebfd61563e109a4c82c",
       "changes": [
         "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
         "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained",
@@ -2555,7 +2557,8 @@
       "macos_powerpoint_ribbon": "Arrange the native ribbon using the observed macOS PowerPoint tab order, spacing and command groups.",
       "powerpoint_file_page": "Retain the File ribbon tab on every desktop platform and route both file entries to the updated file page.",
       "ribbon_collapse_navigation": "2026-11-13: toggle the selected ribbon tab on double-click and retain the tab strip for expanded or collapsed File pages.",
-      "desktop_product_icons": "2026-11-18: embedded native product icons/logos for every product window; portable desktop registration and complete shared artwork source fingerprints; original attribution retained."
+      "desktop_product_icons": "2026-11-18: embedded native product icons/logos for every product window; portable desktop registration and complete shared artwork source fingerprints; original attribution retained.",
+      "l10n": "2026-11-26: shared joyoffice-l10n locale architecture and JoyDeck bilingual UI localization"
     },
     {
       "source_path": "crates/metafile/src/bytes.rs",

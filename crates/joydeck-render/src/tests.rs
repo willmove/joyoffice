@@ -2708,7 +2708,7 @@ fn table_body_text_is_dark_on_the_tinted_cells_of_a_dark_theme() {
             .fold(1.0_f64, f64::min);
         (fill, darkest)
     };
-    for theme in ["Nocturne", "Harbor"] {
+    for theme in ["深空科技", "咨询藏青"] {
         let (fill, darkest) = fill_and_darkest(theme);
         assert!(
             fill > 0.4,
@@ -5209,12 +5209,12 @@ fn chart_text_follows_the_theme_when_it_has_no_colour_of_its_own() {
             .count()
     };
     let (dark_bare, dark_titled) = (
-        draw("Nocturne", None),
-        draw("Nocturne", Some("Quarterly revenue")),
+        draw("深空科技", None),
+        draw("深空科技", Some("Quarterly revenue")),
     );
     assert!(
         lum(dark_bare.pixel(5, 5)) < 60,
-        "Nocturne's slide is dark: {:?}",
+        "深空科技's slide is dark: {:?}",
         dark_bare.pixel(5, 5)
     );
     let light_ink =
@@ -5224,12 +5224,12 @@ fn chart_text_follows_the_theme_when_it_has_no_colour_of_its_own() {
         "the title is light on a dark theme (light pixels added: {light_ink})"
     );
     let (light_bare, light_titled) = (
-        draw("Harbor", None),
-        draw("Harbor", Some("Quarterly revenue")),
+        draw("咨询藏青", None),
+        draw("咨询藏青", Some("Quarterly revenue")),
     );
     assert!(
         lum(light_bare.pixel(5, 5)) > 200,
-        "Harbor's slide is light: {:?}",
+        "咨询藏青's slide is light: {:?}",
         light_bare.pixel(5, 5)
     );
     // 595959 has luminance 89: dark, but not black.
