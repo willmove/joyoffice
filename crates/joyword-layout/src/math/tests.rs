@@ -845,3 +845,167 @@ fn a_long_text_run_lays_out_in_linear_time() {
     };
     assert_linear_steps("math text run", 400, eq, lay);
 }
+
+#[test]
+fn chinese_text_in_equations_falls_back_without_missing_glyphs() {
+    use joyword_model::math::*;
+    let sample = "不可约误差";
+    let primary = joyword_fonts::word::resolve(&rc().font, false, false).face;
+    let has_cjk = sample
+        .chars()
+        .all(|c| primary.covers(c) || FontDb::global().fallback_for(c, primary.id()).is_some());
+    if !has_cjk {
+        return; // No CJK font installed in this environment.
+    }
+
+    // Reproduces: L = \underbrace{L_{irr}}_{\text{不可约误差}} + ...
+    let underbrace = |sub_latin: &str, label_zh: &str| MNode::Lim {
+        upper: false,
+        e: vec![MNode::GroupChr {
+            chr: '\u{23DF}',
+            top: false,
+            e: vec![MNode::Script {
+                kind: ScriptKind::Sub,
+                base: vec![MNode::Run(MRun::new("L"))],
+                sub: vec![MNode::Run(MRun::plain(sub_latin))],
+                sup: Vec::new(),
+            }],
+        }],
+        lim: vec![MNode::Run(MRun {
+            text: label_zh.into(),
+            nor: true,
+            sty: Some(MSty::Plain),
+            font: Some("Cambria Math".into()),
+            ..Default::default()
+        })],
+    };
+    let math = Math {
+        nodes: vec![
+            MNode::Run(MRun::new("L=")),
+            underbrace("irr", "不可约误差"),
+            MNode::Run(MRun::new("+")),
+            underbrace("approx", "近似误差"),
+            MNode::Run(MRun::new("+")),
+            underbrace("est", "估计误差"),
+            MNode::Run(MRun::new("+")),
+            underbrace("opt", "优化误差"),
+        ],
+        ..Default::default()
+    };
+    let m = lay_in(&math, "", true, 400.0, &MathProps::default());
+    let mut saw_zh = 0usize;
+    for it in &m.items {
+        if let MItem::Glyphs {
+            face,
+            glyphs,
+            text,
+            synth_italic,
+            ..
+        } = it
+        {
+            assert!(
+                glyphs.iter().all(|g| g.0 != 0),
+                "missing glyph (.notdef) for {text:?} in face {}",
+                face.family
+            );
+            if text.chars().any(crate::kinsoku::is_east_asian) {
+                saw_zh += 1;
+                assert!(!synth_italic, "normal Chinese label should stay upright");
+            }
+        }
+    }
+    assert_eq!(saw_zh, 4, "expected 4 Chinese underbrace label runs");
+
+    // Mixed Latin + Chinese inside a single normal text run: no missing glyphs, single caret slot
+    // at every character boundary.
+    let mixed = "模型 f 的误差(irr)";
+    let mixed_math = Math {
+        nodes: vec![MNode::Run(MRun {
+            text: mixed.into(),
+            nor: true,
+            sty: Some(MSty::Plain),
+            ..Default::default()
+        })],
+        ..Default::default()
+    };
+    let mm = lay_in(&mixed_math, "", false, 400.0, &MathProps::default());
+    for it in &mm.items {
+        if let MItem::Glyphs {
+            face, glyphs, text, ..
+        } = it
+        {
+            assert!(
+                glyphs.iter().all(|g| g.0 != 0),
+                "missing glyph in mixed normal text run {text:?} (face {})",
+                face.family
+            );
+        }
+    }
+    let want_offs: Vec<usize> = (0..=mixed.chars().count()).collect();
+    let got_offs: Vec<usize> = mm
+        .slots
+        .iter()
+        .filter(|s| s.path.is_empty())
+        .map(|s| s.off)
+        .collect();
+    assert_eq!(got_offs, want_offs, "caret slots across mixed face runs");
+
+    // Non-`nor` math run with Chinese: no missing glyphs, stays upright by default, bold when asked.
+    let plain_math = Math {
+        nodes: vec![MNode::Run(MRun::new("不可约误差"))],
+        ..Default::default()
+    };
+    let pm = lay_in(&plain_math, "", false, 400.0, &MathProps::default());
+    let mut zh_faces = Vec::new();
+    for it in &pm.items {
+        if let MItem::Glyphs {
+            face,
+            glyphs,
+            text,
+            synth_italic,
+            ..
+        } = it
+        {
+            assert!(
+                glyphs.iter().all(|g| g.0 != 0),
+                "missing glyph in math run {text:?} (face {})",
+                face.family
+            );
+            assert!(
+                !synth_italic,
+                "default math run Chinese should stay upright"
+            );
+            zh_faces.push(face.id());
+        }
+    }
+    assert_eq!(
+        zh_faces.len(),
+        1,
+        "Chinese run should use one consistent fallback face"
+    );
+
+    let bold_math = Math {
+        nodes: vec![MNode::Run(MRun {
+            text: "不可约误差".into(),
+            sty: Some(MSty::Bold),
+            ..Default::default()
+        })],
+        ..Default::default()
+    };
+    let bm = lay_in(&bold_math, "", false, 400.0, &MathProps::default());
+    let has_bold = bm.items.iter().any(|it| {
+        matches!(
+            it,
+            MItem::Glyphs {
+                face,
+                synth_bold,
+                glyphs,
+                ..
+            } if glyphs.iter().all(|g| g.0 != 0) && (*synth_bold || face.weight >= 600.0)
+        )
+    });
+    assert!(
+        has_bold,
+        "bold math run Chinese should resolve bold or synth_bold"
+    );
+}

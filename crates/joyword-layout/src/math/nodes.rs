@@ -150,6 +150,178 @@ impl Ctx {
         out
     }
 
+    /// Resolve the East Asian primary face (when installed) and a single fallback face covering
+    /// the run's remaining East Asian characters, matching body text layout.
+    fn east_asian_faces(
+        &self,
+        r: &MRun,
+        primary: FaceRef,
+        primary_family: Option<&str>,
+        bold: bool,
+        italic: bool,
+    ) -> (Option<FaceRef>, Option<FaceRef>) {
+        if !r.text.chars().any(crate::kinsoku::is_east_asian) {
+            return (None, None);
+        }
+        let ea_fam = r
+            .font_ea
+            .as_deref()
+            .filter(|f| !f.is_empty() && !f.eq_ignore_ascii_case("Cambria Math"))
+            .or(self.text_font_ea.as_deref());
+        let primary_ea = ea_fam
+            .filter(|f| primary_family.is_none_or(|p| !f.eq_ignore_ascii_case(p)))
+            .map(|f| joyword_fonts::word::resolve(f, bold, italic))
+            .filter(|rs| !rs.substituted)
+            .map(|rs| rs.face);
+        let ea: Vec<char> = r
+            .text
+            .chars()
+            .filter(|&c| {
+                crate::kinsoku::is_east_asian(c)
+                    && !primary_ea.is_some_and(|f| f.covers(c))
+                    && !primary.covers(c)
+                    && !c.is_whitespace()
+                    && !c.is_control()
+            })
+            .collect();
+        let ea_face = if ea.is_empty() {
+            None
+        } else {
+            FontDb::global()
+                .fallback_for_run(&ea, primary.id(), bold, italic)
+                .map(|f| FaceRef::of(&f))
+        };
+        (primary_ea, ea_face)
+    }
+
+    fn normal_run_atom(
+        &self,
+        r: &MRun,
+        size: f32,
+        color: Rgb,
+        u0: usize,
+        path: &[(usize, usize)],
+    ) -> Bx {
+        // Normal text: the text font, upright unless asked, with East Asian and per-character
+        // font fallback so scripts the Latin text font lacks (e.g. Chinese in `\text{...}`) never
+        // draw as missing-glyph boxes.
+        let fam = r
+            .font
+            .clone()
+            .filter(|f| !f.is_empty() && !f.eq_ignore_ascii_case("Cambria Math"))
+            .unwrap_or_else(|| self.text_font.clone());
+        let (bold, italic) = match r.sty {
+            Some(MSty::Bold) => (true, false),
+            Some(MSty::Italic) => (false, true),
+            Some(MSty::BoldItalic) => (true, true),
+            _ => (false, false),
+        };
+        let rs = joyword_fonts::word::resolve(&fam, bold, italic);
+        let primary = rs.face;
+        let synth_for = |face: FaceRef| {
+            if face.id() == primary.id() {
+                (rs.synth_bold, rs.synth_italic)
+            } else {
+                (bold && face.weight < 600.0, italic && !face.italic)
+            }
+        };
+        if r.text.is_empty() {
+            let mut b = self.text_atom(TextAtom {
+                face: primary,
+                text: "",
+                size,
+                level: 0,
+                color,
+                synth: synth_for(primary),
+                path,
+                k0: u0,
+            });
+            b.glyph = None;
+            return b.cls(Cls::Ord);
+        }
+        let (primary_ea, ea_face) = self.east_asian_faces(r, primary, Some(&fam), bold, italic);
+        let mut parts: Vec<Bx> = Vec::new();
+        let mut cur_face: Option<FaceRef> = None;
+        let mut seg_start = 0usize;
+        let mut seg_k0 = 0usize;
+        let push_seg = |parts: &mut Vec<Bx>, face: FaceRef, slice: &str, k0: usize| {
+            let mut seg = self.text_atom(TextAtom {
+                face,
+                text: slice,
+                size,
+                level: 0,
+                color,
+                synth: synth_for(face),
+                path,
+                k0: u0 + k0,
+            });
+            if !parts.is_empty() && seg.slots.len() > 1 {
+                seg.slots.drain(..1);
+            }
+            parts.push(seg);
+        };
+        for (k, (byte_idx, c)) in r.text.char_indices().enumerate() {
+            let face = if joyword_model::math_linear::is_combining(c) {
+                cur_face.unwrap_or(primary)
+            } else if c.is_control() {
+                primary
+            } else if c.is_whitespace() {
+                cur_face
+                    .filter(|f| f.covers(c))
+                    .or_else(|| primary.covers(c).then_some(primary))
+                    .or_else(|| primary_ea.filter(|f| f.covers(c)))
+                    .or_else(|| ea_face.filter(|f| f.covers(c)))
+                    .or_else(|| {
+                        FontDb::global()
+                            .fallback_styled(c, primary.id(), bold, italic)
+                            .map(|f| FaceRef::of(&f))
+                    })
+                    .unwrap_or(primary)
+            } else if crate::kinsoku::is_east_asian(c) && primary_ea.is_some_and(|f| f.covers(c)) {
+                primary_ea.unwrap_or(primary)
+            } else if primary.covers(c) {
+                primary
+            } else if crate::kinsoku::is_east_asian(c) && ea_face.is_some_and(|f| f.covers(c)) {
+                ea_face.unwrap_or(primary)
+            } else if let Some(prev) = cur_face.filter(|f| f.covers(c)) {
+                prev
+            } else {
+                FontDb::global()
+                    .fallback_styled(c, primary.id(), bold, italic)
+                    .map(|f| FaceRef::of(&f))
+                    .unwrap_or(primary)
+            };
+            match cur_face {
+                Some(prev) if prev.id() != face.id() => {
+                    if let Some(slice) = r.text.get(seg_start..byte_idx) {
+                        push_seg(&mut parts, prev, slice, seg_k0);
+                    }
+                    seg_start = byte_idx;
+                    seg_k0 = k;
+                    cur_face = Some(face);
+                }
+                None => {
+                    seg_start = byte_idx;
+                    seg_k0 = k;
+                    cur_face = Some(face);
+                }
+                _ => {}
+            }
+        }
+        if let Some(prev) = cur_face
+            && let Some(slice) = r.text.get(seg_start..)
+        {
+            push_seg(&mut parts, prev, slice, seg_k0);
+        }
+        let mut b = if parts.len() == 1 {
+            parts.pop().unwrap_or_default()
+        } else {
+            hcat(parts)
+        };
+        b.glyph = None;
+        b.cls(Cls::Ord)
+    }
+
     pub(super) fn run_atoms(
         &self,
         r: &MRun,
@@ -166,42 +338,24 @@ impl Ctx {
             * self.scale(st.level);
         let color = r.color.unwrap_or(self.color);
         if r.nor {
-            // Normal text: the text font, upright unless asked.
-            let fam = r
-                .font
-                .clone()
-                .filter(|f| !f.eq_ignore_ascii_case("Cambria Math"))
-                .unwrap_or_else(|| self.text_font.clone());
-            let (bold, italic) = match r.sty {
-                Some(MSty::Bold) => (true, false),
-                Some(MSty::Italic) => (false, true),
-                Some(MSty::BoldItalic) => (true, true),
-                _ => (false, false),
-            };
-            let rs = joyword_fonts::word::resolve(&fam, bold, italic);
-            let mut b = self.text_atom(TextAtom {
-                face: rs.face,
-                text: &r.text,
-                size,
-                level: 0,
-                color,
-                synth: (rs.synth_bold, rs.synth_italic),
-                path,
-                k0: u0,
-            });
-            b.glyph = None;
-            out.push(RunPart::Atom(b.cls(Cls::Ord)));
+            out.push(RunPart::Atom(
+                self.normal_run_atom(r, size, color, u0, path),
+            ));
             return out;
         }
+        let explicit_bold = matches!(r.sty, Some(MSty::Bold | MSty::BoldItalic));
+        let explicit_italic = matches!(r.sty, Some(MSty::Italic | MSty::BoldItalic));
+        let (primary_ea, ea_face) =
+            self.east_asian_faces(r, self.face, None, explicit_bold, explicit_italic);
         // Map characters (math alphabets, operators) and split into atoms by class.
         let mut cur = String::new();
         let mut cur_k0 = 0usize;
         let mut cur_face: Option<FaceRef> = None;
-        let mut synth_italic = false;
+        let mut cur_synth = (false, false);
         let flush = |cur: &mut String,
                      k0: usize,
                      face: Option<FaceRef>,
-                     synth_italic: bool,
+                     synth: (bool, bool),
                      out: &mut Vec<RunPart>| {
             if !cur.is_empty() {
                 let f = face.unwrap_or(self.face);
@@ -211,7 +365,7 @@ impl Ctx {
                     size,
                     level: st.level,
                     color,
-                    synth: (false, synth_italic),
+                    synth,
                     path,
                     k0: u0 + k0,
                 });
@@ -232,7 +386,7 @@ impl Ctx {
         };
         for (k, c) in r.text.chars().enumerate() {
             if c == '&' && !r.lit {
-                flush(&mut cur, cur_k0, cur_face, synth_italic, &mut out);
+                flush(&mut cur, cur_k0, cur_face, cur_synth, &mut out);
                 out.push(RunPart::Align(blank(0.0, k)));
                 continue;
             }
@@ -259,18 +413,14 @@ impl Ctx {
                 ),
             };
             let mapped = math_alnum(c, bold, italic, r.scr);
-            // Fall back to the plain letter (slanted) when the face lacks the math alphabet.
-            let (ch, slant) = if mapped != c && !self.face.covers(mapped) {
-                (c, italic)
+            // Fall back to the plain letter (slanted/bold) when the face lacks the math alphabet.
+            let (ch, mut synth_bold, mut synth_italic) = if mapped != c && !self.face.covers(mapped)
+            {
+                (c, bold, italic)
+            } else if mapped == c {
+                (c, explicit_bold, explicit_italic)
             } else {
-                (mapped, false)
-            };
-            let face = if self.face.covers(ch) || ch.is_whitespace() {
-                None
-            } else {
-                FontDb::global()
-                    .fallback_for(ch, self.face.id())
-                    .map(|f| FaceRef::of(&f))
+                (mapped, false, false)
             };
             let cls = if r.lit { Cls::Ord } else { class_of(ch) };
             if ch == ' '
@@ -279,7 +429,7 @@ impl Ctx {
                 || ch == '\u{2063}'
                 || ch == '\u{200B}'
             {
-                flush(&mut cur, cur_k0, cur_face, synth_italic, &mut out);
+                flush(&mut cur, cur_k0, cur_face, cur_synth, &mut out);
                 // Word sets a typed space in an equation about 0.4 em wide.
                 out.push(RunPart::Atom(blank(
                     if ch == ' ' { size * 0.4 } else { 0.0 },
@@ -287,20 +437,38 @@ impl Ctx {
                 )));
                 continue;
             }
+            let face = if crate::kinsoku::is_east_asian(ch)
+                && primary_ea.is_some_and(|f| f.covers(ch))
+            {
+                primary_ea
+            } else if self.face.covers(ch) {
+                None
+            } else if crate::kinsoku::is_east_asian(ch) && ea_face.is_some_and(|f| f.covers(ch)) {
+                ea_face
+            } else if let Some(prev) = cur_face.filter(|f| f.covers(ch)) {
+                Some(prev)
+            } else {
+                FontDb::global()
+                    .fallback_styled(ch, self.face.id(), synth_bold, synth_italic)
+                    .map(|f| FaceRef::of(&f))
+            };
+            let actual_face = face.unwrap_or(self.face);
+            synth_bold = synth_bold && actual_face.weight < 600.0;
+            synth_italic = synth_italic && !actual_face.italic;
+            let synth = (synth_bold, synth_italic);
             let same_face = cur_face.map(|f| f.id()) == face.map(|f| f.id());
-            if cls != Cls::Ord || !same_face || slant != synth_italic {
-                flush(&mut cur, cur_k0, cur_face, synth_italic, &mut out);
+            if cls != Cls::Ord || !same_face || synth != cur_synth {
+                flush(&mut cur, cur_k0, cur_face, cur_synth, &mut out);
             }
             if cls != Cls::Ord {
-                let f = face.unwrap_or(self.face);
                 let text = ch.to_string();
                 let b = self.text_atom(TextAtom {
-                    face: f,
+                    face: actual_face,
                     text: &text,
                     size,
                     level: st.level,
                     color,
-                    synth: (false, slant),
+                    synth,
                     path,
                     k0: u0 + k,
                 });
@@ -311,10 +479,10 @@ impl Ctx {
                 cur_k0 = k;
             }
             cur_face = face;
-            synth_italic = slant;
+            cur_synth = synth;
             cur.push(ch);
         }
-        flush(&mut cur, cur_k0, cur_face, synth_italic, &mut out);
+        flush(&mut cur, cur_k0, cur_face, cur_synth, &mut out);
         out
     }
 
@@ -640,9 +808,12 @@ impl Ctx {
                 let b = self.sub(0, e, st, d);
                 let size = self.size(st);
                 let gid = self.face.glyph_for(*chr);
-                let g = self
-                    .stretch_h(gid, b.w, size)
-                    .unwrap_or_else(|| self.char_glyphs(*chr, size, 0));
+                let g = (if gid != 0 {
+                    self.stretch_h(gid, b.w, size)
+                } else {
+                    None
+                })
+                .unwrap_or_else(|| self.char_glyphs(*chr, size, 0));
                 let w = b.w.max(g.w);
                 let (ba, bd, bw) = (b.a, b.d, b.w);
                 let (ga, gd, gw) = (g.a, g.d, g.w);

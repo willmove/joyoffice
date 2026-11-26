@@ -165,7 +165,7 @@ impl Ctx {
                 let n = self.sub(0, num, st.script(), d);
                 let dn = self.sub(1, den, st.script().cramp(), d);
                 let size = self.size(st);
-                let slash = self.glyphs(self.face, "\u{2044}", size, 0, self.color, (false, false));
+                let slash = self.char_glyphs('\u{2044}', size, 0);
                 let gap = self.k(C::SkewedFractionHorizontalGap, st) / 2.0;
                 let (nw, sw) = (n.w, slash.w);
                 let mut out = Bx {
@@ -273,8 +273,13 @@ impl Ctx {
         };
         let target = b.a + b.d + gap + t;
         let gid = self.face.glyph_for('√');
-        let g = self.stretch_v(gid, target, size).unwrap_or_else(|| {
-            let mut g = self.glyphs(self.face, "√", size, 0, self.color, (false, false));
+        let g = (if gid != 0 {
+            self.stretch_v(gid, target, size)
+        } else {
+            None
+        })
+        .unwrap_or_else(|| {
+            let mut g = self.char_glyphs('√', size, 0);
             g.glyph = None;
             g
         });

@@ -2113,3 +2113,133 @@ fn a_line_runs_from_top_left_to_bottom_right() {
         ]
     );
 }
+
+#[test]
+fn equation_with_chinese_renders_without_missing_glyphs() {
+    use joyword_model::math::*;
+    use joyword_model::para::InlineObject;
+    use joyword_model::props::{CharProps, ParaProps};
+    use joyword_model::{Block, Document, Paragraph};
+
+    let sample = "不可约误差";
+    let primary = joyword_fonts::word::resolve("Times New Roman", false, false).face;
+    let has_cjk = sample
+        .chars()
+        .all(|c| primary.covers(c) || FontDb::global().fallback_for(c, primary.id()).is_some());
+    if !has_cjk {
+        return;
+    }
+
+    let underbrace = |sub_latin: &str, label_zh: &str| MNode::Lim {
+        upper: false,
+        e: vec![MNode::GroupChr {
+            chr: '\u{23DF}',
+            top: false,
+            e: vec![MNode::Script {
+                kind: ScriptKind::Sub,
+                base: vec![MNode::Run(MRun::new("L"))],
+                sub: vec![MNode::Run(MRun::plain(sub_latin))],
+                sup: Vec::new(),
+            }],
+        }],
+        lim: vec![MNode::Run(MRun {
+            text: label_zh.into(),
+            nor: true,
+            sty: Some(MSty::Plain),
+            font: Some("Cambria Math".into()),
+            ..Default::default()
+        })],
+    };
+    let math = Math {
+        nodes: vec![
+            MNode::Run(MRun::new("L=")),
+            underbrace("irr", "不可约误差"),
+            MNode::Run(MRun::new("+")),
+            underbrace("approx", "近似误差"),
+            MNode::Run(MRun::new("+")),
+            underbrace("est", "估计误差"),
+            MNode::Run(MRun::new("+")),
+            underbrace("opt", "优化误差"),
+        ],
+        ..Default::default()
+    };
+
+    let heading = Paragraph::with_text(
+        "2.3 误差的四重分解",
+        CharProps {
+            bold: Some(true),
+            size: Some(14.0),
+            ..Default::default()
+        },
+    );
+    let intro = Paragraph::with_text(
+        "对任意训练得到的模型 f，测试误差可分解为四个正交分量：",
+        CharProps::default(),
+    );
+    let mut eq_para = Paragraph::new();
+    eq_para.props = ParaProps {
+        space_before: Some(12.0),
+        ..Default::default()
+    };
+    let linear = to_linear(&math.nodes);
+    eq_para
+        .insert_object(
+            0,
+            InlineObject::Equation {
+                linear,
+                display: true,
+                math,
+            },
+            &CharProps {
+                font: Some("Times New Roman".into()),
+                size: Some(12.0),
+                ..Default::default()
+            },
+        )
+        .unwrap();
+
+    let mut doc = Document::new();
+    doc.body = vec![
+        std::sync::Arc::new(Block::Para(heading)),
+        std::sync::Arc::new(Block::Para(intro)),
+        std::sync::Arc::new(Block::Para(eq_para)),
+    ];
+
+    let mut cache = LayoutCache::default();
+    let laid = layout(&doc, &mut cache, &LayoutOptions::default());
+    let page = laid.pages.first().unwrap();
+    let display = page_display(
+        &doc,
+        page,
+        &joyword_layout::display::DisplayOptions::default(),
+    );
+
+    let mut zh_runs = 0usize;
+    for item in &display {
+        if let joyword_layout::display::Draw::Glyphs {
+            face, glyphs, text, ..
+        } = item
+        {
+            assert!(
+                glyphs.iter().all(|g| g.0 != 0),
+                "missing glyph (.notdef) in {text:?} (face {})",
+                face.family
+            );
+            if text.contains("不可约误差")
+                || text.contains("近似误差")
+                || text.contains("估计误差")
+                || text.contains("优化误差")
+            {
+                zh_runs += 1;
+            }
+        }
+    }
+    assert_eq!(zh_runs, 4, "all 4 Chinese labels must be drawn");
+
+    let rendered = render_page(&doc, page, 2.0, &RenderOptions::default());
+    assert!(rendered.width > 0 && rendered.height > 0);
+    assert!(
+        rendered.pixels.chunks(4).any(|p| p[0] < 64 && p[3] > 200),
+        "rendered page must contain dark ink"
+    );
+}

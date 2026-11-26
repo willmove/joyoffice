@@ -548,7 +548,14 @@ fn run(w: &mut W, r: &MRun) {
         .as_deref()
         .filter(|_| r.nor)
         .unwrap_or("Cambria Math");
-    w.empty("w:rFonts", &[("w:ascii", font), ("w:hAnsi", font)]);
+    if let Some(ea) = r.font_ea.as_deref().filter(|f| !f.is_empty()) {
+        w.empty(
+            "w:rFonts",
+            &[("w:ascii", font), ("w:hAnsi", font), ("w:eastAsia", ea)],
+        );
+    } else {
+        w.empty("w:rFonts", &[("w:ascii", font), ("w:hAnsi", font)]);
+    }
     if let Some(c) = r.color {
         w.val("w:color", &c.hex());
     }

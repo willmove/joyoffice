@@ -441,6 +441,13 @@ fn wrpr(pr: Option<&El>, out: &mut MRun) {
     {
         out.color = Some(c);
     }
+    if let Some(f) = pr
+        .child("w:rFonts")
+        .and_then(|f| f.attr("w:eastAsia"))
+        .filter(|f| !f.is_empty() && !symbol_fonts::is_symbol_font(f))
+    {
+        out.font_ea = Some(f.to_string());
+    }
     if out.nor {
         // Symbol-font text was mapped to Unicode: it takes the text font.
         if let Some(f) = pr
@@ -714,5 +721,67 @@ mod tests {
         );
         let e = omath(&inner);
         let _ = read_omath(&e, MathJc::CenterGroup);
+    }
+
+    #[test]
+    fn reads_east_asia_font_on_math_runs() {
+        let e = omath(
+            r#"<m:limLow><m:e><m:groupChr><m:groupChrPr><m:chr m:val="⏟"/><m:pos m:val="bot"/></m:groupChrPr><m:e><m:r><m:t>L</m:t></m:r></m:e></m:groupChr></m:e><m:lim><m:r><m:rPr><m:nor/><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:hAnsi="Cambria Math" w:eastAsia="宋体"/></w:rPr><m:t>不可约误差</m:t></m:r></m:lim></m:limLow>"#,
+        );
+        let m = read_omath(&e, MathJc::CenterGroup);
+        let [
+            MNode::Lim {
+                upper: false, lim, ..
+            },
+        ] = m.nodes.as_slice()
+        else {
+            panic!("unexpected nodes: {:?}", m.nodes);
+        };
+        let [MNode::Run(r)] = lim.as_slice() else {
+            panic!("unexpected lim: {lim:?}");
+        };
+        assert!(r.nor);
+        assert_eq!(r.text, "不可约误差");
+        assert_eq!(r.font.as_deref(), Some("Cambria Math"));
+        assert_eq!(r.font_ea.as_deref(), Some("宋体"));
+
+        // Round-tripping from nodes (without kept source OMML) preserves `w:eastAsia`.
+        let mut rewritten = m;
+        rewritten.omml.clear();
+        let mut para = joyword_model::Paragraph::new();
+        para.insert_object(
+            0,
+            joyword_model::para::InlineObject::Equation {
+                linear: String::new(),
+                display: false,
+                math: rewritten,
+            },
+            &Default::default(),
+        )
+        .unwrap();
+        let mut doc = joyword_model::Document::new();
+        doc.body = vec![std::sync::Arc::new(joyword_model::Block::Para(para))];
+        let bytes = crate::write(&doc).unwrap();
+        let back = crate::read(&bytes).unwrap();
+        let joyword_model::Block::Para(p) = &*back.body[0] else {
+            panic!("expected paragraph");
+        };
+        let Some(joyword_model::para::InlineObject::Equation { math, .. }) = p.object_at(0) else {
+            panic!("expected equation");
+        };
+        let [
+            MNode::Lim {
+                upper: false, lim, ..
+            },
+        ] = math.nodes.as_slice()
+        else {
+            panic!("unexpected round-tripped nodes: {:?}", math.nodes);
+        };
+        let [MNode::Run(r)] = lim.as_slice() else {
+            panic!("unexpected round-tripped lim: {lim:?}");
+        };
+        assert!(r.nor);
+        assert_eq!(r.text, "不可约误差");
+        assert_eq!(r.font_ea.as_deref(), Some("宋体"));
     }
 }

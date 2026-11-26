@@ -67,7 +67,7 @@ impl Ctx {
         color: Rgb,
         synth: (bool, bool),
     ) -> Bx {
-        let feats = if level > 0 {
+        let feats = if level > 0 && face.id() == self.face.id() {
             vec![joyword_fonts::feature_value(b"ssty", level as u32)]
         } else {
             Vec::new()

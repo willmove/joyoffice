@@ -52,7 +52,8 @@ impl Math {
             if let MNode::Run(r) = node {
                 n = n
                     .saturating_add(r.text.len())
-                    .saturating_add(r.font.as_ref().map_or(0, String::len));
+                    .saturating_add(r.font.as_ref().map_or(0, String::len))
+                    .saturating_add(r.font_ea.as_ref().map_or(0, String::len));
             }
             each_arg(node, &mut |a| {
                 n = n.saturating_add(std::mem::size_of::<Arg>());
@@ -174,6 +175,9 @@ pub struct MRun {
     /// Font for normal text.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub font: Option<String>,
+    /// East Asian font (`w:rFonts/@w:eastAsia`).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub font_ea: Option<String>,
     /// A manual line break before this run in a display equation (`m:brk`): `Some(0)` wraps as
     /// usual, `Some(n)` aligns the new line at the `n`th operator of the first line (`m:alnAt`).
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -840,6 +844,7 @@ pub fn merge_runs(a: Arg) -> Arg {
                     && prev.size == r.size
                     && prev.color == r.color
                     && prev.font == r.font
+                    && prev.font_ea == r.font_ea
                     && r.brk.is_none()
                 {
                     prev.text.push_str(&r.text);

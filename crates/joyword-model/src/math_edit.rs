@@ -435,6 +435,7 @@ fn merge_shallow(a: Arg) -> Arg {
             && prev.size == r.size
             && prev.color == r.color
             && prev.font == r.font
+            && prev.font_ea == r.font_ea
         {
             prev.text.push_str(&r.text);
             continue;

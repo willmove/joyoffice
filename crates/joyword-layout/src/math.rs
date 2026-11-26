@@ -241,6 +241,7 @@ pub fn layout_equation(
         base,
         color,
         text_font: rc.font.clone(),
+        text_font_ea: rc.font_ea.clone(),
         nodes: 0,
         path: Vec::new(),
         node_stack: Vec::new(),
