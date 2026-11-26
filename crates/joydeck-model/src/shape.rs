@@ -141,6 +141,15 @@ impl Geom {
             adj: Vec::new(),
         }
     }
+    /// Whether `name` is a supported ECMA-376 preset geometry in `joydeck-geom`.
+    pub fn is_supported_preset(name: &str) -> bool {
+        name != "textBox" && joydeck_geom::preset::info(name).is_some()
+    }
+    /// Whether `name` is an open/line-only preset that needs a visible stroke.
+    pub fn is_open_preset(name: &str) -> bool {
+        joydeck_geom::preset::is_line_like(name)
+            || joydeck_geom::preset::build(name, 100.0, 100.0, &[]).is_some_and(|g| g.is_open())
+    }
     pub fn set_callout_vertex(&mut self, vertex: u8, x: i32, y: i32) -> bool {
         let Self::Preset { name, adj } = self else {
             return false;
@@ -300,22 +309,17 @@ impl Shape {
     }
     /// Switch autoshapes to an editable preset; stale guides from the old geometry are discarded.
     pub fn set_basic_preset(&mut self, name: &str) -> bool {
-        if !matches!(self.kind, ShapeKind::Shape)
-            || !matches!(
-                name,
-                "rect"
-                    | "roundRect"
-                    | "ellipse"
-                    | "triangle"
-                    | "chevron"
-                    | "hexagon"
-                    | "star5"
-                    | "rightArrow"
-            )
-        {
+        if !matches!(self.kind, ShapeKind::Shape) || !Geom::is_supported_preset(name) {
             return false;
         }
         self.geom = Geom::preset(name);
+        if Geom::is_open_preset(name) && self.line.is_none() {
+            let color = match &self.fill {
+                Some(Fill::Solid { color }) => color.clone(),
+                _ => style::ColorRef::scheme(joydeck_color::SchemeSlot::Accent1),
+            };
+            self.line = Some(Line::solid(color, 2.0));
+        }
         true
     }
 

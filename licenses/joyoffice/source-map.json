@@ -526,7 +526,7 @@
     "target_path": "crates/joydeck-ui-gpui/src/slideshow.rs",
     "source_sha256": "ba57a296c7911ccd7767e4b655906fb1cc9b479ccc0f4e442f00e878acb1e17c",
     "local_changes": "Audience/presenter ownership, separate clocks/windows and media worker adapted to new immutable model; new GPUI controls, frame guards and CPU rendering.; 2026-11-13: device-pixel slideshow targets, single-flight resolution-aware invalidation and bounded static media raster reuse; retain animation, transition and media sampling",
-    "adapted_sha256": "ac24c983c6af3f3feb30307a1521b6357ec0832c087993a92bc129515d116a83",
+    "adapted_sha256": "04888e236deef8230a31813c1436aaa2cc708dbf63ccd3c44b58b07a876e2bcc",
     "font_environment": "Refresh font selection, editor geometry and rendering caches when installed font files change.",
     "text_hyperlinks": "Dispatch a validated URL returned by the slide show click player.",
     "product_branding": "Group audience and presenter windows with the JoyDeck desktop launcher.",
@@ -549,7 +549,7 @@
     "target_path": "crates/joydeck-shell/src/playback.rs",
     "source_sha256": "bfb3f6a0d1e81134b43c828480ee869442f19f89343befc8c4e266a65cb82824",
     "local_changes": "Private bounded stdio decoder process pattern adapted to Windows WPF, JSON frames, timeout poisoning and owned cleanup.",
-    "adapted_sha256": "3be0565fda2e4533ebc042b206c136e5de21ecbda8fbc26add3b03f3edf714c0"
+    "adapted_sha256": "ca0617d3886f03b083969611c55199d2f051da50081ab53538740088ef48d758"
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -660,7 +660,7 @@
     "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
     "source_sha256": "efd229d2bca36c8887fa16026f4946bbe3240cd9ea9b1b9b65c8c83c11933438",
     "local_changes": "R8 per-tab bounded GPUI construction frames follow the old JoyDeck ribbon pattern; split Home into groups and keep intrinsic horizontal scroll width on default MSVC stack.; 2026-11-11: shared application theme catalog, persistent preset selection and palette projection; preserve document colors and original source identity Build the ribbon from typed tab and command routes, with shared GPUI controls and bounded viewport scrolling.",
-    "adapted_sha256": "39baf1c0c2d12ddc573c089bb27c9c954efa07807f158135be308e70f5d3e6dd",
+    "adapted_sha256": "1daec0ad12d2bbc3286c0cee083db7fb3911df66e391b2e9f8f0e93a8f13c234",
     "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained.",
     "cancellable_open": "Add an explicit cancel action to the status bar while opening a document.",
     "shared_document_view": "Separate window selection and state from the shared editor session and preserve revision guards.",

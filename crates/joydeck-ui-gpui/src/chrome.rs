@@ -82,26 +82,15 @@ pub(super) fn col() -> Div {
     div().flex().flex_col().gap(px(4.))
 }
 
-fn theme_preview(
-    index: usize,
-    theme: &joydeck_model::Theme,
-    current: bool,
-    p: Palette,
-) -> impl IntoElement {
+use gpui_kit::component::tooltip::Tooltip;
+
+fn theme_swatch_body(theme: &joydeck_model::Theme, current: bool, p: Palette) -> Div {
     use joydeck_model::SchemeSlot as Slot;
     let color = |slot| {
         let c = theme.colors.get(slot);
         rgb(u32::from_be_bytes([0, c.r, c.g, c.b]))
     };
-    let status = if current {
-        "当前主题"
-    } else {
-        "主题预览，暂不支持应用"
-    };
     div()
-        .id(("theme-preview", index))
-        .role(gpui::Role::Image)
-        .aria_label(format!("{}（{status}）", theme.name))
         .w(px(83.))
         .h(px(48.))
         .px_2()
@@ -113,7 +102,25 @@ fn theme_preview(
         .border_color(rgb(if current { p.accent } else { p.border }))
         .bg(color(Slot::Lt1))
         .text_color(color(Slot::Dk1))
-        .child(div().text_size(px(20.)).child("Aa"))
+        .child(
+            div()
+                .flex()
+                .items_baseline()
+                .justify_between()
+                .child(
+                    div()
+                        .text_size(px(17.))
+                        .font_weight(FontWeight::SEMIBOLD)
+                        .child("Aa"),
+                )
+                .child(
+                    div()
+                        .text_size(px(9.))
+                        .truncate()
+                        .max_w(px(44.))
+                        .child(theme.name.clone()),
+                ),
+        )
         .child(
             row().children(
                 [
@@ -124,7 +131,59 @@ fn theme_preview(
                     Slot::Accent5,
                     Slot::Accent6,
                 ]
-                .map(|slot| div().w(px(8.)).h(px(5.)).bg(color(slot))),
+                .map(|slot| div().w(px(9.)).h(px(5.)).bg(color(slot))),
+            ),
+        )
+}
+
+fn variant_swatch_body(
+    scheme: &joydeck_model::ColorScheme,
+    label: &str,
+    current: bool,
+    p: Palette,
+) -> Div {
+    use joydeck_model::SchemeSlot as Slot;
+    let color = |slot| {
+        let c = scheme.get(slot);
+        rgb(u32::from_be_bytes([0, c.r, c.g, c.b]))
+    };
+    div()
+        .w(px(108.))
+        .h(px(56.))
+        .px_2()
+        .py(px(4.))
+        .flex()
+        .flex_col()
+        .justify_between()
+        .rounded(px(4.))
+        .border_1()
+        .border_color(rgb(if current { p.accent } else { p.border }))
+        .bg(color(Slot::Lt1))
+        .text_color(color(Slot::Dk1))
+        .child(
+            div()
+                .flex()
+                .items_center()
+                .justify_between()
+                .child(
+                    div()
+                        .text_size(px(14.))
+                        .font_weight(FontWeight::SEMIBOLD)
+                        .child("Aa"),
+                )
+                .child(div().text_size(px(10.)).child(label.to_string())),
+        )
+        .child(
+            row().gap(px(2.)).children(
+                [
+                    Slot::Accent1,
+                    Slot::Accent2,
+                    Slot::Accent3,
+                    Slot::Accent4,
+                    Slot::Accent5,
+                    Slot::Accent6,
+                ]
+                .map(|slot| div().w(px(12.)).h(px(6.)).bg(color(slot))),
             ),
         )
 }
@@ -1200,20 +1259,119 @@ impl Viewer {
         });
         let p = self.palette();
         let builtin = joydeck_model::theme::builtin_themes();
-        let themes = gallery(self.palette()).children(
-            master
-                .into_iter()
-                .map(|m| (&m.theme, true))
-                .chain(
-                    builtin
-                        .iter()
-                        .filter(|theme| master.is_none_or(|m| m.theme.name != theme.name))
-                        .map(|theme| (theme, false)),
-                )
-                .enumerate()
-                .map(|(i, (theme, current))| theme_preview(i, theme, current, p)),
-        );
-        let mut variants = row().child(unavailable("design-variants", I::Brush, "变体"));
+        let current_name = master.map(|m| m.theme.name.clone());
+        let current_is_builtin = current_name
+            .as_deref()
+            .is_some_and(|name| builtin.iter().any(|t| t.name == name));
+        let mut theme_cards: Vec<AnyElement> = Vec::new();
+        let mut idx = 0usize;
+        if let Some(m) = master
+            && !current_is_builtin
+        {
+            let name = m.theme.name.clone();
+            theme_cards.push(
+                div()
+                    .id(("theme-preview", idx))
+                    .tooltip(move |w, cx| {
+                        Tooltip::new(format!("当前文档主题：{name}")).build(w, cx)
+                    })
+                    .child(theme_swatch_body(&m.theme, true, p))
+                    .into_any_element(),
+            );
+            idx += 1;
+        }
+        for theme in &builtin {
+            let is_current = current_name.as_deref() == Some(theme.name.as_str());
+            let name = theme.name.clone();
+            let tip = if is_current {
+                format!("当前主题：{name}（点击重新应用）")
+            } else {
+                format!("一键应用主题：{name}")
+            };
+            let apply_name = name.clone();
+            theme_cards.push(
+                div()
+                    .id(("theme-preview", idx))
+                    .when(!disabled, |d| d.cursor_pointer())
+                    .tooltip(move |w, cx| Tooltip::new(tip.clone()).build(w, cx))
+                    .when(!disabled, |d| {
+                        d.on_click(cx.listener(move |s, _, w, cx| {
+                            s.dispatch(
+                                Command::Content {
+                                    action: joydeck_engine::ContentAction::ApplyTheme {
+                                        name: apply_name.clone(),
+                                    },
+                                },
+                                w,
+                                cx,
+                            );
+                        }))
+                    })
+                    .child(theme_swatch_body(theme, is_current, p))
+                    .into_any_element(),
+            );
+            idx += 1;
+        }
+        let themes = gallery(self.palette())
+            .id("design-themes-gallery")
+            .max_w(px(540.))
+            .overflow_x_scroll()
+            .children(theme_cards);
+
+        let variant_schemes = master
+            .map(|m| joydeck_model::theme::theme_variants(&m.theme))
+            .unwrap_or_default();
+        let current_colors = master.map(|m| m.theme.colors.clone());
+        let view = cx.entity().downgrade();
+        let variant_btn = Popover::new("design-variants")
+            .trigger(
+                tool("design-variants-trigger", I::Brush, "变体", BLUE)
+                    .dropdown_caret(true)
+                    .disabled(disabled || variant_schemes.is_empty()),
+            )
+            .content(move |_, _, _| {
+                let labels = ["默认配色", "配色变体 2", "配色变体 3", "深浅反色"];
+                let mut grid = div().flex().flex_wrap().gap_2().w(px(236.));
+                for (vi, scheme) in variant_schemes.iter().enumerate() {
+                    let is_curr = current_colors.as_ref() == Some(scheme);
+                    let label = labels.get(vi).copied().unwrap_or("变体");
+                    let view = view.clone();
+                    grid = grid.child(
+                        div()
+                            .id(("theme-variant-card", vi))
+                            .cursor_pointer()
+                            .on_click(move |_, w, cx| {
+                                let _ = view.update(cx, |s, cx| {
+                                    s.dispatch(
+                                        Command::Content {
+                                            action:
+                                                joydeck_engine::ContentAction::ApplyThemeVariant {
+                                                    index: vi,
+                                                },
+                                        },
+                                        w,
+                                        cx,
+                                    );
+                                });
+                            })
+                            .child(variant_swatch_body(scheme, label, is_curr, p)),
+                    );
+                }
+                div()
+                    .flex()
+                    .flex_col()
+                    .gap_2()
+                    .child(
+                        div()
+                            .text_xs()
+                            .font_weight(FontWeight::SEMIBOLD)
+                            .text_color(rgb(p.muted))
+                            .child("主题配色变体（点击应用）"),
+                    )
+                    .child(grid)
+            });
+
+        let mut variants = row().child(variant_btn);
         for (id, label, icon, form) in [
             ("theme-colors", "颜色", I::Palette, content_ui::Form::Accent),
             ("theme-fonts", "字体", I::Type, content_ui::Form::Fonts),

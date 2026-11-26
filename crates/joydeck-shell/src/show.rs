@@ -289,6 +289,41 @@ impl Player {
         }
         Ok(image)
     }
+    /// Render a static preview of any slide (e.g. Presenter View's "Next Slide" thumbnail).
+    pub fn preview_slide(
+        &self,
+        page: usize,
+        scale: f64,
+        cancel: &Cancellation,
+    ) -> Result<joydeck_render::Image, String> {
+        if page >= self.model.slides.len() {
+            return Err("preview slide out of range".into());
+        }
+        let _ = crate::show_render::RenderTarget::new(
+            self.model.slide_size.width,
+            self.model.slide_size.height,
+            scale,
+        )?;
+        cancel.check()?;
+        let _guard = crate::document::RENDER_LOCK
+            .lock()
+            .map_err(|_| "show renderer lock poisoned")?;
+        let panics = joydeck_render::panics_caught();
+        let opts = joydeck_render::RenderOpts {
+            scale,
+            threads: 0,
+            ..Default::default()
+        };
+        let image = joydeck_render::render_slide(&self.model, page, &opts);
+        if joydeck_render::panics_caught() != panics {
+            return Err("preview rasterization failed".into());
+        }
+        cancel.check()?;
+        if image.pixels.is_empty() {
+            return Err("preview raster failed".into());
+        }
+        Ok(image)
+    }
     pub(crate) fn with_render_options<T>(
         &self,
         scale: f64,

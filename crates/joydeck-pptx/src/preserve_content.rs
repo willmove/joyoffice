@@ -146,6 +146,9 @@ pub(super) fn globals(
                 .xml(&format!("ppt/theme/theme{}.xml", index + 1))
                 .ok_or_else(|| error("generated theme missing"))?
                 .root;
+            if old.theme.name != new.theme.name {
+                root.set_attr("name", &new.theme.name);
+            }
             let target = child_mut(&mut root, "themeElements")
                 .ok_or_else(|| error("theme elements missing"))?;
             let source = gen_root
@@ -154,6 +157,9 @@ pub(super) fn globals(
             if old.theme.colors != new.theme.colors {
                 let original = child_mut(target, "clrScheme")
                     .ok_or_else(|| error("original color scheme missing"))?;
+                if old.theme.colors.name != new.theme.colors.name {
+                    original.set_attr("name", &new.theme.colors.name);
+                }
                 let generated = source
                     .child("clrScheme")
                     .ok_or_else(|| error("generated color scheme missing"))?;
@@ -171,6 +177,9 @@ pub(super) fn globals(
             if old.theme.fonts != new.theme.fonts {
                 let original = child_mut(target, "fontScheme")
                     .ok_or_else(|| error("original font scheme missing"))?;
+                if old.theme.fonts.name != new.theme.fonts.name {
+                    original.set_attr("name", &new.theme.fonts.name);
+                }
                 let generated = source
                     .child("fontScheme")
                     .ok_or_else(|| error("generated font scheme missing"))?;

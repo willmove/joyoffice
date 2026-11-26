@@ -184,6 +184,12 @@ impl Viewer {
                         })),
                 );
             }
+            panel = panel.child(
+                Button::new("shape-preset-more")
+                    .label("更多形状…")
+                    .disabled(!shape_selected)
+                    .on_click(cx.listener(|s, _, w, cx| s.shape_preset_gallery(w, cx))),
+            );
         }
         panel.into_any_element()
     }

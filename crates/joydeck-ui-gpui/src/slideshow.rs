@@ -1,5 +1,6 @@
 //! Audience/presenter lifecycle, clock and owned media workers adapted from JoyOffice slideshow.
 use super::*;
+use gpui_kit::component::Sizable;
 use joydeck_shell::{
     Cancellation,
     show::Player,
@@ -171,7 +172,7 @@ impl Audience {
         let mut key = model.frame_key();
         let media_on = r.media_enabled();
         if media_on && !model.paused && r.status["paused"] != true {
-            key.3 = key.3.max((model.total * 10.) as u64);
+            key.3 = key.3.max((model.total * 24.) as u64);
         }
         let font_revision = joydeck_fonts::FontDb::global().environment_revision();
         let key = frames::Key {
@@ -372,11 +373,165 @@ impl Render for Audience {
     }
 }
 
+type PresenterCurrentKey = ((u64, usize, usize, u64), RenderTarget, u64);
+type PresenterNextKey = (usize, RenderTarget, u64);
+
 struct Presenter {
     shared: Shared,
     audience: AnyWindowHandle,
     focus: FocusHandle,
     poll: Option<Task<()>>,
+    cancel: Cancellation,
+    current_image: Option<Arc<RenderImage>>,
+    current_key: Option<PresenterCurrentKey>,
+    current_in_flight: Option<PresenterCurrentKey>,
+    current_task: Option<Task<()>>,
+    next_image: Option<Arc<RenderImage>>,
+    next_key: Option<PresenterNextKey>,
+    next_in_flight: Option<PresenterNextKey>,
+    next_task: Option<Task<()>>,
+    retired: Vec<Arc<RenderImage>>,
+}
+impl Drop for Presenter {
+    fn drop(&mut self) {
+        self.cancel.cancel();
+    }
+}
+impl Presenter {
+    fn exit(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+        self.cancel.cancel();
+        if let Ok(mut r) = self.shared.lock() {
+            r.closed = true;
+            r.presenter = None;
+        }
+        let _ = self.audience.update(cx, |_, w, _| w.remove_window());
+        w.remove_window();
+    }
+    fn navigation(&mut self, key: &str, w: &mut Window, cx: &mut Context<Self>) {
+        if key == "escape" {
+            self.exit(w, cx);
+            return;
+        }
+        let mut quit = false;
+        if let Ok(mut r) = self.shared.lock() {
+            if key == "m" {
+                r.media.enabled = Some(!r.media_enabled());
+                r.player.serial += 1;
+            } else if key == "j" || key == "k" {
+                let seconds = (r.status["seconds"].as_f64().unwrap_or(0.)
+                    + if key == "j" { -5. } else { 5. })
+                .clamp(0., 3600.);
+                r.player.serial += 1;
+                r.media.seek = Some((r.player.serial, seconds));
+            } else if key == "v" {
+                r.media.muted = !r.media.muted;
+                r.player.serial += 1;
+            } else {
+                let action = match key {
+                    "right" | "down" | "space" | "enter" | "pagedown" => "next",
+                    "left" | "up" | "backspace" | "pageup" => "previous",
+                    "p" => "pause",
+                    "b" => "black",
+                    "w" => "white",
+                    _ => return,
+                };
+                let old = r.player.state.slide;
+                if let Ok(q) = r.player.navigate(action, None) {
+                    quit = q;
+                }
+                r.changed_page(old);
+            }
+        }
+        if quit {
+            self.exit(w, cx);
+        } else {
+            cx.notify();
+        }
+    }
+    fn request_previews(
+        &mut self,
+        current_target: RenderTarget,
+        next_target: RenderTarget,
+        cx: &mut Context<Self>,
+    ) {
+        let Ok(r) = self.shared.lock() else { return };
+        if r.closed {
+            return;
+        }
+        let model = r.player.clone();
+        let next_page = r.player.state.peek_next(&r.player.model);
+        drop(r);
+
+        let fonts = joydeck_fonts::FontDb::global().environment_revision();
+        let curr_key = (model.frame_key(), current_target, fonts);
+        if self.current_key != Some(curr_key) && self.current_in_flight != Some(curr_key) {
+            self.current_in_flight = Some(curr_key);
+            let cancel = self.cancel.clone();
+            let model_for_curr = model.clone();
+            self.current_task = Some(cx.spawn(async move |view, cx| {
+                let result = cx
+                    .background_executor()
+                    .spawn(async move {
+                        let raster = model_for_curr.frame(current_target.scale(), &cancel)?;
+                        image(raster)
+                    })
+                    .await;
+                let _ = view.update(cx, |s, cx| {
+                    if s.current_in_flight == Some(curr_key) {
+                        s.current_in_flight = None;
+                    }
+                    if s.cancel.check().is_err() {
+                        return;
+                    }
+                    if let Ok(img) = result {
+                        if let Some(old) = s.current_image.replace(img) {
+                            s.retired.push(old);
+                        }
+                        s.current_key = Some(curr_key);
+                        cx.notify();
+                    }
+                });
+            }));
+        }
+
+        if let Some(page) = next_page {
+            let n_key = (page, next_target, fonts);
+            if self.next_key != Some(n_key) && self.next_in_flight != Some(n_key) {
+                self.next_in_flight = Some(n_key);
+                let cancel = self.cancel.clone();
+                self.next_task = Some(cx.spawn(async move |view, cx| {
+                    let result = cx
+                        .background_executor()
+                        .spawn(async move {
+                            let raster = model.preview_slide(page, next_target.scale(), &cancel)?;
+                            image(raster)
+                        })
+                        .await;
+                    let _ = view.update(cx, |s, cx| {
+                        if s.next_in_flight == Some(n_key) {
+                            s.next_in_flight = None;
+                        }
+                        if s.cancel.check().is_err() {
+                            return;
+                        }
+                        if let Ok(img) = result {
+                            if let Some(old) = s.next_image.replace(img) {
+                                s.retired.push(old);
+                            }
+                            s.next_key = Some(n_key);
+                            cx.notify();
+                        }
+                    });
+                }));
+            }
+        } else {
+            if let Some(old) = self.next_image.take() {
+                self.retired.push(old);
+            }
+            self.next_key = None;
+            self.next_in_flight = None;
+        }
+    }
 }
 impl Focusable for Presenter {
     fn focus_handle(&self, _: &App) -> FocusHandle {
@@ -384,15 +539,32 @@ impl Focusable for Presenter {
     }
 }
 impl Render for Presenter {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let (status, notes, next, media) = self
+    fn render(&mut self, w: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        for old in self.retired.drain(..) {
+            let _ = w.drop_image(old);
+        }
+        let (slide_w, slide_h, status, notes, next_label, has_next, media, blank, ended) = self
             .shared
             .lock()
             .map(|r| {
+                let next_idx = r.player.state.peek_next(&r.player.model);
+                let next_title = next_idx
+                    .map(|p| {
+                        let title = r.player.model.slides[p].title();
+                        if title.trim().is_empty() {
+                            format!("第 {} 页", p + 1)
+                        } else {
+                            format!("第 {} 页 · {title}", p + 1)
+                        }
+                    })
+                    .unwrap_or_else(|| "放映结束".into());
                 (
+                    r.player.model.slide_size.width.max(1.),
+                    r.player.model.slide_size.height.max(1.),
                     format!(
-                        "第 {} 页 · 步骤 {} · 已用 {:.1} 秒 · {}",
+                        "第 {} / {} 页 · 步骤 {} · 已用 {:.1} 秒 · {}",
                         r.player.state.slide + 1,
+                        r.player.model.slides.len(),
                         r.player.state.step,
                         r.player.total,
                         if r.player.paused {
@@ -402,18 +574,8 @@ impl Render for Presenter {
                         }
                     ),
                     r.player.model.slides[r.player.state.slide].notes_text(),
-                    r.player
-                        .state
-                        .peek_next(&r.player.model)
-                        .map(|p| {
-                            let title = r.player.model.slides[p].title();
-                            if title.trim().is_empty() {
-                                format!("第 {} 页", p + 1)
-                            } else {
-                                title
-                            }
-                        })
-                        .unwrap_or_else(|| "放映结束".into()),
+                    next_title,
+                    next_idx.is_some(),
                     if r.status.is_null() || r.status["playing"] == false {
                         "未播放".into()
                     } else {
@@ -428,67 +590,252 @@ impl Render for Presenter {
                             r.status["seconds"].as_f64().unwrap_or(0.)
                         )
                     },
+                    r.player.blank,
+                    r.player.state.ended,
                 )
             })
-            .unwrap_or_default();
-        let mut buttons = div().flex().flex_wrap().gap_2();
+            .unwrap_or((
+                960.,
+                540.,
+                String::new(),
+                String::new(),
+                "放映结束".into(),
+                false,
+                "未播放".into(),
+                None,
+                true,
+            ));
+
+        let vp = w.viewport_size();
+        let vp_w = f64::from(vp.width).max(640.);
+        let vp_h = f64::from(vp.height).max(480.);
+        let right_w = 340.0_f64.min((vp_w * 0.36).max(260.));
+        let left_w = (vp_w - right_w - 64.).max(260.);
+        let left_h = (vp_h - 190.).max(180.);
+        let next_box_w = (right_w - 24.).max(200.);
+        let next_box_h = (next_box_w * slide_h / slide_w).clamp(110., 210.);
+        let dpi = f64::from(w.scale_factor()).max(1.);
+
+        let curr_scale = (left_w / slide_w).min(left_h / slide_h).max(0.05);
+        let curr_disp_w = (slide_w * curr_scale) as f32;
+        let curr_disp_h = (slide_h * curr_scale) as f32;
+
+        let next_scale = (next_box_w / slide_w).min(next_box_h / slide_h).max(0.05);
+        let next_disp_w = (slide_w * next_scale) as f32;
+        let next_disp_h = (slide_h * next_scale) as f32;
+
+        if let (Ok(ct), Ok(nt)) = (
+            RenderTarget::fit((slide_w, slide_h), (left_w, left_h), dpi),
+            RenderTarget::fit((slide_w, slide_h), (next_box_w, next_box_h), dpi),
+        ) {
+            self.request_previews(ct, nt, cx);
+        }
+
+        let mut buttons = div().flex().flex_wrap().items_center().gap_2();
         for (label, action) in [
-            ("下一步", "next"),
             ("上一步", "previous"),
+            ("下一步", "next"),
             ("暂停 / 继续", "pause"),
             ("黑屏", "black"),
             ("白屏", "white"),
         ] {
-            buttons = buttons.child(Button::new(label).label(label).on_click(cx.listener(
-                move |s, _, _, cx| {
-                    if let Ok(mut r) = s.shared.lock() {
-                        let old = r.player.state.slide;
-                        let _ = r.player.navigate(action, None);
-                        r.changed_page(old);
-                    }
-                    cx.notify();
-                },
-            )));
+            buttons = buttons.child(
+                Button::new(label)
+                    .small()
+                    .label(label)
+                    .on_click(cx.listener(move |s, _, _, cx| {
+                        if let Ok(mut r) = s.shared.lock() {
+                            let old = r.player.state.slide;
+                            let _ = r.player.navigate(action, None);
+                            r.changed_page(old);
+                        }
+                        cx.notify();
+                    })),
+            );
         }
-        let shared = self.shared.clone();
         for (label, action) in [
             ("媒体开关", 0),
             ("静音开关", 1),
             ("后退 5 秒", 2),
             ("前进 5 秒", 3),
         ] {
-            buttons = buttons.child(Button::new(label).label(label).on_click(cx.listener(
-                move |s, _, _, cx| {
-                    if let Ok(mut r) = s.shared.lock() {
-                        r.player.serial += 1;
-                        match action {
-                            0 => r.media.enabled = Some(!r.media_enabled()),
-                            1 => r.media.muted = !r.media.muted,
-                            _ => {
-                                r.media.seek = Some((
-                                    r.player.serial,
-                                    (r.status["seconds"].as_f64().unwrap_or(0.)
-                                        + if action == 2 { -5. } else { 5. })
-                                    .clamp(0., 3600.),
-                                ))
+            buttons = buttons.child(
+                Button::new(label)
+                    .small()
+                    .label(label)
+                    .on_click(cx.listener(move |s, _, _, cx| {
+                        if let Ok(mut r) = s.shared.lock() {
+                            r.player.serial += 1;
+                            match action {
+                                0 => r.media.enabled = Some(!r.media_enabled()),
+                                1 => r.media.muted = !r.media.muted,
+                                _ => {
+                                    r.media.seek = Some((
+                                        r.player.serial,
+                                        (r.status["seconds"].as_f64().unwrap_or(0.)
+                                            + if action == 2 { -5. } else { 5. })
+                                        .clamp(0., 3600.),
+                                    ))
+                                }
                             }
                         }
-                    }
-                    cx.notify();
-                },
-            )));
+                        cx.notify();
+                    })),
+            );
         }
         buttons = buttons.child(
             Button::new("exit-show")
+                .small()
                 .label("结束放映")
-                .on_click(cx.listener(move |s, _, w, cx| {
-                    if let Ok(mut r) = shared.lock() {
-                        r.closed = true;
-                    }
-                    let _ = s.audience.update(cx, |_, w, _| w.remove_window());
-                    w.remove_window();
-                })),
+                .on_click(cx.listener(|s, _, w, cx| s.exit(w, cx))),
         );
+
+        let current_badge = if ended {
+            Some("放映结束")
+        } else if blank == Some(true) {
+            Some("白屏中")
+        } else if blank == Some(false) {
+            Some("黑屏中")
+        } else {
+            None
+        };
+
+        let current_preview = div()
+            .flex_1()
+            .min_w_0()
+            .min_h_0()
+            .flex()
+            .flex_col()
+            .gap_2()
+            .child(
+                div()
+                    .flex()
+                    .items_center()
+                    .justify_between()
+                    .child(
+                        div()
+                            .text_sm()
+                            .font_weight(FontWeight::SEMIBOLD)
+                            .child("当前幻灯片"),
+                    )
+                    .children(current_badge.map(|badge| {
+                        div()
+                            .px_2()
+                            .py(px(2.))
+                            .rounded(px(4.))
+                            .bg(rgb(0xd9480f))
+                            .text_xs()
+                            .child(badge)
+                    })),
+            )
+            .child(
+                div()
+                    .flex_1()
+                    .min_h_0()
+                    .flex()
+                    .items_center()
+                    .justify_center()
+                    .rounded(px(6.))
+                    .border_1()
+                    .border_color(rgb(0x3a4a54))
+                    .bg(rgb(0x10161a))
+                    .overflow_hidden()
+                    .child(if let Some(img_ref) = &self.current_image {
+                        div()
+                            .relative()
+                            .w(px(curr_disp_w))
+                            .h(px(curr_disp_h))
+                            .border_1()
+                            .border_color(rgb(0x4b5e6b))
+                            .child(img(img_ref.clone()).w(px(curr_disp_w)).h(px(curr_disp_h)))
+                            .into_any_element()
+                    } else {
+                        div()
+                            .text_sm()
+                            .text_color(rgb(0x9fb0ba))
+                            .child("正在渲染当前页预览…")
+                            .into_any_element()
+                    }),
+            )
+            .child(
+                div()
+                    .text_xs()
+                    .text_color(rgb(0xb8c7d0))
+                    .child(format!("媒体状态：{media}")),
+            );
+
+        let next_preview_card = div()
+            .flex()
+            .flex_col()
+            .gap_2()
+            .p_3()
+            .rounded(px(6.))
+            .border_1()
+            .border_color(rgb(0x33424c))
+            .bg(rgb(0x26323a))
+            .child(
+                div()
+                    .text_xs()
+                    .font_weight(FontWeight::SEMIBOLD)
+                    .text_color(rgb(0xd4e0e7))
+                    .truncate()
+                    .child(format!("下一张幻灯片：{next_label}")),
+            )
+            .child(
+                div()
+                    .h(px(next_box_h as f32 + 8.))
+                    .flex()
+                    .items_center()
+                    .justify_center()
+                    .rounded(px(4.))
+                    .bg(rgb(0x10161a))
+                    .border_1()
+                    .border_color(rgb(0x3a4a54))
+                    .overflow_hidden()
+                    .child(if !has_next {
+                        div()
+                            .text_sm()
+                            .text_color(rgb(0x9fb0ba))
+                            .child("已是最后一张 · 放映结束")
+                            .into_any_element()
+                    } else if let Some(img_ref) = &self.next_image {
+                        img(img_ref.clone())
+                            .w(px(next_disp_w))
+                            .h(px(next_disp_h))
+                            .into_any_element()
+                    } else {
+                        div()
+                            .text_xs()
+                            .text_color(rgb(0x9fb0ba))
+                            .child("正在渲染下一页预览…")
+                            .into_any_element()
+                    }),
+            );
+
+        let notes_display = if notes.trim().is_empty() {
+            "（本页无演讲者备注）".to_string()
+        } else {
+            notes
+        };
+        let notes_card = div()
+            .id("speaker-notes")
+            .flex_1()
+            .min_h_0()
+            .overflow_y_scroll()
+            .p_3()
+            .rounded(px(6.))
+            .border_1()
+            .border_color(rgb(0x33424c))
+            .bg(rgb(0x26323a))
+            .child(
+                div()
+                    .text_xs()
+                    .font_weight(FontWeight::SEMIBOLD)
+                    .text_color(rgb(0xb8c7d0))
+                    .child("演讲者备注（仅此窗口）"),
+            )
+            .child(div().mt_2().text_sm().child(notes_display));
+
         div()
             .id("presenter")
             .size_full()
@@ -496,24 +843,56 @@ impl Render for Presenter {
             .flex()
             .flex_col()
             .gap_3()
-            .bg(rgb(0x202a30))
+            .bg(rgb(0x1b242a))
             .text_color(rgb(0xffffff))
             .track_focus(&self.focus)
-            .child(div().text_lg().child("JoyDeck · 演示者视图"))
-            .child(buttons)
-            .child(div().text_sm().child(status))
-            .child(format!("下一页：{next}"))
+            .key_context("Slideshow")
+            .on_key_down(cx.listener(|s, e: &KeyDownEvent, w, cx| {
+                s.navigation(&e.keystroke.key, w, cx);
+                cx.stop_propagation();
+            }))
             .child(
                 div()
-                    .id("speaker-notes")
-                    .flex_1()
-                    .overflow_y_scroll()
-                    .p_4()
-                    .bg(rgb(0x303d45))
-                    .child("演讲者备注（仅此窗口）")
-                    .child(div().mt_3().child(notes)),
+                    .flex()
+                    .items_center()
+                    .justify_between()
+                    .gap_3()
+                    .child(
+                        div()
+                            .text_lg()
+                            .font_weight(FontWeight::SEMIBOLD)
+                            .child("JoyDeck · 演示者视图"),
+                    )
+                    .child(
+                        div()
+                            .px_2()
+                            .py(px(3.))
+                            .rounded(px(4.))
+                            .bg(rgb(0x2b3942))
+                            .text_xs()
+                            .child(status),
+                    ),
             )
-            .child(div().text_xs().child(format!("媒体状态：{media}")))
+            .child(buttons)
+            .child(
+                div()
+                    .flex_1()
+                    .min_h_0()
+                    .flex()
+                    .gap_4()
+                    .child(current_preview)
+                    .child(
+                        div()
+                            .w(px(right_w as f32))
+                            .flex_shrink_0()
+                            .min_h_0()
+                            .flex()
+                            .flex_col()
+                            .gap_3()
+                            .child(next_preview_card)
+                            .child(notes_card),
+                    ),
+            )
     }
 }
 pub(super) fn open(
@@ -629,7 +1008,7 @@ pub(super) fn open(
                     }
                     let media_tick =
                         (r.media_enabled() && !r.player.paused && r.status["paused"] != true)
-                            .then_some((r.player.total * 10.) as u64);
+                            .then_some((r.player.total * 24.) as u64);
                     let changed = clock.changed(r.player.frame_key(), media_tick);
                     drop(r);
                     let current_fonts = joydeck_fonts::FontDb::global().environment_revision();
@@ -651,7 +1030,7 @@ pub(super) fn open(
             WindowOptions {
                 window_bounds: Some(WindowBounds::Windowed(Bounds::centered(
                     None,
-                    size(px(900.), px(650.)),
+                    size(px(1120.), px(680.)),
                     cx,
                 ))),
                 ..joyoffice_ui::product_window_options(joyoffice_ui::Brand::Deck)
@@ -667,6 +1046,16 @@ pub(super) fn open(
                         audience: handle,
                         focus,
                         poll: None,
+                        cancel: Cancellation::default(),
+                        current_image: None,
+                        current_key: None,
+                        current_in_flight: None,
+                        current_task: None,
+                        next_image: None,
+                        next_key: None,
+                        next_in_flight: None,
+                        next_task: None,
+                        retired: vec![],
                     }
                 })
             },

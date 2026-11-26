@@ -690,7 +690,7 @@ fn apply(st: &mut EditorSnapshot, cmd: Command) -> std::result::Result<(), Strin
             Command::InsertShape { preset, .. } => preset.as_str(),
             _ => "rect",
         };
-        if !["rect", "roundRect", "ellipse", "triangle", "chevron"].contains(&preset) {
+        if !Geom::is_supported_preset(preset) {
             return Err("unsupported inserted shape preset".into());
         }
         let (x, y, width, height) = (*x, *y, *width, *height);
@@ -699,7 +699,7 @@ fn apply(st: &mut EditorSnapshot, cmd: Command) -> std::result::Result<(), Strin
         if w < 1. || h < 1. {
             return Err("shape size must be at least 1 point".into());
         }
-        Arc::make_mut(&mut p.slides[page]).shapes.push(Shape {
+        let mut shape = Shape {
             id,
             name: preset.into(),
             geom: Geom::Preset {
@@ -707,9 +707,15 @@ fn apply(st: &mut EditorSnapshot, cmd: Command) -> std::result::Result<(), Strin
                 adj: Default::default(),
             },
             xfrm: Some(Xfrm::new(x, y, w, h)),
-            fill: Some(Fill::solid(ColorRef::rgb(Rgba::rgb(166, 61, 36)))),
             ..Default::default()
-        });
+        };
+        if Geom::is_open_preset(preset) {
+            shape.fill = Some(Fill::None);
+            shape.line = Some(Line::solid(ColorRef::rgb(Rgba::rgb(166, 61, 36)), 2.0));
+        } else {
+            shape.fill = Some(Fill::solid(ColorRef::rgb(Rgba::rgb(166, 61, 36))));
+        }
+        Arc::make_mut(&mut p.slides[page]).shapes.push(shape);
         st.selection.shapes = vec![id];
         return Ok(());
     }

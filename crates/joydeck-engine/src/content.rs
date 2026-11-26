@@ -44,6 +44,12 @@ pub enum ContentAction {
         major: String,
         minor: String,
     },
+    ApplyTheme {
+        name: String,
+    },
+    ApplyThemeVariant {
+        index: usize,
+    },
     SlideSize {
         width: f64,
         height: f64,
@@ -250,6 +256,56 @@ fn edit(st: &mut EditorSnapshot, action: &ContentAction) -> Result<(), String> {
             let fonts = &mut Arc::make_mut(m).theme.fonts;
             fonts.major.latin = major.clone();
             fonts.minor.latin = minor.clone();
+        }
+        ContentAction::ApplyTheme { name } => {
+            short(name)?;
+            let preset = joydeck_model::theme::builtin_themes()
+                .into_iter()
+                .find(|t| t.name == *name)
+                .ok_or("unknown built-in theme")?;
+            let old_theme = p
+                .masters
+                .iter()
+                .find(|m| m.id == master)
+                .map(|m| m.theme.clone())
+                .ok_or("master missing")?;
+            for m in &mut p.masters {
+                if m.id == master || m.theme == old_theme {
+                    let m_mut = Arc::make_mut(m);
+                    let theme = &mut m_mut.theme;
+                    theme.name = preset.name.clone();
+                    theme.colors = preset.colors.clone();
+                    theme.fonts.name = preset.fonts.name.clone();
+                    theme.fonts.major.latin = preset.fonts.major.latin.clone();
+                    theme.fonts.minor.latin = preset.fonts.minor.latin.clone();
+                    if matches!(
+                        m_mut.background,
+                        Some(Background::Fill {
+                            fill: Fill::Solid { .. }
+                        })
+                    ) {
+                        m_mut.background = None;
+                    }
+                }
+            }
+        }
+        ContentAction::ApplyThemeVariant { index } => {
+            let old_theme = p
+                .masters
+                .iter()
+                .find(|m| m.id == master)
+                .map(|m| m.theme.clone())
+                .ok_or("master missing")?;
+            let variants = joydeck_model::theme::theme_variants(&old_theme);
+            let chosen = variants
+                .get(*index)
+                .cloned()
+                .ok_or("theme variant index out of range")?;
+            for m in &mut p.masters {
+                if m.id == master || m.theme == old_theme {
+                    Arc::make_mut(m).theme.colors = chosen.clone();
+                }
+            }
         }
         ContentAction::SlideSize { width, height } => {
             if !width.is_finite()

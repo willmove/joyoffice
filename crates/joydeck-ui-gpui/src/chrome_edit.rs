@@ -1,6 +1,6 @@
 //! Editing affordances shared by the native ribbon, dialogs and keyboard routes.
 use super::*;
-use gpui_kit::component::{Icon, Sizable, button::ButtonVariants};
+use gpui_kit::component::{Sizable, button::ButtonVariants, tooltip::Tooltip};
 use joydeck_engine::Command;
 use joydeck_model::{
     edit,
@@ -784,41 +784,226 @@ impl Viewer {
         });
     }
     pub(super) fn shape_gallery(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+        self.open_shape_picker(false, w, cx);
+    }
+    pub(super) fn shape_preset_gallery(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+        self.open_shape_picker(true, w, cx);
+    }
+    fn open_shape_picker(
+        &mut self,
+        replace_selected: bool,
+        w: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
         let view = cx.entity().downgrade();
+        let p = self.palette();
         w.open_dialog(cx, move |d, _, _| {
-            let mut list = div().flex().gap_3();
-            for (preset, label, icon) in [
-                ("rect", "矩形", I::Square),
-                ("roundRect", "圆角矩形", I::RectangleHorizontal),
-                ("ellipse", "椭圆", I::Circle),
-                ("triangle", "三角形", I::Triangle),
-                ("chevron", "燕尾形", I::ChevronRight),
-            ] {
-                let view = view.clone();
-                list = list.child(
-                    Button::new(preset)
-                        .label(label)
-                        .icon(Icon::new(icon).size(px(30.)))
-                        .h(px(70.))
+            const GROUPS: &[(&str, &[(&str, &str)])] = &[
+                (
+                    "矩形与基本形状",
+                    &[
+                        ("rect", "矩形"),
+                        ("roundRect", "圆角矩形"),
+                        ("snip1Rect", "单切角矩形"),
+                        ("ellipse", "椭圆"),
+                        ("triangle", "等腰三角形"),
+                        ("rtTriangle", "直角三角形"),
+                        ("diamond", "菱形"),
+                        ("parallelogram", "平行四边形"),
+                        ("trapezoid", "梯形"),
+                        ("pentagon", "正五边形"),
+                        ("hexagon", "六边形"),
+                        ("octagon", "八边形"),
+                        ("plus", "十字形"),
+                        ("donut", "圆环"),
+                        ("frame", "边框"),
+                        ("heart", "心形"),
+                        ("cloud", "云形"),
+                        ("lightningBolt", "闪电"),
+                    ],
+                ),
+                (
+                    "箭头总汇",
+                    &[
+                        ("rightArrow", "右箭头"),
+                        ("leftArrow", "左箭头"),
+                        ("upArrow", "上箭头"),
+                        ("downArrow", "下箭头"),
+                        ("leftRightArrow", "左右箭头"),
+                        ("upDownArrow", "上下箭头"),
+                        ("chevron", "燕尾形"),
+                        ("homePlate", "五边形箭头"),
+                        ("bentArrow", "直角箭头"),
+                        ("uturnArrow", "U形箭头"),
+                    ],
+                ),
+                (
+                    "流程图",
+                    &[
+                        ("flowChartProcess", "过程"),
+                        ("flowChartDecision", "判断"),
+                        ("flowChartTerminator", "终止"),
+                        ("flowChartDocument", "文档"),
+                        ("flowChartPredefinedProcess", "预定义过程"),
+                        ("flowChartConnector", "连接符"),
+                    ],
+                ),
+                (
+                    "星形与标注",
+                    &[
+                        ("star4", "四角星"),
+                        ("star5", "五角星"),
+                        ("star6", "六角星"),
+                        ("star8", "八角星"),
+                        ("wedgeRectCallout", "矩形标注"),
+                        ("wedgeRoundRectCallout", "圆角标注"),
+                        ("wedgeEllipseCallout", "椭圆标注"),
+                        ("cloudCallout", "云形标注"),
+                    ],
+                ),
+                (
+                    "线条",
+                    &[
+                        ("line", "直线"),
+                        ("straightConnector1", "连线"),
+                        ("bentConnector3", "肘形连线"),
+                        ("curvedConnector3", "曲线连线"),
+                    ],
+                ),
+            ];
+            let mut body = div()
+                .id("shape-gallery-body")
+                .flex()
+                .flex_col()
+                .gap_3()
+                .max_h(px(460.))
+                .w_full()
+                .overflow_y_scroll()
+                .pr_2();
+            let mut idx = 0usize;
+            for (heading, items) in GROUPS {
+                let mut grid = div().flex().flex_wrap().gap(px(6.));
+                for &(preset, label) in *items {
+                    let view = view.clone();
+                    let stroke_color = rgb(p.text);
+                    let fill_color = rgb(p.accent);
+                    let tile = div()
+                        .id(("shape-tile", idx))
+                        .w(px(72.))
+                        .h(px(58.))
+                        .p(px(4.))
+                        .flex()
+                        .flex_col()
+                        .items_center()
+                        .justify_between()
+                        .rounded(px(4.))
+                        .border_1()
+                        .border_color(rgb(p.border))
+                        .bg(rgb(p.surface))
+                        .cursor_pointer()
+                        .tooltip(move |w, cx| Tooltip::new(label).build(w, cx))
                         .on_click(move |_, w, cx| {
                             let _ = view.update(cx, |s, cx| {
-                                s.dispatch(
+                                let cmd = if replace_selected {
+                                    Command::Content {
+                                        action: joydeck_engine::ContentAction::ShapePreset {
+                                            name: preset.into(),
+                                        },
+                                    }
+                                } else {
                                     Command::InsertShape {
                                         preset: preset.into(),
                                         x: 100.,
                                         y: 140.,
                                         width: 200.,
                                         height: 120.,
-                                    },
-                                    w,
-                                    cx,
-                                );
+                                    }
+                                };
+                                s.dispatch(cmd, w, cx);
                                 w.close_dialog(cx);
                             });
-                        }),
+                        })
+                        .child(shape_preset_preview(preset, fill_color, stroke_color))
+                        .child(
+                            div()
+                                .text_size(px(10.))
+                                .text_color(rgb(p.muted))
+                                .truncate()
+                                .max_w(px(66.))
+                                .child(label),
+                        );
+                    grid = grid.child(tile);
+                    idx += 1;
+                }
+                body = body.child(
+                    div()
+                        .flex()
+                        .flex_col()
+                        .gap_1()
+                        .child(
+                            div()
+                                .text_xs()
+                                .font_weight(FontWeight::SEMIBOLD)
+                                .text_color(rgb(p.muted))
+                                .child(*heading),
+                        )
+                        .child(grid),
                 );
             }
-            d.title("形状").child(list)
+            d.title(if replace_selected {
+                "更改形状"
+            } else {
+                "插入形状"
+            })
+            .child(body)
         });
     }
+}
+
+fn shape_preset_preview(preset: &'static str, fill: Rgba, stroke: Rgba) -> impl IntoElement {
+    canvas(
+        |_, _, _| (),
+        move |bounds, _, w, _| {
+            let pad = 3.0_f64;
+            let bw = (f64::from(bounds.size.width) - pad * 2.0).max(4.0);
+            let bh = (f64::from(bounds.size.height) - pad * 2.0).max(4.0);
+            let ox = f32::from(bounds.origin.x) + pad as f32;
+            let oy = f32::from(bounds.origin.y) + pad as f32;
+            let Some(geom) = joydeck_geom::preset::build(preset, bw, bh, &[]) else {
+                return;
+            };
+            let is_open = geom.is_open() || joydeck_geom::preset::is_line_like(preset);
+            let pt = |p: joydeck_geom::Point| point(px(ox + p.x as f32), px(oy + p.y as f32));
+            for sub in &geom.paths {
+                let mut builder =
+                    if is_open || matches!(sub.fill, joydeck_geom::preset::FillMode::None) {
+                        PathBuilder::stroke(px(1.6))
+                    } else {
+                        PathBuilder::fill()
+                    };
+                for el in sub.path.elements() {
+                    match *el {
+                        joydeck_geom::PathEl::MoveTo(p) => builder.move_to(pt(p)),
+                        joydeck_geom::PathEl::LineTo(p) => builder.line_to(pt(p)),
+                        joydeck_geom::PathEl::QuadTo(a, b) => builder.curve_to(pt(b), pt(a)),
+                        joydeck_geom::PathEl::CurveTo(a, b, c) => {
+                            builder.cubic_bezier_to(pt(c), pt(a), pt(b))
+                        }
+                        joydeck_geom::PathEl::ClosePath => builder.close(),
+                    }
+                }
+                if let Ok(path) = builder.build() {
+                    let paint =
+                        if is_open || matches!(sub.fill, joydeck_geom::preset::FillMode::None) {
+                            stroke
+                        } else {
+                            fill
+                        };
+                    w.paint_path(path, paint);
+                }
+            }
+        },
+    )
+    .w(px(36.))
+    .h(px(28.))
 }
