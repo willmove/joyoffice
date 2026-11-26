@@ -272,7 +272,7 @@
       "source_path": "crates/model/src/chart.rs",
       "source_sha256": "116161d8208a9e578fc85bb4c1e099e4a1c1289cee9b84245a9f85d9dc67d870",
       "target_path": "crates/joydeck-model/src/chart.rs",
-      "adapted_sha256": "ce00870b7176e2294fce499d5dee9cc40fce7fa85e184099eafb7e0bea219289",
+      "adapted_sha256": "71ef10206b0ae27b3109b2029f798a9b0ce54e4fd2f6439a18683d18848d19db",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
@@ -1221,7 +1221,7 @@
       "source_path": "crates/render/src/chart.rs",
       "source_sha256": "e38397bb713239f024179b35c7ee404c5d749403f792361769353f8a37e2abd1",
       "target_path": "crates/joydeck-render/src/chart.rs",
-      "adapted_sha256": "78a6af9e8540d051f3924f64eb7b980674658ae321e9a12d7607ca903b18134a",
+      "adapted_sha256": "5a178fd47e795313305f72634d10d4476c50c51f06dfa8050e1588585ade3db2",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",

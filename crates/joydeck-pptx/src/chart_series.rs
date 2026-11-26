@@ -26,7 +26,7 @@ pub(super) fn read_plot(
             continue;
         };
         different_kinds |= *first_kind.get_or_insert(kind) != kind;
-        let group_labels = group_settings(chart, group, kind);
+        let (group_labels, group_percent_labels) = group_settings(chart, group, kind);
         let secondary = axes.secondary(group);
         for node in group
             .children_named("ser")
@@ -38,6 +38,7 @@ pub(super) fn read_plot(
                 group,
                 kind,
                 group_labels,
+                group_percent_labels,
                 &mut chart.categories,
                 &mut points,
             );
@@ -110,7 +111,12 @@ fn labels(node: &El) -> Option<bool> {
         .map(|value| value.bool("val").unwrap_or(true))
 }
 
-fn group_settings(chart: &mut Chart, group: &El, kind: ChartType) -> Option<bool> {
+fn percent_labels(node: &El) -> Option<bool> {
+    node.path(&["dLbls", "showPercent"])
+        .map(|value| value.bool("val").unwrap_or(true))
+}
+
+fn group_settings(chart: &mut Chart, group: &El, kind: ChartType) -> (Option<bool>, Option<bool>) {
     chart.vary_colors = group
         .child_val("varyColors")
         .is_none_or(|value| matches!(value, "1" | "true"));
@@ -135,7 +141,9 @@ fn group_settings(chart: &mut Chart, group: &El, kind: ChartType) -> Option<bool
     }
     let value = labels(group);
     chart.data_labels |= value == Some(true);
-    value
+    let pct = percent_labels(group);
+    chart.data_label_percent |= pct == Some(true);
+    (value, pct)
 }
 
 fn read_series(
@@ -143,6 +151,7 @@ fn read_series(
     group: &El,
     kind: ChartType,
     group_labels: Option<bool>,
+    group_percent_labels: Option<bool>,
     chart_categories: &mut Vec<String>,
     points: &mut usize,
 ) -> Series {
@@ -204,6 +213,8 @@ fn read_series(
             })
             .collect(),
         data_labels: labels(node).or(group_labels.filter(|enabled| !enabled)),
+        data_label_percent: percent_labels(node)
+            .or(group_percent_labels.filter(|enabled| !enabled)),
         smooth: node
             .child("smooth")
             .and_then(|value| value.bool("val"))
@@ -462,8 +473,14 @@ fn write_group(
     for &(index, item) in &plot.series {
         write_series(xml, chart, item, index, plot.kind, sheet);
     }
-    if chart.data_labels {
-        write_labels(xml, chart, true, None);
+    if chart.data_labels || chart.data_label_percent {
+        write_labels(
+            xml,
+            chart,
+            chart.data_labels,
+            chart.data_label_percent,
+            None,
+        );
     }
     match family {
         Family::Bar => {
@@ -547,8 +564,14 @@ fn write_series(
             xml.close("c:dPt");
         }
     }
-    if let Some(show) = item.data_labels {
-        write_labels(xml, chart, show, item.number_format.as_deref());
+    if item.data_labels.is_some() || item.data_label_percent.is_some() {
+        write_labels(
+            xml,
+            chart,
+            item.data_labels.unwrap_or(chart.data_labels),
+            item.data_label_percent.unwrap_or(chart.data_label_percent),
+            item.number_format.as_deref(),
+        );
     }
     if matches!(
         family,
@@ -642,7 +665,13 @@ fn write_marker(
     }
 }
 
-fn write_labels(xml: &mut W, chart: &Chart, show: bool, format: Option<&str>) {
+fn write_labels(
+    xml: &mut W,
+    chart: &Chart,
+    show_val: bool,
+    show_percent: bool,
+    format: Option<&str>,
+) {
     xml.open0("c:dLbls");
     if let Some(format) = format.filter(|value| !value.is_empty() && *value != "General") {
         xml.empty(
@@ -651,15 +680,15 @@ fn write_labels(xml: &mut W, chart: &Chart, show: bool, format: Option<&str>) {
         );
     }
     tx_pr(xml, chart);
-    for name in [
-        "c:showLegendKey",
-        "c:showVal",
-        "c:showCatName",
-        "c:showSerName",
-        "c:showPercent",
-        "c:showBubbleSize",
+    for (name, on) in [
+        ("c:showLegendKey", false),
+        ("c:showVal", show_val),
+        ("c:showCatName", false),
+        ("c:showSerName", false),
+        ("c:showPercent", show_percent),
+        ("c:showBubbleSize", false),
     ] {
-        xml.val(name, u8::from(name == "c:showVal" && show));
+        xml.val(name, u8::from(on));
     }
     xml.close("c:dLbls");
 }

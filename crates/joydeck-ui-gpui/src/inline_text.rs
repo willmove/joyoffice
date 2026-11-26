@@ -185,6 +185,9 @@ impl Viewer {
                     Err(e) => self.message = e,
                 }
             }
+            if self.message.starts_with("原位输入") {
+                self.message = "就绪".into();
+            }
             self.render_generation += 1;
             self.image = None;
             self.pending = None;

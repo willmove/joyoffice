@@ -225,7 +225,7 @@
     "target_path": "crates/joydeck-ui-gpui/src/inline_text.rs",
     "source_sha256": "e6caa4311e30aaa39f91b1da6d328e8bba46ae9afcf4a890e44e43278e5ef4f4",
     "local_changes": "Adapt EntityInputHandler, selection/clipboard/composition routing to new pure engine; consume shared CPU text/table layout for all geometry; add bounded text metadata/TSV and notes Textarea flow from apps/joydeck/src/chrome.rs.; R8 native editor, clipboard or product package version adaptation; R9-UI1 native formatting controls and schema-2 validation/history compatibility (see slice evidence); JD-307 route Linux rich clipboard reads through the active compositor",
-    "adapted_sha256": "6e6b03ccdac984f712ff5f62617f4a5f5534a96dbcb5edb666288b9c641c8043",
+    "adapted_sha256": "4d809ebcf9dad16dcd87b3a286efbb7170d6a2af224aecb6f7ed34b42c705d5e",
     "additional_sources": [
       {
         "source_path": "apps/joydeck/src/chrome.rs",
@@ -647,7 +647,7 @@
     "source_path": "apps/joydeck/src/chrome.rs",
     "target_path": "crates/joydeck-ui-gpui/src/chrome_nav.rs",
     "source_sha256": "68b6b3800e63f68f65ccab43e81304728295aa7aaa407c3ba4a46408666e6328",
-    "adapted_sha256": "bce30b3c3a5cec1538f8598f8d9ec972445c95a20311c2b2f72f122ca7f5020e",
+    "adapted_sha256": "55bc40bf1ddf296ae8e40cea041b5fc47b0d217132e8479e42276ebe9fe917ab",
     "local_changes": "R8 native Save As prompt and deferred window update pattern adapted to v2 save jobs; own notes/placeholder/navigation implementation; 2026-11-11: shared application theme catalog, persistent preset selection and palette projection; preserve document colors and original source identity",
     "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained.",
     "r9_save_as": "Leave the macOS Save As suggestion extensionless and submit the selected path directly.",

@@ -233,6 +233,8 @@ pub struct Series {
     /// Per-point fill overrides (pie slices).
     pub point_fills: Vec<(usize, Fill)>,
     pub data_labels: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub data_label_percent: Option<bool>,
     pub smooth: bool,
     pub marker: Option<String>,
     /// Combo charts: this series' own type.
@@ -354,6 +356,8 @@ pub struct Chart {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub title_size: Option<f64>,
     pub data_labels: bool,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub data_label_percent: bool,
     pub gridlines: bool,
     /// `c:minorGridlines` on the value axis: five to a major unit, between the major ones.
     pub minor_gridlines: bool,
@@ -475,6 +479,7 @@ impl Default for Chart {
             text_size: None,
             title_size: None,
             data_labels: false,
+            data_label_percent: false,
             gridlines: true,
             minor_gridlines: false,
             axis_titles: (None, None),
@@ -880,6 +885,11 @@ impl Chart {
     /// explicit `false` hides them even when the chart-wide setting is on (#868).
     pub fn series_data_labels(&self, s: &Series) -> bool {
         s.data_labels.unwrap_or(self.data_labels)
+    }
+
+    /// Does series `s` show percentage data labels (`c:dLbls/c:showPercent`)?
+    pub fn series_data_label_percent(&self, s: &Series) -> bool {
+        s.data_label_percent.unwrap_or(self.data_label_percent)
     }
 
     fn waterfall_value_range(&self) -> (f64, f64) {

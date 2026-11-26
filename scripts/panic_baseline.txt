@@ -448,3 +448,40 @@ crates/joysheet-xlsx/src/sheet_view.rs:218:let view = crate::xml::parse(br#"<she
 crates/joysheet-xlsx/src/sheet_view.rs:220:read_selections(&view, &mut sheet, None).unwrap();
 crates/joysheet-xlsx/src/sheet_view.rs:221:let stored = sheet.stored_selection().unwrap();
 crates/joysheet-xlsx/src/sheet_view.rs:233:view.select(3, PaneSelection { active: at, active_area: 0, areas: vec![area; MAX_VIEW_AREAS] }).unwrap();
+crates/joydeck-pptx/src/chart_exchange_tests.rs:12:let id = document.alloc_id().expect("shape id");
+crates/joydeck-pptx/src/chart_exchange_tests.rs:24:panic!("chart missing");
+crates/joydeck-pptx/src/chart_exchange_tests.rs:35:.expect("relationship target")
+crates/joydeck-pptx/src/chart_exchange_tests.rs:40:let bytes = archive.get(&workbook.target).expect("embedded workbook");
+crates/joydeck-pptx/src/chart_exchange_tests.rs:41:let zip = joyoffice_opc::ZipArchive::new(bytes, &Default::default()).expect("workbook ZIP");
+crates/joydeck-pptx/src/chart_exchange_tests.rs:46:.expect("worksheet entry");
+crates/joydeck-pptx/src/chart_exchange_tests.rs:47:crate::xml::parse(&zip.read(index).expect("worksheet bytes")).expect("worksheet XML")
+crates/joydeck-pptx/src/chart_exchange_tests.rs:76:let written = crate::export(&chart_document(chart.clone())).expect("write PPTX");
+crates/joydeck-pptx/src/chart_exchange_tests.rs:77:let mut reopened = crate::import(&written).expect("reopen PPTX");
+crates/joydeck-pptx/src/chart_exchange_tests.rs:122:let pptx = crate::export(&chart_document(chart)).expect("write PPTX with XY data");
+crates/joydeck-pptx/src/chart_exchange_tests.rs:123:let package = Package::open(&pptx).expect("open ZIP");
+crates/joydeck-pptx/src/chart_exchange_tests.rs:125:let chart = package.xml(name).expect("chart XML");
+crates/joydeck-pptx/src/chart_exchange_tests.rs:127:let cells = data.root.child("sheetData").expect("sheet data");
+crates/joydeck-pptx/src/chart_exchange_tests.rs:139:.expect("bubble plot");
+crates/joydeck-pptx/src/chart_exchange_tests.rs:143:.expect("workbook reference")
+crates/joydeck-pptx/src/chart_exchange_tests.rs:170:let original = crate::export(&chart_document(chart)).expect("new tree");
+crates/joydeck-pptx/src/chart_exchange_tests.rs:171:let archive = Package::open(&original).expect("original zip");
+crates/joydeck-pptx/src/chart_exchange_tests.rs:175:package.get(&rel.target).expect("style bytes").to_vec()
+crates/joydeck-pptx/src/chart_exchange_tests.rs:177:let mut model = crate::import(&original).expect("open tree");
+crates/joydeck-pptx/src/chart_exchange_tests.rs:181:let revised = crate::export(&model).expect("edit tree");
+crates/joydeck-pptx/src/chart_exchange_tests.rs:182:let reloaded = Package::open(&revised).expect("rebuilt package");
+crates/joydeck-pptx/src/chart_exchange_tests.rs:188:let chart_part = reloaded.xml(name).expect("rebuilt chart");
+crates/joydeck-pptx/src/chart_exchange_tests.rs:197:let mut reopened = crate::import(&revised).expect("reopen tree");
+crates/joydeck-pptx/src/chart_exchange_tests.rs:206:let bytes = crate::export(&chart_document(model.clone())).expect("histogram");
+crates/joydeck-pptx/src/chart_exchange_tests.rs:207:let package = Package::open(&bytes).expect("histogram package");
+crates/joydeck-pptx/src/chart_exchange_tests.rs:208:let doc = package.xml(name).expect("histogram chart");
+crates/joydeck-pptx/src/chart_exchange_tests.rs:217:let bytes = crate::export(&chart_document(model)).expect("Pareto");
+crates/joydeck-pptx/src/chart_exchange_tests.rs:218:let package = Package::open(&bytes).expect("Pareto package");
+crates/joydeck-pptx/src/chart_exchange_tests.rs:219:let doc = package.xml(name).expect("Pareto chart");
+crates/joydeck-pptx/src/chart_exchange_tests.rs:228:let mut reopened = crate::import(&bytes).expect("reopen Pareto");
+crates/joydeck-shell/src/output.rs:587:let doc = Document::open(&file, &cancel).unwrap();
+crates/joydeck-shell/src/output.rs:588:let scratch = crate::helpers::Scratch::new().unwrap();
+crates/joydeck-shell/src/output.rs:594:let path = stage_print_pages(&doc, &opts, &scratch.0, &cancel).unwrap();
+crates/joydeck-shell/src/output.rs:596:serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
+crates/joydeck-shell/src/output.rs:602:let expected = doc.render_output(slide, 0.5, false, &cancel).unwrap();
+crates/joydeck-shell/src/output.rs:604:std::fs::read(scratch.0.join(file)).unwrap(),
+crates/joydeck-shell/src/output.rs:608:let interrupted = crate::helpers::Scratch::new().unwrap();

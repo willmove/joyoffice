@@ -834,6 +834,61 @@ struct LegendDraw<'a, 'ctx> {
     width: f64,
 }
 
+/// Approximate rendered width of a short chart label, accounting for wide CJK/fullwidth glyphs
+/// so horizontal legends do not overlap when category names contain Chinese, Japanese, or Korean.
+fn estimate_text_width(text: &str, size: f64) -> f64 {
+    text.chars()
+        .map(|ch| {
+            if is_wide_glyph(ch) {
+                size * 1.05
+            } else if ch.is_whitespace() {
+                size * 0.35
+            } else {
+                size * 0.60
+            }
+        })
+        .sum()
+}
+
+fn is_wide_glyph(ch: char) -> bool {
+    matches!(
+        ch as u32,
+        0x1100..=0x115F
+            | 0x2E80..=0x303E
+            | 0x3040..=0x33FF
+            | 0x3400..=0x4DBF
+            | 0x4E00..=0xA4CF
+            | 0xAC00..=0xD7AF
+            | 0xF900..=0xFAFF
+            | 0xFE10..=0xFE6F
+            | 0xFF01..=0xFF60
+            | 0xFFE0..=0xFFE6
+            | 0x20000..=0x2FFFD
+            | 0x30000..=0x3FFFD
+    )
+}
+
+fn pie_slice_paint(rctx: &Ctx, c: &Chart, i: usize) -> Paint {
+    let fallback = series_color(rctx, c, i);
+    let point_fill = c
+        .series
+        .first()
+        .and_then(|s| s.point_fills.iter().find(|(k, _)| *k == i))
+        .map(|(_, f)| f);
+    paint_of(rctx, point_fill, fallback)
+}
+
+fn pie_slice_solid_color(rctx: &Ctx, c: &Chart, i: usize) -> Rgba {
+    c.series
+        .first()
+        .and_then(|s| s.point_fills.iter().find(|(k, _)| *k == i))
+        .and_then(|(_, f)| match f {
+            Fill::Solid { color: cc } => Some(rctx.color(cc, None)),
+            _ => None,
+        })
+        .unwrap_or_else(|| series_color(rctx, c, i))
+}
+
 fn draw_legend(ctx: &mut RenderContext, draw: &LegendDraw<'_, '_>, mut area: Rect) -> Rect {
     let rctx = draw.rctx;
     let c = draw.chart;
@@ -848,7 +903,7 @@ fn draw_legend(ctx: &mut RenderContext, draw: &LegendDraw<'_, '_>, mut area: Rec
     let vertical = matches!(pos.as_str(), "l" | "r" | "tr");
     let item_ws: Vec<f64> = legend_items
         .iter()
-        .map(|(n, _, _)| n.chars().count() as f64 * base * 0.55 + base * 1.6)
+        .map(|(n, _, _)| estimate_text_width(n, base) + base * 2.0)
         .collect();
     let size = if vertical {
         (
@@ -870,7 +925,7 @@ fn draw_legend(ctx: &mut RenderContext, draw: &LegendDraw<'_, '_>, mut area: Rec
             ctx.set_stroke(kurbo::Stroke::new(ow.min(base * 0.2)));
             ctx.stroke_path(&key.to_path(0.1));
         }
-        let tw = name.chars().count() as f64 * base * 0.55 + base;
+        let tw = estimate_text_width(name, base) + base * 0.4;
         label(
             ctx,
             rctx,
@@ -888,7 +943,7 @@ fn draw_legend(ctx: &mut RenderContext, draw: &LegendDraw<'_, '_>, mut area: Rec
         if vertical {
             y += base * 1.5;
         } else {
-            x += tw + base * 0.6;
+            x += tw + base * 1.6;
         }
     }
     area
@@ -920,7 +975,7 @@ fn build_legend_items(
         c.categories
             .iter()
             .enumerate()
-            .map(|(i, n)| (n.clone(), Paint::Color(series_color(rctx, c, i)), None))
+            .map(|(i, n)| (n.clone(), pie_slice_paint(rctx, c, i), None))
             .collect()
     } else {
         c.series
@@ -1632,6 +1687,35 @@ mod bar_label_tests {
     }
 }
 
+fn pie_data_label(
+    c: &Chart,
+    s: &joydeck_model::chart::Series,
+    v: f64,
+    total: f64,
+) -> Option<String> {
+    let show_val = c.series_data_labels(s);
+    let show_pct = c.series_data_label_percent(s) && total > 0.0;
+    match (show_val, show_pct) {
+        (true, true) => Some(format!(
+            "{} ({:.0}%)",
+            c.data_label(s, v),
+            (v / total * 100.0).round()
+        )),
+        (false, true) => Some(format!("{:.0}%", (v / total * 100.0).round())),
+        (true, false) => Some(c.data_label(s, v)),
+        (false, false) => None,
+    }
+}
+
+fn pie_label_contrast(slice: Rgba) -> Rgba {
+    let lum = 0.299 * f64::from(slice.r) + 0.587 * f64::from(slice.g) + 0.114 * f64::from(slice.b);
+    if lum > 155.0 {
+        Rgba::rgb(0x22, 0x22, 0x22)
+    } else {
+        Rgba::WHITE
+    }
+}
+
 fn draw_pie(
     ctx: &mut RenderContext,
     rctx: &Ctx,
@@ -1659,41 +1743,30 @@ fn draw_pie(
         p.extend(arc.append_iter(0.1));
         p.close_path();
         ctx.set_transform(m);
-        let col = s
-            .point_fills
-            .iter()
-            .find(|(k, _)| *k == i)
-            .and_then(|(_, f)| {
-                if let Fill::Solid { color: cc } = f {
-                    Some(rctx.color(cc, None))
-                } else {
-                    None
-                }
-            })
-            .unwrap_or_else(|| series_color(rctx, c, i));
+        let col = pie_slice_solid_color(rctx, c, i);
         ctx.set_paint(color(col, 1.0));
         ctx.fill_path(&p);
         ctx.set_paint(color(Rgba::WHITE, 1.0));
         ctx.set_stroke(kurbo::Stroke::new(1.0));
         ctx.stroke_path(&p);
-        if c.series_data_labels(s) {
+        if let Some(text) = pie_data_label(c, s, *v, total) {
             let mid = a0 + sweep / 2.0;
             let lp = Point::new(cen.x + r * 0.65 * mid.cos(), cen.y + r * 0.65 * mid.sin());
             label(
                 ctx,
                 rctx,
                 m,
-                &c.data_label(s, *v),
-                Rect::new(lp.x - 30.0, lp.y - 10.0, lp.x + 30.0, lp.y + 10.0),
+                &text,
+                Rect::new(lp.x - 36.0, lp.y - 10.0, lp.x + 36.0, lp.y + 10.0),
                 LabelStyle {
                     size: base,
                     align: Align::Center,
                     anchor: Anchor::Middle,
-                    // On the slices themselves: white, unless the chart's text was given a colour.
+                    // On the slices themselves: pick high-contrast ink unless the chart fixes a colour.
                     col: if c.text_color.is_some() {
                         text_col
                     } else {
-                        Rgba::WHITE
+                        pie_label_contrast(col)
                     },
                     bold: false,
                 },
@@ -2141,5 +2214,70 @@ mod tests {
         c.kind = ChartType::Scatter;
         c.series[0].trendlines[0].kind = TrendlineType::Linear;
         assert_eq!(forecast_pad(&c), (0.0, 0.0));
+    }
+
+    #[test]
+    fn cjk_legend_width_exceeds_latin_estimate() {
+        let base = 11.0;
+        let cjk = estimate_text_width("第一季度", base);
+        let latin = estimate_text_width("Q123", base);
+        assert!(cjk >= base * 4.0, "cjk width {cjk} too narrow");
+        assert!(cjk > latin, "cjk width {cjk} should exceed latin {latin}");
+    }
+
+    #[test]
+    fn pie_legend_uses_point_fill_override_colors() {
+        let pres = joydeck_model::defaults::blank_presentation(
+            joydeck_model::defaults::WIDE,
+            Default::default(),
+            true,
+        );
+        let ctx = Ctx::for_slide(&pres, &pres.slides[0]);
+        assert!(ctx.is_some());
+        if let Some(rctx) = ctx {
+            let mut chart = Chart::sample(ChartType::Pie);
+            chart.categories = vec!["第一季度".into(), "第二季度".into()];
+            chart.series[0].point_fills = vec![
+                (
+                    0,
+                    Fill::solid(joydeck_model::ColorRef::rgb(Rgba::rgb(0x44, 0x72, 0xC4))),
+                ),
+                (
+                    1,
+                    Fill::solid(joydeck_model::ColorRef::rgb(Rgba::rgb(0xED, 0x7D, 0x31))),
+                ),
+            ];
+            let items = build_legend_items(&rctx, &chart, true, false);
+            assert_eq!(items.len(), 2);
+            assert!(matches!(
+                items[0].1,
+                Paint::Color(c) if c == Rgba::rgb(0x44, 0x72, 0xC4)
+            ));
+            assert!(matches!(
+                items[1].1,
+                Paint::Color(c) if c == Rgba::rgb(0xED, 0x7D, 0x31)
+            ));
+        }
+    }
+
+    #[test]
+    fn pie_data_label_formats_percent_and_combined_labels() {
+        let mut chart = Chart::sample(ChartType::Pie);
+        chart.data_labels = false;
+        chart.data_label_percent = true;
+        assert_eq!(
+            pie_data_label(&chart, &chart.series[0], 42.0, 263.0).as_deref(),
+            Some("16%")
+        );
+        chart.data_labels = true;
+        assert_eq!(
+            pie_data_label(&chart, &chart.series[0], 42.0, 263.0).as_deref(),
+            Some("42 (16%)")
+        );
+        assert_eq!(
+            pie_label_contrast(Rgba::rgb(0xFF, 0xC0, 0x00)),
+            Rgba::rgb(0x22, 0x22, 0x22)
+        );
+        assert_eq!(pie_label_contrast(Rgba::rgb(0x44, 0x72, 0xC4)), Rgba::WHITE);
     }
 }

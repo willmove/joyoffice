@@ -161,8 +161,9 @@ impl Viewer {
                         s.request_thumbnails(start..end, cx);
                         range
                             .map(|r| {
-                                let mut row = div().h(px(205.)).flex().gap_6();
-                                for page in r * 3..((r + 1) * 3).min(count) {
+                                let mut row = div().w_full().h(px(205.)).flex().gap_6();
+                                let row_end = ((r + 1) * 3).min(count);
+                                for page in r * 3..row_end {
                                     row = row.child(
                                         div()
                                             .id(("sorter-drag", page))
@@ -199,7 +200,8 @@ impl Viewer {
                                                     ))
                                                     .child(
                                                         div()
-                                                            .size_full()
+                                                            .w_full()
+                                                            .h_full()
                                                             .bg(rgb(0xffffff))
                                                             .flex()
                                                             .items_center()
@@ -227,6 +229,9 @@ impl Viewer {
                                                     .child(format!("{}", page + 1)),
                                             ),
                                     );
+                                }
+                                for _ in row_end..(r + 1) * 3 {
+                                    row = row.child(div().flex_1().min_w_0());
                                 }
                                 row
                             })
@@ -414,6 +419,7 @@ impl Viewer {
             return;
         }
         self.commit_notes(w, cx);
+        self.end_inline(cx);
         let base = self
             .source
             .as_ref()
@@ -426,6 +432,8 @@ impl Viewer {
         let read_request = self.read_request;
         let revision = self.editor.as_ref().map(|e| e.session.revision());
         self.save_picker_generation = Some(generation);
+        self.message = "请选择保存位置".into();
+        cx.notify();
         cx.spawn(async move |view, cx| {
             let result = rx.await;
             let _ = window.update(cx, |_, w, cx| {
