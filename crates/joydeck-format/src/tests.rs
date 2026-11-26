@@ -325,7 +325,10 @@ fn a_file_saved_with_non_finite_numbers_reopens() {
     };
     assert_eq!((child.x, child.w), (0.0, 0.0));
     let x = children[0].xfrm.unwrap();
-    assert_eq!((x.x, x.y, x.w, x.h, x.rot), (0.0, 0.0, MAX_COORD, 0.0, 5.0));
+    assert_eq!(
+        (x.x, x.y, x.w, x.h, x.rot),
+        (0.0, 0.0, 1_000_000.0, 0.0, 5.0)
+    );
     let ShapeKind::Picture { fill } = &children[0].kind else {
         panic!("picture")
     };
@@ -530,6 +533,34 @@ fn repair_fixes_missing_layout_and_size() {
     repair(&mut p);
     assert!(p.validate().is_empty());
     assert_eq!(p.slide_size.width, 960.0);
+}
+
+#[test]
+fn a_native_project_without_layouts_reopens_with_a_real_layout() {
+    let mut project = Presentation::default();
+    for master in &mut project.masters {
+        Arc::make_mut(master).layouts.clear();
+    }
+    let reopened = load(&save(&project).expect("archive")).expect("repair and load");
+    assert!(reopened.layout(reopened.slides[0].layout).is_some());
+    assert!(reopened.validate().is_empty());
+}
+
+#[test]
+fn future_manifest_versions_are_refused_by_both_readers() {
+    let manifest = br#"{"format":"deckcraft","version":2,"generator":"test","presentation":{}}"#;
+    let mut zip = zip::ZipWriter::new(Cursor::new(Vec::new()));
+    zip.start_file(
+        "presentation.json",
+        zip::write::SimpleFileOptions::default(),
+    )
+    .expect("member");
+    zip.write_all(manifest).expect("manifest");
+    let archive = zip.finish().expect("archive").into_inner();
+    assert!(matches!(load(&archive), Err(FormatError::NotOurs(_))));
+    let entries =
+        std::collections::BTreeMap::from([("presentation.json".into(), manifest.to_vec())]);
+    assert!(matches!(load_parts(entries), Err(FormatError::NotOurs(_))));
 }
 
 /// A duplicate slide in a deck whose ids are used up cannot be re-id'd: it stays as it is

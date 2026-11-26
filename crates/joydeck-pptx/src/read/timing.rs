@@ -7,90 +7,15 @@ use joydeck_model::{Shape, ShapeKind, TextBody, find_shape, find_shape_mut};
 
 use super::shapes::IdCtx;
 use super::{Imp, Part, dml};
-use crate::maps;
 use crate::transition_part::milliseconds as ms_attr;
 use crate::xml::El;
-
-struct Found<'a> {
-    ctn: &'a El,
-    trigger: Option<u32>,
-}
-
-fn collect(timing: &El) -> Vec<Found<'_>> {
-    let mut found = Vec::new();
-    let mut frames = vec![(timing.elements(), None, 0usize)];
-    while let Some((children, inherited, depth)) = frames.last_mut() {
-        let Some(node) = children.next() else {
-            frames.pop();
-            continue;
-        };
-        if node.is("cTn") && node.has_attr("presetClass") {
-            found.push(Found {
-                ctn: node,
-                trigger: *inherited,
-            });
-            if found.len() == 10_000 {
-                break;
-            }
-        } else if *depth < 64 {
-            let trigger = if node.is("seq")
-                && let Some(time) = node.child("cTn")
-                && time.attr("nodeType") == Some("interactiveSeq")
-            {
-                time.path(&["stCondLst", "cond", "tgtEl", "spTgt"])
-                    .and_then(|target| target.u32("spid"))
-            } else {
-                *inherited
-            };
-            let level = *depth + 1;
-            frames.push((node.elements(), trigger, level));
-        }
-    }
-    found
-}
-
-fn max_dur(e: &El, depth: usize) -> Option<u32> {
-    if depth > 64 {
-        return None;
-    }
-    let mut best: Option<u32> = None;
-    for c in e.elements() {
-        if c.is("cTn")
-            && let Some(d) = ms_attr(c, "dur")
-            && d > 1
-        {
-            best = Some(best.map_or(d, |b: u32| b.max(d)));
-        }
-        if let Some(d) = max_dur(c, depth + 1) {
-            best = Some(best.map_or(d, |b| b.max(d)));
-        }
-    }
-    best
-}
-
-/// Does every behaviour time node (`p:cBhvr/p:cTn`) under the effect node `c` carry `autoRev`?
-fn behaviour_auto_reverses(c: &El) -> bool {
-    let mut behaviours = vec![];
-    c.find_all("cBhvr", &mut behaviours);
-    !behaviours.is_empty()
-        && behaviours.iter().all(|b| {
-            b.child("cTn")
-                .and_then(|t| t.bool("autoRev"))
-                .unwrap_or(false)
-        })
-}
+use crate::{animation_xml, maps};
+use std::collections::HashSet;
 
 /// Volume, mute, Loop until Stopped, Hide While Not Playing and Play Full Screen live in the timing tree
 /// (`p:video`/`p:audio` > `p:cMediaNode`), not on the picture: copy them onto the target's `MediaClip`.
 pub fn media_settings(timing: &El, ctx: &IdCtx, shapes: &mut [Shape]) {
-    let mut nodes = vec![];
-    for tag in ["video", "audio"] {
-        timing.find_all(tag, &mut nodes);
-    }
-    for node in nodes.into_iter().take(10_000) {
-        let Some(cm) = node.child("cMediaNode") else {
-            continue;
-        };
+    for (node, cm) in animation_xml::media(timing) {
         let Some(id) = cm
             .path(&["tgtEl", "spTgt"])
             .and_then(|t| t.u32("spid"))
@@ -132,27 +57,25 @@ pub fn animations(
     shapes: &[Shape],
 ) -> Vec<Animation> {
     let _ = (imp, part);
-    let Some(tn) = timing.child("tnLst") else {
-        return vec![];
-    };
-    let found = collect(tn);
+    let found = animation_xml::effects(timing);
     // Paragraph builds (`bldP build="p"`) by (spid, grpId).
-    let by_para: Vec<(u32, String)> = timing
+    let by_para: HashSet<(u32, &str)> = timing
         .child("bldLst")
         .map(|b| {
             b.children_named("bldP")
                 .filter(|p| p.attr("build") == Some("p"))
-                .filter_map(|p| Some((p.u32("spid")?, p.attr("grpId").unwrap_or("0").to_string())))
+                .filter_map(|p| Some((p.u32("spid")?, p.attr("grpId").unwrap_or("0"))))
                 .collect()
         })
         .unwrap_or_default();
-    let mut out: Vec<(Animation, u32, String, bool)> = vec![];
+    let mut out: Vec<(Animation, u32, &str, bool)> = vec![];
     for f in found {
-        let c = f.ctn;
+        let c = f.clock;
+        let behavior = animation_xml::inspect(c);
         let class = AnimClass::from_xml(c.attr("presetClass").unwrap_or("entr"));
         let preset = c.u32("presetID").unwrap_or(0);
         let sub = c.u32("presetSubtype").unwrap_or(0);
-        let Some(tgt) = c.find("spTgt") else { continue };
+        let Some(tgt) = behavior.target else { continue };
         let Some(file_id) = tgt.u32("spid") else {
             continue;
         };
@@ -179,7 +102,7 @@ pub fn animations(
             effect: effect.to_string(),
             option,
             start,
-            duration_ms: max_dur(c, 0).unwrap_or(0),
+            duration_ms: behavior.duration,
             delay_ms: c
                 .path(&["stCondLst", "cond"])
                 .and_then(|d| ms_attr(d, "delay"))
@@ -191,7 +114,7 @@ pub fn animations(
             // PowerPoint's "Auto-reverse" is `autoRev` on the behaviour nodes (`p:cBhvr/p:cTn`); Color Pulse
             // always writes it there and plays back and forth on its own, so it isn't read as the option.
             auto_reverse: c.bool("autoRev").unwrap_or(false)
-                || (effect != "colorPulse" && behaviour_auto_reverses(c)),
+                || (effect != "colorPulse" && behavior.auto_reverse),
             // PowerPoint's "Rewind when done playing" is `fill="remove"` on the effect node.
             rewind: c.attr("fill") == Some("remove"),
             smooth_start: c.f64("accel").map(|v| v / 100_000.0).unwrap_or(0.0),
@@ -212,28 +135,28 @@ pub fn animations(
                 .unwrap_or(1),
             None => 1,
         };
-        if let Some(m) = c.find("animMotion") {
+        if let Some(m) = behavior.motion {
             a.path = m.attr("path").map(String::from);
         }
-        if let Some(r) = c.find("animRot") {
+        if let Some(r) = behavior.rotation {
             a.amount = r.f64("by").map(|v| v / 60_000.0);
             if a.effect == "spin" && a.amount.is_some_and(|v| v < 0.0) {
                 a.option = "counterClockwise".into();
             }
-        } else if let Some(s) = c.find("animScale").and_then(|s| s.child("by")) {
+        } else if let Some(s) = behavior.scale.and_then(|s| s.child("by")) {
             a.amount = s.f64("x").map(|v| v / 100_000.0);
         }
-        if let Some(clr) = c.find("animClr").and_then(|x| x.child("to")) {
+        if let Some(clr) = behavior.color.and_then(|x| x.child("to")) {
             a.color = dml::color(clr);
         }
-        let grp = c.attr("grpId").unwrap_or("0").to_string();
-        let build = paragraph.is_some() && by_para.iter().any(|(s, g)| *s == file_id && *g == grp);
+        let grp = c.attr("grpId").unwrap_or("0");
+        let build = paragraph.is_some() && by_para.contains(&(file_id, grp));
         out.push((a, file_id, grp, build));
     }
     // A paragraph build's effects, one per paragraph, become one by-paragraph animation only when
     // the timeline plays that back exactly: PowerPoint lets each paragraph keep its own start and
     // effect, and other shapes' effects can sit between them (#844).
-    let same_build = |x: &(Animation, u32, String, bool), y: &(Animation, u32, String, bool)| {
+    let same_build = |x: &(Animation, u32, &str, bool), y: &(Animation, u32, &str, bool)| {
         x.3 && y.3 && x.1 == y.1 && x.2 == y.2 && x.0.trigger == y.0.trigger
     };
     let mut anims = Vec::with_capacity(out.len());

@@ -5,7 +5,6 @@ use joydeck_model::anim::{
 };
 use joydeck_model::{Shape, ShapeId, ShapeKind, find_shape};
 
-use super::Exp;
 use super::shapes::IdMap;
 use crate::xml::{A, W};
 
@@ -223,241 +222,253 @@ fn fly_from(option: &str) -> (&'static str, &'static str) {
     (x, y)
 }
 
-fn behaviors(w: &mut W, x: &mut Exp, ids: &mut Ids, e: &Eff) {
-    let a = e.a;
-    let dur = a.duration_ms.clamp(1, 3_600_000);
-    match a.class {
-        AnimClass::Entrance => {
-            set_vis(w, ids, e, 0, true);
-            match a.effect.as_str() {
-                "appear" => {}
-                "fly" => {
-                    let (fx, fy) = fly_from(&a.option);
-                    anim_prop(w, ids, e, dur, "ppt_x", fx, "#ppt_x");
-                    anim_prop(w, ids, e, dur, "ppt_y", fy, "#ppt_y");
-                }
-                "zoom" | "grow" | "expand" | "spinner" => {
-                    anim_prop(w, ids, e, dur, "ppt_w", "0", "#ppt_w");
-                    anim_prop(w, ids, e, dur, "ppt_h", "0", "#ppt_h");
-                    anim_effect(w, ids, e, dur, "fade", false);
-                }
-                "float" | "rise" => {
-                    anim_prop(
-                        w,
-                        ids,
-                        e,
-                        dur,
-                        "ppt_y",
-                        if a.option == "d" {
-                            "#ppt_y-.1"
-                        } else {
-                            "#ppt_y+.1"
-                        },
-                        "#ppt_y",
-                    );
-                    anim_effect(w, ids, e, dur, "fade", false);
-                }
-                other => anim_effect(w, ids, e, dur, filter_for(other, &a.option), false),
-            }
-        }
-        AnimClass::Exit => {
-            match a.effect.as_str() {
-                "disappear" => {}
-                "flyOut" => {
-                    let (fx, fy) = fly_from(&a.option);
-                    anim_prop(w, ids, e, dur, "ppt_x", "#ppt_x", fx);
-                    anim_prop(w, ids, e, dur, "ppt_y", "#ppt_y", fy);
-                }
-                "floatOut" | "sinkDown" => {
-                    let to = if a.effect == "sinkDown" || a.option == "d" {
-                        "#ppt_y+.1"
-                    } else {
-                        "#ppt_y-.1"
-                    };
-                    anim_prop(w, ids, e, dur, "ppt_y", "#ppt_y", to);
-                    anim_effect(w, ids, e, dur, "fade", true);
-                }
-                "zoomOut" | "shrinkTurn" | "spinnerOut" | "contract" => {
-                    anim_prop(w, ids, e, dur, "ppt_w", "#ppt_w", "0");
-                    anim_prop(w, ids, e, dur, "ppt_h", "#ppt_h", "0");
-                    anim_effect(w, ids, e, dur, "fade", true);
-                }
-                other => anim_effect(w, ids, e, dur, filter_for(other, &a.option), true),
-            }
-            set_vis(
-                w,
-                ids,
-                e,
-                if a.effect == "disappear" {
-                    0
-                } else {
-                    dur.saturating_sub(1)
-                },
-                false,
-            );
-        }
-        AnimClass::Emphasis => match a.effect.as_str() {
-            "spin" | "teeter" => {
-                let deg = a
-                    .amount
-                    .unwrap_or(if a.effect == "teeter" { 4.0 } else { 360.0 });
-                let deg = if a.option == "counterClockwise" {
-                    -deg.abs()
-                } else {
-                    deg
-                };
-                let by = (deg.clamp(-36_000.0, 36_000.0) * 60_000.0).round() as i64;
-                w.open("p:animRot", A::new().a("by", by));
-                cbhvr(w, ids, e, dur, None, &["r"], None);
-                w.close("p:animRot");
-            }
-            "transparency" => {
-                w.open0("p:set");
-                cbhvr(w, ids, e, dur, None, &["style.opacity"], None);
-                w.open0("p:to");
-                w.val(
-                    "p:strVal",
-                    format!("{:.2}", (1.0 - a.amount.unwrap_or(0.5)).clamp(0.0, 1.0)),
-                );
-                w.close("p:to");
-                w.close("p:set");
-            }
-            "colorPulse" => {
-                // As PowerPoint writes it: text and fill go to the colour and back (autoRev). The behaviour
-                // duration is the one import reads as the effect duration.
-                let c = a.color.clone().unwrap_or(joydeck_model::ColorRef::rgb(
-                    joydeck_color::Rgba::rgb(0xC0, 0x00, 0x00),
-                ));
-                for (attr, child) in [("style.color", true), ("fillcolor", false)] {
-                    w.open("p:animClr", A::new().a("clrSpc", "rgb").a("dir", "cw"));
-                    w.open(
-                        "p:cBhvr",
-                        A::new().o("override", child.then_some("childStyle")),
-                    );
-                    w.empty(
-                        "p:cTn",
-                        A::new()
-                            .a("id", ids.next())
-                            .a("dur", dur.max(1))
-                            .a("autoRev", "1")
-                            .a("fill", "remove"),
-                    );
-                    tgt(w, e.spid, e.paragraph);
-                    w.open0("p:attrNameLst");
-                    w.elt("p:attrName", attr);
-                    w.close("p:attrNameLst");
-                    w.close("p:cBhvr");
-                    w.open0("p:to");
-                    super::dml::color(w, &c);
-                    w.close("p:to");
-                    w.close("p:animClr");
-                }
-            }
-            // As PowerPoint writes them: a relative HSL shift of text, fill and line colour.
-            "darken" | "desaturate" => {
-                let (s, l) = if a.effect == "darken" {
-                    (0, -25_098)
-                } else {
-                    (-70_588, 0)
-                };
-                for attr in ["style.color", "fillcolor", "stroke.color"] {
-                    w.open("p:animClr", A::new().a("clrSpc", "hsl").a("dir", "cw"));
-                    cbhvr(w, ids, e, dur, None, &[attr], None);
-                    w.open0("p:by");
-                    w.empty("p:hsl", A::new().a("h", 0).a("s", s).a("l", l));
-                    w.close("p:by");
-                    w.close("p:animClr");
-                }
-            }
-            "fillColor" | "objectColor" | "fontColor" | "lineColor" | "complementaryColor"
-            | "lighten" => {
-                let attr = match a.effect.as_str() {
-                    "fontColor" => "style.color",
-                    "lineColor" => "stroke.color",
-                    _ => "fillcolor",
-                };
-                let c = a.color.clone().unwrap_or(joydeck_model::ColorRef::scheme(
-                    joydeck_color::SchemeSlot::Accent2,
-                ));
-                w.open("p:animClr", A::new().a("clrSpc", "rgb").a("dir", "cw"));
-                cbhvr(w, ids, e, dur, None, &[attr], None);
-                w.open0("p:to");
-                super::dml::color(w, &c);
-                w.close("p:to");
-                w.close("p:animClr");
-            }
-            _ => {
-                let s = a
-                    .amount
-                    .filter(|v| v.is_finite() && *v > 0.0)
-                    .unwrap_or(if a.effect == "growShrink" { 1.5 } else { 1.1 });
-                let (sx, sy) = match a.option.as_str() {
-                    "horz" => (s, 1.0),
-                    "vert" => (1.0, s),
-                    _ => (s, s),
-                };
-                w.open0("p:animScale");
-                cbhvr(w, ids, e, dur, None, &[], None);
-                w.empty(
-                    "p:by",
-                    A::new()
-                        .a("x", (sx.clamp(0.01, 100.0) * 100_000.0).round() as i64)
-                        .a("y", (sy.clamp(0.01, 100.0) * 100_000.0).round() as i64),
-                );
-                w.close("p:animScale");
-            }
-        },
-        AnimClass::Path => {
-            let path = a
-                .path
-                .clone()
-                .filter(|p| {
-                    !p.trim().is_empty()
-                        && p.chars()
-                            .all(|c| c.is_ascii() && c != '"' && c != '<' && c != '&')
-                })
-                .unwrap_or_else(|| {
-                    match a.option.as_str() {
-                        "up" => "M 0 0 L 0 -0.25 E",
-                        "right" => "M 0 0 L 0.25 0 E",
-                        "left" => "M 0 0 L -0.25 0 E",
-                        _ => "M 0 0 L 0 0.25 E",
-                    }
-                    .to_string()
-                });
-            w.open(
-                "p:animMotion",
-                A::new()
-                    .a("origin", "layout")
-                    .a("path", path)
-                    .a("pathEditMode", "relative")
-                    .a("ptsTypes", ""),
-            );
-            cbhvr(w, ids, e, dur, None, &["ppt_x", "ppt_y"], None);
-            w.close("p:animMotion");
-        }
-        AnimClass::Media => {
-            let cmd = match a.effect.as_str() {
-                "pause" => "togglePause",
-                "stop" => "stop",
-                _ => "playFrom(0.0)",
-            };
-            w.open("p:cmd", A::new().a("type", "call").a("cmd", cmd));
-            cbhvr(w, ids, e, 1, None, &[], None);
-            w.close("p:cmd");
-        }
+fn behaviors(w: &mut W, ids: &mut Ids, effect: &Eff) {
+    let animation = effect.a;
+    let duration = animation.duration_ms.clamp(1, 3_600_000);
+    match animation.class {
+        AnimClass::Entrance | AnimClass::Exit => visibility(w, ids, effect, duration),
+        AnimClass::Emphasis => emphasis(w, ids, effect, duration),
+        AnimClass::Path => motion(w, ids, effect, duration),
+        AnimClass::Media => media_command(w, ids, effect),
     }
-    let _ = x;
 }
 
-fn effect_par(w: &mut W, x: &mut Exp, ids: &mut Ids, e: &Eff, first_in_click: bool) {
+fn visibility(w: &mut W, ids: &mut Ids, effect: &Eff, duration: u32) {
+    let name = effect.a.effect.as_str();
+    let option = effect.a.option.as_str();
+    let outward = effect.a.class == AnimClass::Exit;
+    let immediate = matches!(name, "appear" | "disappear");
+    if !outward {
+        set_vis(w, ids, effect, 0, true);
+    }
+    let mut animate = |attr: &str, displaced: &str, resting: &str| {
+        let (from, to) = if outward {
+            (resting, displaced)
+        } else {
+            (displaced, resting)
+        };
+        anim_prop(w, ids, effect, duration, attr, from, to);
+    };
+    let fade = match name {
+        "appear" | "disappear" => None,
+        "fly" | "flyOut" => {
+            let (horizontal, vertical) = fly_from(option);
+            animate("ppt_x", horizontal, "#ppt_x");
+            animate("ppt_y", vertical, "#ppt_y");
+            None
+        }
+        "zoom" | "grow" | "expand" | "spinner" | "zoomOut" | "shrinkTurn" | "spinnerOut"
+        | "contract" => {
+            animate("ppt_w", "0", "#ppt_w");
+            animate("ppt_h", "0", "#ppt_h");
+            Some("fade")
+        }
+        "float" | "rise" | "floatOut" | "sinkDown" => {
+            let below = if outward {
+                name == "sinkDown" || option == "d"
+            } else {
+                option != "d"
+            };
+            animate(
+                "ppt_y",
+                if below { "#ppt_y+.1" } else { "#ppt_y-.1" },
+                "#ppt_y",
+            );
+            Some("fade")
+        }
+        _ => Some(filter_for(name, option)),
+    };
+    if let Some(filter) = fade {
+        anim_effect(w, ids, effect, duration, filter, outward);
+    }
+    if outward {
+        set_vis(
+            w,
+            ids,
+            effect,
+            if immediate { 0 } else { duration - 1 },
+            false,
+        );
+    }
+}
+
+fn emphasis(w: &mut W, ids: &mut Ids, effect: &Eff, duration: u32) {
+    let animation = effect.a;
+    let name = animation.effect.as_str();
+    match name {
+        "spin" | "teeter" => {
+            let amount = animation
+                .amount
+                .unwrap_or(if name == "teeter" { 4.0 } else { 360.0 });
+            let signed = if animation.option == "counterClockwise" {
+                -amount.abs()
+            } else {
+                amount
+            };
+            w.open(
+                "p:animRot",
+                A::new().a("by", units(signed, -36_000.0, 36_000.0, 60_000.0)),
+            );
+            cbhvr(w, ids, effect, duration, None, &["r"], None);
+            w.close("p:animRot");
+        }
+        "transparency" => {
+            let opacity = (1.0 - animation.amount.unwrap_or(0.5)).clamp(0.0, 1.0);
+            w.open0("p:set");
+            cbhvr(w, ids, effect, duration, None, &["style.opacity"], None);
+            w.open0("p:to");
+            w.val("p:strVal", format!("{opacity:.2}"));
+            w.close("p:to");
+            w.close("p:set");
+        }
+        "colorPulse" => {
+            let color = animation.color.clone().unwrap_or_else(|| {
+                joydeck_model::ColorRef::rgb(joydeck_color::Rgba::rgb(192, 0, 0))
+            });
+            rgb_behavior(w, ids, effect, duration, "style.color", &color, Some(true));
+            rgb_behavior(w, ids, effect, duration, "fillcolor", &color, Some(false));
+        }
+        "darken" | "desaturate" => {
+            let (saturation, luminance) = if name == "darken" {
+                (0, -25_098)
+            } else {
+                (-70_588, 0)
+            };
+            for property in ["style.color", "fillcolor", "stroke.color"] {
+                w.open("p:animClr", A::new().a("clrSpc", "hsl").a("dir", "cw"));
+                cbhvr(w, ids, effect, duration, None, &[property], None);
+                w.open0("p:by");
+                w.empty(
+                    "p:hsl",
+                    A::new().a("h", 0).a("s", saturation).a("l", luminance),
+                );
+                w.close("p:by");
+                w.close("p:animClr");
+            }
+        }
+        "fillColor" | "objectColor" | "fontColor" | "lineColor" | "complementaryColor"
+        | "lighten" => {
+            let property = match name {
+                "fontColor" => "style.color",
+                "lineColor" => "stroke.color",
+                _ => "fillcolor",
+            };
+            let color = animation.color.clone().unwrap_or_else(|| {
+                joydeck_model::ColorRef::scheme(joydeck_color::SchemeSlot::Accent2)
+            });
+            rgb_behavior(w, ids, effect, duration, property, &color, None);
+        }
+        _ => {
+            let scale = animation
+                .amount
+                .filter(|value| value.is_finite() && *value > 0.0)
+                .unwrap_or(if name == "growShrink" { 1.5 } else { 1.1 });
+            let axes = match animation.option.as_str() {
+                "horz" => (scale, 1.0),
+                "vert" => (1.0, scale),
+                _ => (scale, scale),
+            };
+            w.open0("p:animScale");
+            cbhvr(w, ids, effect, duration, None, &[], None);
+            w.empty(
+                "p:by",
+                A::new()
+                    .a("x", units(axes.0, 0.01, 100.0, 100_000.0))
+                    .a("y", units(axes.1, 0.01, 100.0, 100_000.0)),
+            );
+            w.close("p:animScale");
+        }
+    }
+}
+
+fn units(value: f64, min: f64, max: f64, scale: f64) -> i64 {
+    (value.clamp(min, max) * scale).round() as i64
+}
+
+fn rgb_behavior(
+    w: &mut W,
+    ids: &mut Ids,
+    effect: &Eff,
+    duration: u32,
+    property: &str,
+    color: &joydeck_model::ColorRef,
+    pulse: Option<bool>,
+) {
+    w.open("p:animClr", A::new().a("clrSpc", "rgb").a("dir", "cw"));
+    if let Some(child_style) = pulse {
+        w.open(
+            "p:cBhvr",
+            A::new().o("override", child_style.then_some("childStyle")),
+        );
+        w.empty(
+            "p:cTn",
+            A::new()
+                .a("id", ids.next())
+                .a("dur", duration)
+                .a("autoRev", 1)
+                .a("fill", "remove"),
+        );
+        tgt(w, effect.spid, effect.paragraph);
+        w.open0("p:attrNameLst");
+        w.elt("p:attrName", property);
+        w.close("p:attrNameLst");
+        w.close("p:cBhvr");
+    } else {
+        cbhvr(w, ids, effect, duration, None, &[property], None);
+    }
+    w.open0("p:to");
+    super::dml::color(w, color);
+    w.close("p:to");
+    w.close("p:animClr");
+}
+
+fn motion(w: &mut W, ids: &mut Ids, effect: &Eff, duration: u32) {
+    let path = effect
+        .a
+        .path
+        .as_deref()
+        .filter(|path| {
+            !path.trim().is_empty()
+                && path
+                    .bytes()
+                    .all(|b| b.is_ascii() && !matches!(b, b'"' | b'<' | b'&'))
+        })
+        .unwrap_or(match effect.a.option.as_str() {
+            "up" => "M 0 0 L 0 -0.25 E",
+            "right" => "M 0 0 L 0.25 0 E",
+            "left" => "M 0 0 L -0.25 0 E",
+            _ => "M 0 0 L 0 0.25 E",
+        });
+    w.open(
+        "p:animMotion",
+        A::new()
+            .a("origin", "layout")
+            .a("path", path)
+            .a("pathEditMode", "relative")
+            .a("ptsTypes", ""),
+    );
+    cbhvr(w, ids, effect, duration, None, &["ppt_x", "ppt_y"], None);
+    w.close("p:animMotion");
+}
+
+fn media_command(w: &mut W, ids: &mut Ids, effect: &Eff) {
+    let command = match effect.a.effect.as_str() {
+        "pause" => "togglePause",
+        "stop" => "stop",
+        _ => "playFrom(0.0)",
+    };
+    w.open("p:cmd", A::new().a("type", "call").a("cmd", command));
+    cbhvr(w, ids, effect, 1, None, &[], None);
+    w.close("p:cmd");
+}
+
+fn effect_par(w: &mut W, ids: &mut Ids, e: &Eff) {
     let a = e.a;
     let node = match e.start {
         AnimStart::OnClick => "clickEffect",
         AnimStart::WithPrevious => "withEffect",
         AnimStart::AfterPrevious => "afterEffect",
     };
-    let _ = first_in_click;
     let preset = crate::maps::preset_for(a);
     let sub = if preset == 47 {
         0
@@ -500,7 +511,7 @@ fn effect_par(w: &mut W, x: &mut Exp, ids: &mut Ids, e: &Eff, first_in_click: bo
     w.empty("p:cond", A::new().a("delay", a.delay_ms.min(3_600_000)));
     w.close("p:stCondLst");
     w.open0("p:childTnLst");
-    behaviors(w, x, ids, e);
+    behaviors(w, ids, e);
     w.close("p:childTnLst");
     w.close("p:cTn");
     w.close("p:par");
@@ -539,7 +550,7 @@ fn group(effects: Vec<Eff<'_>>) -> Groups<'_> {
     activations
 }
 
-fn click_pars(w: &mut W, x: &mut Exp, ids: &mut Ids, clicks: &Groups, interactive: bool) {
+fn click_pars(w: &mut W, ids: &mut Ids, clicks: &Groups, interactive: bool) {
     for (ci, (auto, afters)) in clicks.iter().enumerate() {
         w.open0("p:par");
         w.open("p:cTn", A::new().a("id", ids.next()).a("fill", "hold"));
@@ -564,8 +575,8 @@ fn click_pars(w: &mut W, x: &mut Exp, ids: &mut Ids, clicks: &Groups, interactiv
             w.empty("p:cond", A::new().a("delay", t));
             w.close("p:stCondLst");
             w.open0("p:childTnLst");
-            for (i, e) in g.iter().enumerate() {
-                effect_par(w, x, ids, e, i == 0);
+            for effect in g {
+                effect_par(w, ids, effect);
             }
             w.close("p:childTnLst");
             w.close("p:cTn");
@@ -579,14 +590,14 @@ fn click_pars(w: &mut W, x: &mut Exp, ids: &mut Ids, clicks: &Groups, interactiv
 }
 
 /// Write `p:timing` for a slide's animations.
-pub fn timing(w: &mut W, x: &mut Exp, anims: &[Animation], shapes: &[Shape], idmap: &IdMap) {
+pub fn timing(w: &mut W, anims: &[Animation], shapes: &[Shape], idmap: &IdMap) {
     let mut grp_count: std::collections::HashMap<u32, u32> = Default::default();
     let mut main: Vec<Eff> = vec![];
     let mut triggered: Vec<(u32, Vec<Eff>)> = vec![];
     let mut bld: Vec<(u32, u32, bool)> = vec![];
     // The last paragraph effect written: (shape, class, trigger, grpId).
     let mut prev_para: Option<(ShapeId, AnimClass, Option<ShapeId>, u32)> = None;
-    for a in anims.iter().take(10_000) {
+    for a in anims.iter().take(crate::animation_xml::MAX_EFFECTS) {
         let Some(spid) = idmap.get(a.shape) else {
             log::warn!("pptx: animation on missing shape {} skipped", a.shape);
             continue;
@@ -691,78 +702,10 @@ pub fn timing(w: &mut W, x: &mut Exp, anims: &[Animation], shapes: &[Shape], idm
     );
     w.open0("p:childTnLst");
     if !main.is_empty() {
-        let clicks = group(main);
-        w.open("p:seq", A::new().a("concurrent", 1).a("nextAc", "seek"));
-        w.open(
-            "p:cTn",
-            A::new()
-                .a("id", ids.next())
-                .a("dur", "indefinite")
-                .a("nodeType", "mainSeq"),
-        );
-        w.open0("p:childTnLst");
-        click_pars(w, x, &mut ids, &clicks, false);
-        w.close("p:childTnLst");
-        w.close("p:cTn");
-        w.open0("p:prevCondLst");
-        w.open("p:cond", A::new().a("evt", "onPrev").a("delay", 0));
-        w.open0("p:tgtEl");
-        w.empty0("p:sldTgt");
-        w.close("p:tgtEl");
-        w.close("p:cond");
-        w.close("p:prevCondLst");
-        w.open0("p:nextCondLst");
-        w.open("p:cond", A::new().a("evt", "onNext").a("delay", 0));
-        w.open0("p:tgtEl");
-        w.empty0("p:sldTgt");
-        w.close("p:tgtEl");
-        w.close("p:cond");
-        w.close("p:nextCondLst");
-        w.close("p:seq");
+        write_sequence(w, &mut ids, main, None);
     }
-    for (trig, effs) in triggered {
-        // The first step starts with the button's click. Later On Click effects must remain
-        // separate steps; With/After Previous effects still belong to their preceding step.
-        let effs: Vec<Eff> = effs
-            .into_iter()
-            .enumerate()
-            .map(|(i, e)| Eff {
-                start: if i == 0 { AnimStart::OnClick } else { e.start },
-                ..e
-            })
-            .collect();
-        let clicks = group(effs);
-        let trig_cond = |w: &mut W| {
-            w.open("p:cond", A::new().a("evt", "onClick").a("delay", 0));
-            w.open0("p:tgtEl");
-            w.empty("p:spTgt", A::new().a("spid", trig));
-            w.close("p:tgtEl");
-            w.close("p:cond");
-        };
-        w.open("p:seq", A::new().a("concurrent", 1).a("nextAc", "seek"));
-        w.open(
-            "p:cTn",
-            A::new()
-                .a("id", ids.next())
-                .a("restart", "whenNotActive")
-                .a("fill", "hold")
-                .a("evtFilter", "cancelBubble")
-                .a("nodeType", "interactiveSeq"),
-        );
-        w.open0("p:stCondLst");
-        trig_cond(w);
-        w.close("p:stCondLst");
-        w.open("p:endSync", A::new().a("evt", "end").a("delay", 0));
-        w.empty("p:rtn", A::new().a("val", "all"));
-        w.close("p:endSync");
-        w.open0("p:childTnLst");
-        click_pars(w, x, &mut ids, &clicks, true);
-        w.close("p:childTnLst");
-        w.close("p:cTn");
-        w.open0("p:nextCondLst");
-        trig_cond(w);
-        w.close("p:nextCondLst");
-        w.close("p:seq");
+    for (target, effects) in triggered {
+        write_sequence(w, &mut ids, effects, Some(target));
     }
     w.close("p:childTnLst");
     w.close("p:cTn");
@@ -783,4 +726,58 @@ pub fn timing(w: &mut W, x: &mut Exp, anims: &[Animation], shapes: &[Shape], idm
         w.close("p:bldLst");
     }
     w.close("p:timing");
+}
+
+fn write_sequence(w: &mut W, ids: &mut Ids, mut effects: Vec<Eff<'_>>, target: Option<u32>) {
+    if target.is_some()
+        && let Some(first) = effects.first_mut()
+    {
+        first.start = AnimStart::OnClick;
+    }
+    let clicks = group(effects);
+    w.open("p:seq", A::new().a("concurrent", 1).a("nextAc", "seek"));
+    let attributes = A::new().a("id", ids.next());
+    if let Some(shape) = target {
+        w.open(
+            "p:cTn",
+            attributes
+                .a("restart", "whenNotActive")
+                .a("fill", "hold")
+                .a("evtFilter", "cancelBubble")
+                .a("nodeType", "interactiveSeq"),
+        );
+        sequence_condition(w, "p:stCondLst", "onClick", Some(shape));
+        w.open("p:endSync", A::new().a("evt", "end").a("delay", 0));
+        w.val("p:rtn", "all");
+        w.close("p:endSync");
+    } else {
+        w.open(
+            "p:cTn",
+            attributes.a("dur", "indefinite").a("nodeType", "mainSeq"),
+        );
+    }
+    w.open0("p:childTnLst");
+    click_pars(w, ids, &clicks, target.is_some());
+    w.close("p:childTnLst");
+    w.close("p:cTn");
+    if let Some(shape) = target {
+        sequence_condition(w, "p:nextCondLst", "onClick", Some(shape));
+    } else {
+        sequence_condition(w, "p:prevCondLst", "onPrev", None);
+        sequence_condition(w, "p:nextCondLst", "onNext", None);
+    }
+    w.close("p:seq");
+}
+
+fn sequence_condition(w: &mut W, list: &str, event: &str, shape: Option<u32>) {
+    w.open0(list);
+    w.open("p:cond", A::new().a("evt", event).a("delay", 0));
+    w.open0("p:tgtEl");
+    match shape {
+        Some(id) => w.empty("p:spTgt", A::new().a("spid", id)),
+        None => w.empty0("p:sldTgt"),
+    }
+    w.close("p:tgtEl");
+    w.close("p:cond");
+    w.close(list);
 }

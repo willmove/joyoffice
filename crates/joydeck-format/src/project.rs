@@ -9,7 +9,7 @@ use joydeck_model::{Master, Presentation, Shape, ShapeKind};
 use serde::{Deserialize, Serialize};
 use zip::{CompressionMethod, ZipArchive, ZipWriter, write::SimpleFileOptions};
 
-use crate::{EXTENSION, FormatError, MIMETYPE, Result, VERSION, finite::Finite, repair};
+use crate::{EXTENSION, FormatError, MIMETYPE, Result, VERSION, manifest_json, repair};
 
 const METADATA: &str = "presentation.json";
 const MEDIA: &str = "media";
@@ -37,9 +37,14 @@ pub(super) struct Manifest {
 }
 
 pub fn save(presentation: &Presentation) -> Result<Vec<u8>> {
+    let mut budget = LIMITS;
+    for item in &presentation.media {
+        spend(&mut budget, item.data.len())?;
+    }
     let mut model = presentation.clone();
     let mut sidecars = Vec::new();
     visit_charts(&mut model, |part| {
+        spend(&mut budget, part.bytes.len())?;
         let name = format!("{CHARTS}/{}", sidecars.len());
         part.native_entry = Some(name.clone());
         sidecars.push((
@@ -49,12 +54,15 @@ pub fn save(presentation: &Presentation) -> Result<Vec<u8>> {
         ));
         Ok(())
     })?;
-    let metadata = serde_json::to_vec(&Finite(&Manifest {
-        format: EXTENSION.into(),
-        version: VERSION,
-        generator: format!("JoyDeck {}", env!("CARGO_PKG_VERSION")),
-        presentation: model,
-    }))
+    let metadata = manifest_json::encode(
+        &Manifest {
+            format: EXTENSION.into(),
+            version: VERSION,
+            generator: format!("JoyDeck {}", env!("CARGO_PKG_VERSION")),
+            presentation: model,
+        },
+        ENTRY_LIMIT as usize,
+    )
     .map_err(write_error)?;
 
     let mut archive = ZipWriter::new(Cursor::new(Vec::new()));
@@ -74,6 +82,16 @@ pub fn save(presentation: &Presentation) -> Result<Vec<u8>> {
         append(&mut archive, &name, &bytes, compressed_media(&content_type))?;
     }
     Ok(archive.finish().map_err(write_error)?.into_inner())
+}
+
+fn spend(budget: &mut Budget, bytes: usize) -> Result<()> {
+    let bytes = bytes as u64;
+    if budget.items == 0 || bytes > ENTRY_LIMIT || bytes > budget.total {
+        return Err(FormatError::Write("native asset budget exceeded".into()));
+    }
+    budget.items -= 1;
+    budget.total -= bytes;
+    Ok(())
 }
 
 fn write_error(error: impl std::fmt::Display) -> FormatError {
@@ -184,30 +202,24 @@ pub fn load_checked(bytes: &[u8]) -> Result<(Presentation, Vec<String>)> {
 pub(super) fn load_within(bytes: &[u8], budget: Budget) -> Result<(Presentation, Vec<String>)> {
     let archive =
         ZipArchive::new(Cursor::new(bytes)).map_err(|e| FormatError::NotOurs(e.to_string()))?;
-    decode(Members::Zip(archive), budget, false)
+    decode(Members::Zip(archive), budget)
 }
 
 /// Use the same reader for members whose lengths and CRCs the host package reader validated.
 pub fn load_parts(parts: BTreeMap<String, Vec<u8>>) -> Result<(Presentation, Vec<String>)> {
-    decode(Members::Checked(parts), LIMITS, true)
+    decode(Members::Checked(parts), LIMITS)
 }
 
-fn decode(
-    mut members: Members,
-    budget: Budget,
-    require_version: bool,
-) -> Result<(Presentation, Vec<String>)> {
+fn decode(mut members: Members, budget: Budget) -> Result<(Presentation, Vec<String>)> {
     let json = members
         .take(METADATA, ENTRY_LIMIT)
         .map_err(|_| FormatError::NotOurs("no presentation.json".into()))?;
-    if require_version {
-        let header: ManifestHeader<'_> = serde_json::from_slice(&json)
-            .map_err(|e| FormatError::Damaged(format!("invalid native manifest: {e}")))?;
-        if header.format.as_deref() != Some(EXTENSION) || header.version != Some(VERSION) {
-            return Err(FormatError::NotOurs(
-                "unsupported .deckcraft format/version (only version 1 is supported)".into(),
-            ));
-        }
+    let header: ManifestHeader<'_> = serde_json::from_slice(&json)
+        .map_err(|e| FormatError::Damaged(format!("invalid native manifest: {e}")))?;
+    if header.format.as_deref() != Some(EXTENSION) || header.version != Some(VERSION) {
+        return Err(FormatError::NotOurs(
+            "unsupported .deckcraft format/version (only version 1 is supported)".into(),
+        ));
     }
     let manifest = std::thread::scope(|scope| {
         std::thread::Builder::new()
@@ -217,9 +229,6 @@ fn decode(
             .join()
             .map_err(|_| FormatError::Damaged("manifest decoder panicked".into()))?
     })?;
-    if manifest.format != EXTENSION {
-        return Err(FormatError::NotOurs(manifest.format));
-    }
     let mut model = manifest.presentation;
     let mut remaining = budget;
     let mut warnings = Vec::new();

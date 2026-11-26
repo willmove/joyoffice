@@ -1,0 +1,430 @@
+{
+  "date": "2026-11-26",
+  "platform": "Windows 11 x64",
+  "startingPoint": "3d30760d",
+  "frozen": "14cbb296",
+  "powerPoint": {
+    "version": "16.0.20625.20108",
+    "applicationVersion": "16.0",
+    "frozenCliSha256": "f8fd32a31570e241f17ced00dbce66f7e2ae53739b18e3c70bea03c2e78794f7",
+    "candidateCliSha256": "aadfab615d9112ecccb5d7efe2a65901ca6db50c0ad421f8309b65639dad2d00",
+    "cases": [
+      {
+        "input": "craft-stage3-deck-close-20261126/powerpoint16-animation.pptx",
+        "inputSha256": "908952738dcf9d4c2f084b742e381d67366d00181161880ad5f77a76481f50d1",
+        "output": "01-powerpoint16-animation-powerpoint.pptx",
+        "outputSha256": "c6596974714295c80b1667a15c7a7c480f0491394a88789398b6406fe5eca49b",
+        "slides": [
+          {
+            "id": 256,
+            "shapeTypes": [
+              1,
+              1,
+              1
+            ],
+            "effects": 3,
+            "notes": 3,
+            "mainSequence": [
+              {
+                "target": 2,
+                "effect": 10,
+                "start": 1,
+                "trigger": null,
+                "duration": 0.55,
+                "delay": 0.2,
+                "autoReverse": false
+              },
+              {
+                "target": 2,
+                "effect": 61,
+                "start": 2,
+                "trigger": null,
+                "duration": 0.8,
+                "delay": 0.0,
+                "autoReverse": true
+              },
+              {
+                "target": 3,
+                "effect": 148,
+                "start": 3,
+                "trigger": null,
+                "duration": 1.2,
+                "delay": 0.15,
+                "autoReverse": false
+              }
+            ],
+            "interactiveSequences": [
+              {
+                "effects": [
+                  {
+                    "target": 3,
+                    "effect": 10,
+                    "start": 4,
+                    "trigger": 4,
+                    "duration": 0.6,
+                    "delay": 0.0,
+                    "autoReverse": false
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "seriesOrderDifference": false
+      },
+      {
+        "input": "roundtrips/powerpoint16-animation-preserve.pptx",
+        "inputSha256": "8a25d82b1d43ae8210bd531f673d60bf565d3d70a506493360b5101e025b5c76",
+        "output": "02-powerpoint16-animation-preserve-powerpoint.pptx",
+        "outputSha256": "1d517338210696bf24c612b1d32565dbe7e686aab15bb6de9f34ad70c181d253",
+        "slides": [
+          {
+            "id": 256,
+            "shapeTypes": [
+              1,
+              1,
+              1
+            ],
+            "effects": 3,
+            "notes": 3,
+            "mainSequence": [
+              {
+                "target": 2,
+                "effect": 10,
+                "start": 1,
+                "trigger": null,
+                "duration": 0.55,
+                "delay": 0.2,
+                "autoReverse": false
+              },
+              {
+                "target": 2,
+                "effect": 61,
+                "start": 2,
+                "trigger": null,
+                "duration": 0.8,
+                "delay": 0.0,
+                "autoReverse": true
+              },
+              {
+                "target": 3,
+                "effect": 148,
+                "start": 3,
+                "trigger": null,
+                "duration": 1.2,
+                "delay": 0.15,
+                "autoReverse": false
+              }
+            ],
+            "interactiveSequences": [
+              {
+                "effects": [
+                  {
+                    "target": 3,
+                    "effect": 10,
+                    "start": 4,
+                    "trigger": 4,
+                    "duration": 0.6,
+                    "delay": 0.0,
+                    "autoReverse": false
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "seriesOrderDifference": false
+      },
+      {
+        "input": "roundtrips/powerpoint16-animation-regenerate.pptx",
+        "inputSha256": "4184bd70a6d99f258c6b26fcb7f4b24671105ba0a4cfd0e59c6bb6c2a691ea50",
+        "output": "03-powerpoint16-animation-regenerate-powerpoint.pptx",
+        "outputSha256": "cb77477d7d3eee91b25a5efb34109ff0d8857e363aa2b30d671c88ff179a4efc",
+        "slides": [
+          {
+            "id": 256,
+            "shapeTypes": [
+              1,
+              1,
+              1
+            ],
+            "effects": 3,
+            "notes": 3,
+            "mainSequence": [
+              {
+                "target": 2,
+                "effect": 10,
+                "start": 1,
+                "trigger": null,
+                "duration": 0.55,
+                "delay": 0.2,
+                "autoReverse": false
+              },
+              {
+                "target": 2,
+                "effect": 61,
+                "start": 2,
+                "trigger": null,
+                "duration": 0.8,
+                "delay": 0.0,
+                "autoReverse": true
+              },
+              {
+                "target": 3,
+                "effect": 148,
+                "start": 3,
+                "trigger": null,
+                "duration": 1.2,
+                "delay": 0.15,
+                "autoReverse": false
+              }
+            ],
+            "interactiveSequences": [
+              {
+                "effects": [
+                  {
+                    "target": 3,
+                    "effect": 10,
+                    "start": 4,
+                    "trigger": 4,
+                    "duration": 0.6,
+                    "delay": 0.0,
+                    "autoReverse": false
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "seriesOrderDifference": false
+      },
+      {
+        "input": "joydeck/m10-powerpoint-authored-motion.pptx",
+        "inputSha256": "4894295c02485ed37eef99e2bb93562661793a682ef0675257f5a0d7b869bfdd",
+        "output": "04-m10-powerpoint-authored-motion-powerpoint.pptx",
+        "outputSha256": "83f0672d5bf01bf39c403cd92c1200d435a28c1ebfcf68db99476a504d1a052e",
+        "slides": [
+          {
+            "id": 256,
+            "shapeTypes": [
+              14,
+              14
+            ],
+            "effects": 1,
+            "notes": 3,
+            "mainSequence": [
+              {
+                "target": 2,
+                "effect": 10,
+                "start": 1,
+                "trigger": null,
+                "duration": 0.5,
+                "delay": 0.0,
+                "autoReverse": false
+              }
+            ],
+            "interactiveSequences": []
+          }
+        ],
+        "seriesOrderDifference": false
+      },
+      {
+        "input": "roundtrips/m10-powerpoint-authored-motion-preserve.pptx",
+        "inputSha256": "2a30e06e50315e848c10b32aa17c4ec282495c939fd7cf89c3ba6643e065abeb",
+        "output": "05-m10-powerpoint-authored-motion-preserve-powerpoint.pptx",
+        "outputSha256": "80440f804b43ab6d0ec3c4afdeeccbb2190f640739f5caf11cf6c661e30ceaba",
+        "slides": [
+          {
+            "id": 256,
+            "shapeTypes": [
+              14,
+              14
+            ],
+            "effects": 1,
+            "notes": 3,
+            "mainSequence": [
+              {
+                "target": 2,
+                "effect": 10,
+                "start": 1,
+                "trigger": null,
+                "duration": 0.5,
+                "delay": 0.0,
+                "autoReverse": false
+              }
+            ],
+            "interactiveSequences": []
+          }
+        ],
+        "seriesOrderDifference": false
+      },
+      {
+        "input": "roundtrips/m10-powerpoint-authored-motion-regenerate.pptx",
+        "inputSha256": "a61485305e5130621e22f0fc87cfc31f7264491129a0bcae3c7a3d3d7a2eddcf",
+        "output": "06-m10-powerpoint-authored-motion-regenerate-powerpoint.pptx",
+        "outputSha256": "0c4bd955a7ded659c30fa85cdf9b90ff0bae54ea8ebe3f2438a18a8bf541fb36",
+        "slides": [
+          {
+            "id": 256,
+            "shapeTypes": [
+              14,
+              14
+            ],
+            "effects": 1,
+            "notes": 3,
+            "mainSequence": [
+              {
+                "target": 2,
+                "effect": 10,
+                "start": 1,
+                "trigger": null,
+                "duration": 0.5,
+                "delay": 0.0,
+                "autoReverse": false
+              }
+            ],
+            "interactiveSequences": []
+          }
+        ],
+        "seriesOrderDifference": false
+      },
+      {
+        "input": "roundtrips/timing-native-regenerate.pptx",
+        "inputSha256": "4184bd70a6d99f258c6b26fcb7f4b24671105ba0a4cfd0e59c6bb6c2a691ea50",
+        "output": "07-timing-native-regenerate-powerpoint.pptx",
+        "outputSha256": "d8e0c24074d3b1952e2e0d1b31fd5b0d760ce31a922122b9972fb0b5a344328a",
+        "slides": [
+          {
+            "id": 256,
+            "shapeTypes": [
+              1,
+              1,
+              1
+            ],
+            "effects": 3,
+            "notes": 3,
+            "mainSequence": [
+              {
+                "target": 2,
+                "effect": 10,
+                "start": 1,
+                "trigger": null,
+                "duration": 0.55,
+                "delay": 0.2,
+                "autoReverse": false
+              },
+              {
+                "target": 2,
+                "effect": 61,
+                "start": 2,
+                "trigger": null,
+                "duration": 0.8,
+                "delay": 0.0,
+                "autoReverse": true
+              },
+              {
+                "target": 3,
+                "effect": 148,
+                "start": 3,
+                "trigger": null,
+                "duration": 1.2,
+                "delay": 0.15,
+                "autoReverse": false
+              }
+            ],
+            "interactiveSequences": [
+              {
+                "effects": [
+                  {
+                    "target": 3,
+                    "effect": 10,
+                    "start": 4,
+                    "trigger": 4,
+                    "duration": 0.6,
+                    "delay": 0.0,
+                    "autoReverse": false
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "seriesOrderDifference": false
+      }
+    ]
+  },
+  "animationExchangeChecks": {
+    "timingIdsAfterOffice": {
+      "craft-stage3-deck-close-20261126/powerpoint16-animation.pptx": 18,
+      "roundtrips/powerpoint16-animation-preserve.pptx": 18,
+      "roundtrips/powerpoint16-animation-regenerate.pptx": 18,
+      "roundtrips/timing-native-regenerate.pptx": 18,
+      "joydeck/m10-powerpoint-authored-motion.pptx": 7,
+      "roundtrips/m10-powerpoint-authored-motion-preserve.pptx": 7,
+      "roundtrips/m10-powerpoint-authored-motion-regenerate.pptx": 7
+    },
+    "unchangedPreserveCounts": {
+      "powerpoint16-animation": 37,
+      "m10-powerpoint-authored-motion": 37
+    }
+  },
+  "nativeFormatChecks": {
+    "no-layouts": {
+      "sha256": "e4e6539352ff94d087dc51146ce4b610eea873b77fe180cc0744cea9276e229a",
+      "layout": 603
+    },
+    "legacy-numbers": {
+      "sha256": "4d58192d98b228f273912c31e40f971269a2fc1a61acfa9c8dfc0a39c2560d7b",
+      "restoredXfrm": {
+        "x": 0.0,
+        "y": -1000000.0,
+        "w": 1000000.0,
+        "h": 540.0
+      }
+    },
+    "future-model": {
+      "sha256": "034570201d627f2f29c228b58ee2f5d554e63391d36e5bcdd7912c746bac0637",
+      "diagnostic": "JoyDeck CLI: unsupported .deckcraft format/version (only version 1 is supported)"
+    }
+  },
+  "frozenPackageRegression": {
+    "samples": 17,
+    "reads": 234,
+    "successfulWrites": 100,
+    "exactPreserveCopies": 11,
+    "exactParts": 510,
+    "invalidInputs": [
+      "broken-pptx",
+      "future-native",
+      "unknown-capability",
+      "unbound-source",
+      "utf16-dtd",
+      "symlink-metadata",
+      "bad-member-crc"
+    ],
+    "protectedPreserveRefusals": 2
+  },
+  "productTests": {
+    "rustPassed": 1057,
+    "rustFailed": 0,
+    "cliChecks": {
+      "r1": 28,
+      "r2": 20,
+      "r3": 20,
+      "r4-r5": 23,
+      "r6-r7": 35
+    },
+    "strictClippy": true,
+    "build": true
+  },
+  "remainingStage3WorkWeeks": [
+    0,
+    0
+  ],
+  "transitionRegression": {
+    "kinds": 17,
+    "cases": 48,
+    "readerWriterPairs": 192,
+    "originalsUnchanged": true
+  }
+}

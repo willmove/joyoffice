@@ -1640,21 +1640,25 @@
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
-      ]
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "Replaced by a bounded native-manifest output codec."
+      ],
+      "retired": true,
+      "last_verified_in": "3d30760d"
     },
     {
       "source_path": "crates/format/src/lib.rs",
       "source_sha256": "b22413e017a2ce81282870713d06d22f085b32ec520af6afdcd6a7fc58b18d4e",
       "target_path": "crates/joydeck-format/src/lib.rs",
-      "adapted_sha256": "603610d7d62c9ee632c85020a349af46cbc394aac6e2b708c673d1f277a38098",
+      "adapted_sha256": "2ae64a2c4975c3b90d518052d0c3350ee3704ec602ae9a9f2af388c9eda0e023",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
         "Use the first-party model archive inventory and media/sidecar reader and writer.",
-        "Keep legacy numeric-null repair on the independent archive decoding path."
+        "Keep legacy numeric-null repair on the independent archive decoding path.",
+        "Use the native manifest byte limits and the model identity, layout and number repair pass."
       ]
     },
     {
@@ -1673,12 +1677,13 @@
       "source_path": "crates/format/src/tests.rs",
       "source_sha256": "42cb351be917bc7b74ee3999cde0d834d2930a9c26fa952ae8e45355fb2e3e26",
       "target_path": "crates/joydeck-format/src/tests.rs",
-      "adapted_sha256": "f97ca44c9c36003aedaea032c1dd06a522329542e7f67bb6d55f737753733ea0",
+      "adapted_sha256": "0066b0008833f8f569ffc1a68bde45a4c4e15ddc72c82fba60042b4a11bce179",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "Use the native manifest byte limits and the model identity, layout and number repair pass."
       ]
     },
     {
@@ -1741,7 +1746,7 @@
       "source_path": "crates/pptx/src/lib.rs",
       "source_sha256": "7886430c0095c036472d8a84d8b4d2eccf001b0c8660e5c2b43572f6a0f79c1f",
       "target_path": "crates/joydeck-pptx/src/lib.rs",
-      "adapted_sha256": "83bbe95277ec42afe523f3582b26b38cc47dfec54a5b195cfb795976291582c5",
+      "adapted_sha256": "e5c9de3e4c60d1783b512a35343bfde7f2038b66c76bfede330b17d026af8738",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -1752,7 +1757,8 @@
         "Route validated package members into the current PresentationML importer.",
         "Use the JoyOffice ChartEx reader on the import and source comparison paths.",
         "Wire the independent series, axis, style-part and embedded SpreadsheetML codecs into PPTX exchange.",
-        "Route shape geometry, rich text, diagrams and Office 3-D payloads through the DrawingML exchange codecs."
+        "Route shape geometry, rich text, diagrams and Office 3-D payloads through the DrawingML exchange codecs.",
+        "Route object effects and their timing nodes through the PresentationML sequence codec."
       ],
       "safety_integration": "Register footer import and preservation regression tests (d28049dc)."
     },
@@ -1873,13 +1879,14 @@
       "source_path": "crates/pptx/src/read/timing.rs",
       "source_sha256": "6435746216469ece643c6295fbb2721893a869f7f4107e00361624b716444b80",
       "target_path": "crates/joydeck-pptx/src/read/timing.rs",
-      "adapted_sha256": "81d8fc8c3875c754186284736f9ed9f42c4e18c6b387e45c5ae638cfc0432c0f",
+      "adapted_sha256": "985334b2dc4a57b43bad0b6f5d47a3b8ea5f41c9efbc7d63a4ecdad9c9df6e62",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
-        "Read transition parts separately and walk effect nodes with an explicit bounded traversal."
+        "Read transition parts separately and walk effect nodes with an explicit bounded traversal.",
+        "Route object effects and their timing nodes through the PresentationML sequence codec."
       ]
     },
     {
@@ -1980,20 +1987,21 @@
       "source_path": "crates/pptx/src/write/timing.rs",
       "source_sha256": "7f96aaf7ba84e9c5a21c059d74cc15fbb66566147168aa4581b67c8619030d1d",
       "target_path": "crates/joydeck-pptx/src/write/timing.rs",
-      "adapted_sha256": "442643d2e5f1544e063374f6e49b5a5411bcae3b193caf88aa089af59b143bde",
+      "adapted_sha256": "a8b9c0485578e8c5add5b92e4524dcc1648f6b7820827f960c15cc4afa3dc7fb",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
-        "Use the first-party transition writer and organize timing groups by activation."
+        "Use the first-party transition writer and organize timing groups by activation.",
+        "Route object effects and their timing nodes through the PresentationML sequence codec."
       ]
     },
     {
       "source_path": "crates/pptx/src/write.rs",
       "source_sha256": "ca721cabd36b0853a69a1f2e69cf02211100fe1b4f499ced1c066a3321a92e65",
       "target_path": "crates/joydeck-pptx/src/write.rs",
-      "adapted_sha256": "a01733440cddffc72e935c02e3aa915ee1efbc9695f1f2512f07fe25119de8a6",
+      "adapted_sha256": "48f203d4e5bf01285addb2127d2edbc6aa53fcc5e69272c8000804ec2a8154ac",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -2004,7 +2012,8 @@
         "Assemble resolved PresentationML members before writing, with first-party media, review and transition part writers.",
         "Build the master, layout, and theme relationship graph through the master part codec.",
         "Write the ChartEx style pair, retained chart sidecars and new editable workbooks through one relationship list.",
-        "Route shape geometry, rich text, diagrams and Office 3-D payloads through the DrawingML exchange codecs."
+        "Route shape geometry, rich text, diagrams and Office 3-D payloads through the DrawingML exchange codecs.",
+        "Route object effects and their timing nodes through the PresentationML sequence codec."
       ],
       "dynamic_text_fields": "Support atomic dynamic text fields, native authoring, and separate rendered/source offsets."
     },

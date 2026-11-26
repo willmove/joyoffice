@@ -14,6 +14,7 @@
 )]
 #![forbid(unsafe_code)]
 
+mod animation_xml;
 mod archive;
 mod cfb;
 mod chart_axes;

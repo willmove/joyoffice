@@ -7,6 +7,7 @@ param(
     [string] $PowerPoint = "$env:ProgramFiles/Microsoft Office/root/Office16/POWERPNT.EXE",
     [switch] $ReportChartTypes,
     [switch] $ReportDrawingObjects,
+    [switch] $ReportAnimationTimeline,
     [string[]] $ComboSeriesOrder
 )
 
@@ -46,6 +47,22 @@ function Get-PowerPoint {
     }
     catch [System.Runtime.InteropServices.COMException] {
         $null
+    }
+}
+
+function Get-SequenceEffects($Sequence) {
+    foreach ($effect in $Sequence) {
+        $timing = $effect.Timing
+        $trigger = if ($timing.TriggerType -eq 4) { [int] $timing.TriggerShape.Id }
+        [ordered] @{
+            target = [int] $effect.Shape.Id
+            effect = [int] $effect.EffectType
+            start = [int] $timing.TriggerType
+            trigger = $trigger
+            duration = [single] $timing.Duration
+            delay = [single] $timing.TriggerDelayTime
+            autoReverse = [bool] $timing.AutoReverse
+        }
     }
 }
 
@@ -90,6 +107,12 @@ function Get-DocumentShape($Presentation) {
                         }
                     }
                 }
+            })
+        }
+        if ($ReportAnimationTimeline) {
+            $record.mainSequence = @(Get-SequenceEffects $slide.TimeLine.MainSequence)
+            $record.interactiveSequences = @(foreach ($sequence in $slide.TimeLine.InteractiveSequences) {
+                @{ effects = @(Get-SequenceEffects $sequence) }
             })
         }
         $record
