@@ -1,8 +1,8 @@
-//! Native editor chrome. Layout and colour tokens adapted from DeckCraft's MIT
-//! ribbon/widgets/theme; GPUI Kit controls and assets follow JoyOffice's baseline.
+//! JoyDeck native editor chrome built from GPUI Kit controls and the JoyOffice palette.
 use super::ribbon_reference::{
     BLUE, GREEN, gallery, ribbon_checks, small_unavailable, unavailable, unavailable_row,
 };
+use super::ribbon_tabs::{RibbonTab, TabAction};
 use super::*;
 use gpui_kit::component::{Icon, Selectable, Sizable, button::ButtonVariants, popover::Popover};
 use joydeck_engine::Command;
@@ -19,18 +19,8 @@ pub(super) fn small(id: &'static str, icon: I, label: &'static str) -> Button {
         .rounded(px(3.))
 }
 pub(super) const RIBBON_HEIGHT: f32 = 66.;
-const TABS: &[&str] = &[
-    "开始",
-    "插入",
-    "绘图",
-    "设计",
-    "切换",
-    "动画",
-    "幻灯片放映",
-    "录制",
-    "审阅",
-    "视图",
-];
+const RIBBON_OVERFLOW_WIDTH: f32 = 1280.;
+const RIBBON_SCROLL_STEP: f32 = 240.;
 
 pub(super) fn tool(id: &'static str, icon: I, label: &'static str, tint: u32) -> Button {
     let lines = label.split('\n');
@@ -259,8 +249,14 @@ impl Viewer {
             )
     }
     pub(super) fn editor_ribbon(&self, w: &Window, cx: &mut Context<Self>) -> Div {
-        let p = self.palette();
-        let mut tabs = div()
+        let palette = self.palette();
+        let selected = self.editor.as_ref().and_then(|e| {
+            let id = *e.session.selection().shapes.first()?;
+            e.session.model().slides.get(self.page)?.shape(id)
+        });
+        let contextual = RibbonTab::contextual(selected.map(|shape| &shape.kind));
+        let active = self.ribbon.visible(self.backstage, contextual);
+        let tabs = div()
             .id("ribbon-tabs")
             .role(gpui::Role::TabList)
             .aria_label("功能区")
@@ -268,134 +264,131 @@ impl Viewer {
             .flex_shrink_0()
             .flex()
             .items_center()
-            .overflow_x_scroll();
-        tabs = tabs.child(self.ribbon_tab("文件", self.backstage, p.accent, cx));
-        let contextual = self
-            .editor
-            .as_ref()
-            .and_then(|e| {
-                let selected = e.session.selection().shapes.first()?;
-                e.session.model().slides.get(self.page)?.shape(*selected)
-            })
-            .map_or(&[][..], |shape| match shape.kind {
-                joydeck_model::ShapeKind::Picture { .. } => &["图片格式"][..],
-                joydeck_model::ShapeKind::Chart(_) => &["图表设计", "格式"][..],
-                joydeck_model::ShapeKind::Table(_) => &["表格设计", "表格布局"][..],
-                _ => &["形状格式"][..],
-            });
-        let active = if TABS.contains(&self.ribbon) || contextual.contains(&self.ribbon) {
-            self.ribbon
-        } else {
-            "开始"
-        };
-        for tab in TABS.iter().chain(contextual).copied() {
-            tabs = tabs.child(self.ribbon_tab(tab, active == tab && !self.backstage, p.accent, cx));
-        }
-        tabs = tabs.child(div().flex_1()).child(
-            Button::new("ribbon-comments")
-                .ghost()
-                .xsmall()
-                .icon(I::MessageSquare)
-                .label("批注")
-                .on_click(cx.listener(|s, _, w, cx| s.comments_dialog(w, cx))),
-        );
+            .overflow_x_scroll()
+            .children(
+                RibbonTab::STANDARD
+                    .iter()
+                    .chain(contextual)
+                    .copied()
+                    .map(|tab| self.ribbon_tab(tab, active == tab, palette.accent, cx)),
+            )
+            .child(div().flex_1())
+            .child(
+                Button::new("ribbon-comments")
+                    .ghost()
+                    .xsmall()
+                    .icon(I::MessageSquare)
+                    .label("批注")
+                    .on_click(cx.listener(|s, _, w, cx| s.comments_dialog(w, cx))),
+            );
+        let ribbon = div().flex_shrink_0().child(tabs);
         if self.ribbon_collapsed || self.backstage {
-            return div().flex_shrink_0().child(tabs);
+            return ribbon;
         }
-        let disabled = self.editor.is_none() || self.loading;
-        let selected = self
+        let has_selection = self
             .editor
             .as_ref()
             .is_some_and(|e| !e.session.selection().shapes.is_empty());
-        let bar = match active {
-            "开始" => self.ribbon_home(cx, disabled, selected),
-            "插入" => self.ribbon_insert(cx),
-            "设计" => self.ribbon_design(cx, disabled),
-            "图片格式" => self.ribbon_picture(cx, selected),
-            "图表设计" => self.ribbon_chart(cx, selected),
-            "格式" => self.ribbon_chart_format(cx),
-            "表格设计" => self.table_controls(true, cx),
-            "表格布局" => self.table_controls(false, cx),
-            "形状格式" => self.ribbon_shape(cx),
-            "绘图" => self.ribbon_draw(cx),
-            "切换" => self.ribbon_transitions(cx),
-            "动画" => self.ribbon_animations(cx),
-            "幻灯片放映" => self.ribbon_show(cx),
-            "录制" => self.ribbon_record(cx),
-            "审阅" => self.ribbon_review(cx),
-            "视图" => self.ribbon_view(cx),
-            _ => row().h(px(RIBBON_HEIGHT)).items_start(),
-        };
-        let narrow = f32::from(w.viewport_size().width) < 1280.;
-        div().flex_shrink_0().child(tabs).child(
+        let bar = self.ribbon_commands(active, has_selection, cx);
+        let viewport = div()
+            .id("ribbon-scroll")
+            .flex_1()
+            .min_w_0()
+            .flex()
+            .items_start()
+            .overflow_x_scroll()
+            .track_scroll(&self.ribbon_scroll)
+            .child(bar.flex_shrink_0());
+        let narrow = f32::from(w.viewport_size().width) < RIBBON_OVERFLOW_WIDTH;
+        ribbon.child(
             div()
+                .id("ribbon-command-panel")
+                .role(gpui::Role::Group)
+                .aria_label(active.label())
                 .h(px(75.))
                 .pt(px(5.))
                 .pb(px(3.))
                 .border_b_1()
-                .border_color(rgb(p.border))
-                .bg(rgb(p.chrome))
+                .border_color(rgb(palette.border))
+                .bg(rgb(palette.chrome))
                 .flex()
-                .when(narrow, |d| {
-                    d.child(
-                        Button::new("ribbon-left")
-                            .ghost()
-                            .icon(I::ChevronLeft)
-                            .w(px(18.))
-                            .h(px(RIBBON_HEIGHT))
-                            .p_0()
-                            .accessibility_label("向左滚动功能区")
-                            .on_click(cx.listener(|s, _, _, cx| {
-                                let at = s.ribbon_scroll.offset();
-                                s.ribbon_scroll.set_offset(point(at.x + px(240.), px(0.)));
-                                cx.notify();
-                            })),
-                    )
-                })
-                .child(
-                    div()
-                        .id("ribbon-scroll")
-                        .flex_1()
-                        .min_w_0()
-                        .flex()
-                        .items_start()
-                        .overflow_x_scroll()
-                        .track_scroll(&self.ribbon_scroll)
-                        .child(bar.flex_shrink_0()),
-                )
-                .when(narrow, |d| {
-                    d.child(
-                        Button::new("ribbon-right")
-                            .ghost()
-                            .icon(I::ChevronRight)
-                            .w(px(18.))
-                            .h(px(RIBBON_HEIGHT))
-                            .p_0()
-                            .accessibility_label("向右滚动功能区")
-                            .on_click(cx.listener(|s, _, _, cx| {
-                                let at = s.ribbon_scroll.offset();
-                                s.ribbon_scroll.set_offset(point(at.x - px(240.), px(0.)));
-                                cx.notify();
-                            })),
-                    )
-                }),
+                .when(narrow, |d| d.child(self.ribbon_scroll_button(false, cx)))
+                .child(viewport)
+                .when(narrow, |d| d.child(self.ribbon_scroll_button(true, cx))),
         )
     }
+
+    fn ribbon_commands(&self, tab: RibbonTab, selected: bool, cx: &mut Context<Self>) -> Div {
+        let disabled = self.editor.is_none() || self.loading;
+        match tab {
+            RibbonTab::Home => self.ribbon_home(cx, disabled, selected),
+            RibbonTab::Insert => self.ribbon_insert(cx),
+            RibbonTab::Design => self.ribbon_design(cx, disabled),
+            RibbonTab::Picture => self.ribbon_picture(cx, selected),
+            RibbonTab::ChartDesign => self.ribbon_chart(cx, selected),
+            RibbonTab::ChartFormat => self.ribbon_chart_format(cx),
+            RibbonTab::TableDesign => self.table_controls(true, cx),
+            RibbonTab::TableLayout => self.table_controls(false, cx),
+            RibbonTab::Shape => self.ribbon_shape(cx),
+            RibbonTab::Draw => self.ribbon_draw(cx),
+            RibbonTab::Transitions => self.ribbon_transitions(cx),
+            RibbonTab::Animations => self.ribbon_animations(cx),
+            RibbonTab::Show => self.ribbon_show(cx),
+            RibbonTab::Record => self.ribbon_record(cx),
+            RibbonTab::Review => self.ribbon_review(cx),
+            RibbonTab::View => self.ribbon_view(cx),
+            RibbonTab::File => row().h(px(RIBBON_HEIGHT)).items_start(),
+        }
+    }
+
+    fn ribbon_scroll_button(&self, forward: bool, cx: &mut Context<Self>) -> Button {
+        let (id, icon, label, step) = if forward {
+            (
+                "ribbon-right",
+                I::ChevronRight,
+                "向右滚动功能区",
+                -RIBBON_SCROLL_STEP,
+            )
+        } else {
+            (
+                "ribbon-left",
+                I::ChevronLeft,
+                "向左滚动功能区",
+                RIBBON_SCROLL_STEP,
+            )
+        };
+        Button::new(id)
+            .ghost()
+            .icon(icon)
+            .w(px(18.))
+            .h(px(RIBBON_HEIGHT))
+            .p_0()
+            .accessibility_label(label)
+            .on_click(cx.listener(move |s, _, _, cx| {
+                let at = s.ribbon_scroll.offset().x + px(step);
+                let limit = s.ribbon_scroll.max_offset().x.abs();
+                s.ribbon_scroll
+                    .set_offset(point(at.clamp(-limit, px(0.)), px(0.)));
+                cx.notify();
+            }))
+    }
+
     fn ribbon_tab(
         &self,
-        tab: &'static str,
+        tab: RibbonTab,
         selected: bool,
         accent: u32,
         cx: &mut Context<Self>,
     ) -> Button {
-        Button::new(tab)
+        let label = tab.label();
+        Button::new(label)
             .ghost()
             .xsmall()
             .h(px(28.))
             .p_0()
             .rounded_none()
             .flex_shrink_0()
-            .accessibility_label(tab)
+            .accessibility_label(label)
             .role(gpui::Role::Tab)
             .selected(selected)
             .toggled(selected)
@@ -414,20 +407,19 @@ impl Viewer {
                     } else {
                         gpui::transparent_black()
                     })
-                    .child(tab),
+                    .child(label),
             )
             .on_click(cx.listener(move |s, event: &ClickEvent, w, cx| {
-                if selected && event.click_count() == 2 {
-                    s.ribbon_collapsed = !s.ribbon_collapsed;
-                } else if selected {
-                    return;
-                } else if tab == "文件" {
-                    s.open_file_page(w, cx);
-                } else {
-                    s.ribbon = tab;
-                    s.ribbon_collapsed = false;
-                    s.backstage = false;
-                    s.ribbon_scroll.set_offset(point(px(0.), px(0.)));
+                match tab.press(selected, s.ribbon_collapsed, event.click_count() == 2) {
+                    TabAction::Stay => return,
+                    TabAction::SetFolded(folded) => s.ribbon_collapsed = folded,
+                    TabAction::OpenFile => s.open_file_page(w, cx),
+                    TabAction::Open(tab) => {
+                        s.ribbon = tab;
+                        s.ribbon_collapsed = false;
+                        s.backstage = false;
+                        s.ribbon_scroll.set_offset(point(px(0.), px(0.)));
+                    }
                 }
                 cx.notify();
             }))

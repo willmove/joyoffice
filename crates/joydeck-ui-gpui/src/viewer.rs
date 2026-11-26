@@ -87,6 +87,8 @@ mod paragraph_ui;
 mod review_ui;
 #[path = "ribbon_reference.rs"]
 mod ribbon_reference;
+#[path = "ribbon_tabs.rs"]
+mod ribbon_tabs;
 #[path = "scene_benchmark.rs"]
 mod scene_benchmark;
 #[path = "scene_canvas.rs"]
@@ -130,7 +132,7 @@ pub struct Viewer {
     benchmark_task: Option<Task<()>>,
     retired_images: Vec<Arc<RenderImage>>,
     gpu_document: u64,
-    ribbon: &'static str,
+    ribbon: ribbon_tabs::RibbonTab,
     ribbon_collapsed: bool,
     // Selection survives collapsing the File page back to the slide workspace.
     backstage: bool,
@@ -255,7 +257,7 @@ impl Viewer {
             benchmark_task: None,
             retired_images: vec![],
             gpu_document: 0,
-            ribbon: "开始",
+            ribbon: ribbon_tabs::RibbonTab::Home,
             ribbon_collapsed: false,
             backstage: false,
             file_page: file_ui::Page::Home,

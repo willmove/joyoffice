@@ -1,0 +1,49 @@
+{
+  "frozenRevision": "14cbb29616d7c0ababbf40a8f6c0218b996e7ae8",
+  "stage4OutputCommit": "3c24fd2",
+  "frozenDesktopSha256": "58ca28ebada8d5e737ad788c78f74e402771379a2fb4c5cb19fbd98125033e93",
+  "candidateDesktopSha256": "c3ec03a10e54246041dd5436e58fbab7d47195d129ac3a234cadbf883c0226aa",
+  "retainedCliSha256": "617750197e9a77e7bddb22ade9e7ad8ab41322d170947472ae3ceacd17f7aca7",
+  "windows": {
+    "wide": {
+      "logicalWidth": 1440,
+      "logicalHeight": 900,
+      "theme": "light",
+      "pages": [
+        1,
+        2,
+        1
+      ],
+      "disabled": "Reset",
+      "foldShortcut": "Ctrl+F1"
+    },
+    "narrow": {
+      "logicalWidth": 990,
+      "logicalHeight": 720,
+      "theme": "dark",
+      "horizontalScroll": "right",
+      "contextualTab": "形状格式",
+      "keyboardFocus": "插入",
+      "expandedUsingEnterAfterCollapse": true
+    }
+  },
+  "engineering": {
+    "passed": 1066,
+    "failed": 0,
+    "ignored": 0,
+    "cliChecks": 126,
+    "cliSuites": {
+      "r1": "R1 executable verification passed: 28 checks",
+      "r2": "R2 verification passed: 20 commands",
+      "r3": "R3 public/native/table/text/notes checks passed: 20 executable calls",
+      "r4-r5": "R4/R5 verification passed: 23 executable calls",
+      "r6-r7": "R6/R7 passed: 35 CLI calls, 66 MCP responses"
+    }
+  },
+  "remainingImplementationPersonWeeks": 0,
+  "pendingDeviceChecks": [
+    "macOS Metal",
+    "UOS Vulkan",
+    "Windows standalone print dialog interaction"
+  ]
+}
