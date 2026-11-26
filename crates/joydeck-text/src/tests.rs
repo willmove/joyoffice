@@ -2,8 +2,8 @@ use super::{
     Affinity, Align, Anchor, Arc, AutoFit, BodyProps, Bullet, Caps, Cell, Ctx, Dash, Deco,
     DecoLine, FontDb, FontFace, GlyphRun, LINE_PITCH, MoveMode, NoFields, Opts, ParaProps, Point,
     Pos, Rect, Rgba, SUB_SUPER, Shape, Spacing, Strike, TextBody, TextLayout, autonum,
-    break_opportunities, caps_char, chinese_num, covers_symbol, is_symbol_font, is_upright, layout,
-    layout_scaled, map_symbol_bullet, measure_str, resolve, shaping_features, symbol_char,
+    break_opportunities, caps_char, caret, chinese_num, covers_symbol, is_symbol_font, is_upright,
+    layout, layout_scaled, map_symbol_bullet, measure_str, resolve, shaping_features, symbol_char,
     symbol_font_char, symbol_font_draw, symbol_unicode, symbol_unicode_alts,
 };
 use joydeck_model::Fill;
@@ -784,7 +784,7 @@ fn bidi_caret_stops_round_trip_through_hit_testing() {
         );
         let l = lay(&p, &sh, 2000.0, 300.0);
         let line = &l.lines[0];
-        for (x, ch, aff) in line.visual_stops() {
+        for (x, ch, aff) in caret::visual_stops(line) {
             let (cx, ..) = l.caret_at(Pos { para: 0, ch }, aff).unwrap();
             assert!(
                 (cx - x).abs() < 0.01,
@@ -792,10 +792,8 @@ fn bidi_caret_stops_round_trip_through_hit_testing() {
             );
         }
         // Clicking just inside either side of each grapheme puts the caret on that side.
-        for (a, b) in line.graphemes() {
-            let Some((x0, x1)) = line.grapheme_box(a, b) else {
-                continue;
-            };
+        for glyph in caret::visual_boxes(line) {
+            let (a, x0, x1) = (glyph.start, glyph.left, glyph.right);
             if x1 - x0 < 1.0 {
                 continue;
             }
@@ -817,7 +815,7 @@ fn bidi_caret_stops_round_trip_through_hit_testing() {
 fn visual_movement_walks_the_line_left_to_right() {
     let (p, sh) = bidi_setup(vec![Run::new(MIXED)], 2000.0, true, Align::Right);
     let l = lay(&p, &sh, 2000.0, 300.0);
-    let stops = l.lines[0].visual_stops();
+    let stops = caret::visual_stops(&l.lines[0]);
     let (x0, ch0, aff0) = stops[0];
     let (mut pos, mut aff) = (Pos { para: 0, ch: ch0 }, aff0);
     let mut xs = vec![x0];
@@ -870,7 +868,7 @@ fn logical_movement_steps_over_harakat() {
     let (n2, _) = l.move_caret(n1, Affinity::Downstream, false, MoveMode::Logical);
     assert_eq!(n2.ch, 0);
     // No caret stop inside a grapheme.
-    assert!(l.lines[0].visual_stops().iter().all(|s| s.1 != 1));
+    assert!(caret::visual_stops(&l.lines[0]).iter().all(|s| s.1 != 1));
 }
 
 #[test]

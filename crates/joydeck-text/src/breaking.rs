@@ -93,64 +93,69 @@ fn is_word_char(c: char) -> bool {
     ) && c.is_alphanumeric()
 }
 
-/// Break opportunities: allowed[i] = a line may start at char i. Unicode line breaking, then
-/// PowerPoint's differences: without `latinLnBrk` a word doesn't break after `/`, `\`, `?`, `!`, `}`
-/// or `+` inside a word (measured in PowerPoint 2016 for Windows; before an ideograph or a space
-/// the Unicode break stays), and Korean breaks only between words.
+/// Join UAX #14 byte offsets with the paragraph's logical character boundaries.
+/// Apply the document language settings without changing the order of shaped cells.
+fn opportunities(text: &str, latin_break: bool) -> Vec<Opportunity> {
+    use unicode_linebreak::{BreakOpportunity, linebreaks};
+
+    let mut breaks = linebreaks(text).peekable();
+    let mut previous = None;
+    text.char_indices()
+        .map(|(byte, character)| (byte, Some(character)))
+        .chain(std::iter::once((text.len(), None)))
+        .map(|(byte, after)| {
+            let raw = breaks
+                .next_if(|(offset, _)| *offset == byte)
+                .map(|(_, kind)| kind);
+            let before = previous;
+            previous = after;
+            match raw {
+                Some(BreakOpportunity::Mandatory) => Opportunity::Required,
+                Some(BreakOpportunity::Allowed)
+                    if before
+                        .zip(after)
+                        .is_none_or(|(left, right)| permits_break(left, right, latin_break)) =>
+                {
+                    Opportunity::Allowed
+                }
+                _ => Opportunity::Blocked,
+            }
+        })
+        .collect()
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Opportunity {
+    Blocked,
+    Allowed,
+    Required,
+}
+
+fn permits_break(left: char, right: char, latin_break: bool) -> bool {
+    if (is_hangul(left) && is_hangul(right))
+        || left == '\u{200b}'
+        || right == '\u{2014}'
+        || is_cj_nonstarter(right)
+    {
+        return false;
+    }
+    latin_break || !matches!(left, '/' | '\\' | '?' | '!' | '}' | '+') || !is_word_char(right)
+}
+
+#[cfg(test)]
 pub(crate) fn break_opportunities(text: &str, latin_break: bool) -> (Vec<bool>, Vec<bool>) {
-    let n = text.chars().count();
-    let mut allowed = vec![false; n + 1];
-    let mut mandatory = vec![false; n + 1];
-    let mut byte_to_char = std::collections::HashMap::new();
-    for (ci, (b, _)) in text.char_indices().enumerate() {
-        byte_to_char.insert(b, ci);
-    }
-    byte_to_char.insert(text.len(), n);
-    for (b, op) in unicode_linebreak::linebreaks(text) {
-        if let Some(&ci) = byte_to_char.get(&b) {
-            if let Some(a) = allowed.get_mut(ci) {
-                *a = true;
-            }
-            if op == unicode_linebreak::BreakOpportunity::Mandatory
-                && let Some(m) = mandatory.get_mut(ci)
-            {
-                *m = true;
-            }
-        }
-    }
-    let chars: Vec<char> = text.chars().collect();
-    for (i, w) in chars.windows(2).enumerate() {
-        let (prev, next) = (w[0], w[1]);
-        // PowerPoint never breaks after a zero-width space, nor before an em dash (only after it).
-        let keep = if (is_hangul(prev) && is_hangul(next))
-            || prev == '\u{200B}'
-            || next == '\u{2014}'
-            || is_cj_nonstarter(next)
-        {
-            false
-        } else {
-            latin_break
-                || !matches!(prev, '/' | '\\' | '?' | '!' | '}' | '+')
-                || !is_word_char(next)
-        };
-        if !keep
-            && !mandatory.get(i + 1).copied().unwrap_or(false)
-            && let Some(a) = allowed.get_mut(i + 1)
-        {
-            *a = false;
-        }
-    }
-    (allowed, mandatory)
+    opportunities(text, latin_break)
+        .into_iter()
+        .map(|kind| (kind != Opportunity::Blocked, kind == Opportunity::Required))
+        .unzip()
 }
 
 pub(crate) struct RawLine {
     pub(crate) start: usize,
     pub(crate) end: usize,
-    /// End including trailing spaces / the break char consumed.
-    next: usize,
 }
 
-/// Wrapping geometry of one paragraph: line widths, start offsets, wrap flag and tab settings.
+/// Available space and tab coordinates for the first and remaining lines.
 pub(crate) struct BreakParams<'a> {
     pub(crate) first_w: f64,
     pub(crate) rest_w: f64,
@@ -161,124 +166,95 @@ pub(crate) struct BreakParams<'a> {
     pub(crate) x0_rest: f64,
 }
 
-pub(crate) fn break_lines(p: &ParaShaped, params: &BreakParams) -> Vec<RawLine> {
-    let BreakParams {
-        first_w,
-        rest_w,
-        wrap,
-        tab_stops,
-        default_tab,
-        x0_first,
-        x0_rest,
-    } = *params;
-    let text: String = p.cells.iter().map(|c| c.ch).collect();
-    let (allowed, _) = break_opportunities(&text, p.props.latin_line_break.unwrap_or(false));
-    let hang = p.props.hanging_punct.unwrap_or(false);
-    let n = p.cells.len();
-    let mut lines = vec![];
-    let mut start = 0;
-    if n == 0 {
-        return vec![RawLine {
-            start: 0,
-            end: 0,
-            next: 0,
-        }];
+pub(crate) fn break_lines(paragraph: &ParaShaped, params: &BreakParams<'_>) -> Vec<RawLine> {
+    let cells = &paragraph.cells;
+    if cells.is_empty() {
+        return vec![RawLine { start: 0, end: 0 }];
     }
-    while start < n {
-        let avail = if lines.is_empty() { first_w } else { rest_w };
-        let x0 = if lines.is_empty() { x0_first } else { x0_rest };
-        let mut x = 0.0;
-        let mut last_break: Option<usize> = None;
-        let mut i = start;
-        let mut end = n;
-        let mut next = n;
-        while i < n {
-            let c = p.cells.get(i).map(|c| c.ch).unwrap_or(' ');
-            if c == '\u{b}' || c == '\n' {
-                end = i;
-                next = i + 1;
-                break;
-            }
-            let adv = if c == '\t' {
-                tab_advance(x0 + x, tab_stops, default_tab, tab_segment(&p.cells, i))
-            } else {
-                p.cells.get(i).map(|c| c.adv).unwrap_or(0.0)
-            };
-            let breakable = |j: usize| p.cells.get(j).is_none_or(|c| c.breakable(j));
-            if i > start && allowed.get(i).copied().unwrap_or(false) && breakable(i) {
-                last_break = Some(i);
-            }
-            // Closing East Asian punctuation hangs past the end instead of wrapping
-            // (`hangingPunct`); the line breaks after it.
-            if wrap
-                && hang
-                && x + adv > avail + 0.01
-                && x <= avail + 0.01
-                && is_hanging_punct(c)
-                && i > start
-            {
-                end = i + 1;
-                next = i + 1;
-                break;
-            }
-            // A tab that would run past the end moves to the next line (and to its first stop there).
-            if wrap && c == '\t' && x + adv > avail + 0.01 && i > start {
-                end = i;
-                next = i;
-                while end > start && p.cells.get(end - 1).is_some_and(|c| c.ch == ' ') {
-                    end -= 1;
-                }
-                break;
-            }
-            if wrap && x + adv > avail + 0.01 && !c.is_whitespace() && i > start {
-                // Break at the last opportunity, or force mid-word (between clusters).
-                let b = last_break.filter(|b| *b > start).unwrap_or_else(|| {
-                    (start + 1..=i)
-                        .rev()
-                        .find(|&j| breakable(j))
-                        .or_else(|| (i + 1..n).find(|&j| breakable(j)))
-                        .unwrap_or(n)
-                });
-                end = b;
-                next = b;
-                // Trailing spaces belong to the line but don't count.
-                while end > start && p.cells.get(end - 1).is_some_and(|c| c.ch == ' ') {
-                    end -= 1;
-                }
-                break;
-            }
-            x += adv;
-            i += 1;
-        }
-        if i >= n {
-            end = n;
-            next = n;
-        }
-        lines.push(RawLine { start, end, next });
-        if next <= start {
-            // No progress: force one char.
-            let last = lines.len() - 1;
-            let to = (start + 1..n)
-                .find(|&j| p.cells.get(j).is_none_or(|c| c.breakable(j)))
-                .unwrap_or(n);
-            if let Some(l) = lines.get_mut(last) {
-                l.end = to;
-                l.next = to;
-            }
-            start = to;
+    let text: String = cells.iter().map(|cell| cell.ch).collect();
+    let breaks = opportunities(&text, paragraph.props.latin_line_break.unwrap_or(false));
+    let hanging = paragraph.props.hanging_punct.unwrap_or(false);
+    let mut lines = Vec::new();
+    let mut start = 0;
+    while start < cells.len() {
+        let (width, origin) = if lines.is_empty() {
+            (params.first_w, params.x0_first)
         } else {
-            start = next;
-        }
-        if next == n && p.cells.last().is_some_and(|c| c.ch == '\u{b}') && start >= n {
-            // A trailing line break opens an empty last line.
-            lines.push(RawLine {
-                start: n,
-                end: n,
-                next: n,
-            });
-        }
+            (params.rest_w, params.x0_rest)
+        };
+        let (end, next) = line_end(cells, &breaks, start, (width, origin), params, hanging);
+        lines.push(RawLine { start, end });
+        start = next;
+    }
+    if cells.last().is_some_and(|cell| cell.ch == '\u{b}') {
+        lines.push(RawLine { start, end: start });
     }
     lines
+}
+
+fn line_end(
+    cells: &[Cell],
+    breaks: &[Opportunity],
+    start: usize,
+    geometry: (f64, f64),
+    params: &BreakParams<'_>,
+    hanging: bool,
+) -> (usize, usize) {
+    let (width, origin) = geometry;
+    let mut advance = 0.0;
+    let mut legal = None;
+    let mut cluster = None;
+    for (index, cell) in cells.iter().enumerate().skip(start) {
+        let character = cell.ch;
+        if matches!(character, '\u{b}' | '\n') {
+            return (index, index + 1);
+        }
+        if index > start && cell.breakable(index) {
+            cluster = Some(index);
+            if breaks
+                .get(index)
+                .is_some_and(|boundary| *boundary != Opportunity::Blocked)
+            {
+                legal = Some(index);
+            }
+        }
+        let step = if character == '\t' {
+            tab_advance(
+                origin + advance,
+                params.tab_stops,
+                params.default_tab,
+                tab_segment(cells, index),
+            )
+        } else {
+            cell.adv
+        };
+        let limit = width + 0.01;
+        if params.wrap && index > start && advance + step > limit {
+            if hanging && advance <= limit && is_hanging_punct(character) {
+                return (index + 1, index + 1);
+            }
+            let next = if character == '\t' {
+                Some(index)
+            } else if !character.is_whitespace() {
+                Some(legal.or(cluster).unwrap_or_else(|| {
+                    (index + 1..cells.len())
+                        .find(|&next| cells[next].breakable(next))
+                        .unwrap_or(cells.len())
+                }))
+            } else {
+                None
+            };
+            if let Some(next) = next {
+                let end = cells[start..next]
+                    .iter()
+                    .rposition(|item| item.ch != ' ')
+                    .map_or(start, |last| start + last + 1);
+                return (end, next);
+            }
+        }
+        advance += step;
+    }
+    (cells.len(), cells.len())
 }
 
 /// How a tab stop aligns the text after it (`a:tab/@algn`).

@@ -117,41 +117,52 @@ pub fn render_transition_between(
         } else {
             0.0
         };
-        if tt < 1.0 {
-            let m = joydeck_anim::morph_frame(pres, a, slide, tt, &|_| false);
-            let f = |id: ShapeId| ShapeState {
-                opacity: m.opacity_of(id),
-                ..Default::default()
-            };
-            let o = RenderOpts {
-                state: Some(&f),
+        if tt == 0.0 {
+            // At the cut, preserve the outgoing paint order, geometry and text raster exactly.
+            // The animation callbacks and GIF clock in opts belong to the incoming slide.
+            let outgoing = RenderOpts {
+                state: None,
+                gif_times: &[],
                 ..copy_opts(opts)
             };
-            let text: Vec<crate::TextMorph> = m
-                .text
-                .iter()
-                .map(|x| crate::TextMorph {
-                    old: x.old,
-                    new: x.new,
-                    from: x.from,
-                    to: x.to,
-                    chars: x.chars,
-                    t: m.mix,
-                })
-                .collect();
-            let paths: Vec<crate::PathMorph> = m
-                .paths
-                .iter()
-                .map(|x| crate::PathMorph {
-                    id: x.id,
-                    from: x.from.clone(),
-                    from_box: x.from_box,
-                    to_box: x.to_box,
-                    t: m.mix,
-                })
-                .collect();
-            return render_blend(pres, (from, index), m.mix, &m.shapes, &text, &paths, &o);
+            return render_slide(pres, from, &outgoing);
         }
+        if tt == 1.0 {
+            return render_slide(pres, index, opts);
+        }
+        let m = joydeck_anim::morph_frame(pres, a, slide, tt, &|_| false);
+        let f = |id: ShapeId| ShapeState {
+            opacity: m.opacity_of(id),
+            ..Default::default()
+        };
+        let o = RenderOpts {
+            state: Some(&f),
+            ..copy_opts(opts)
+        };
+        let text: Vec<crate::TextMorph> = m
+            .text
+            .iter()
+            .map(|x| crate::TextMorph {
+                old: x.old,
+                new: x.new,
+                from: x.from,
+                to: x.to,
+                chars: x.chars,
+                t: m.mix,
+            })
+            .collect();
+        let paths: Vec<crate::PathMorph> = m
+            .paths
+            .iter()
+            .map(|x| crate::PathMorph {
+                id: x.id,
+                from: x.from.clone(),
+                from_box: x.from_box,
+                to_box: x.to_box,
+                t: m.mix,
+            })
+            .collect();
+        return render_blend(pres, (from, index), m.mix, &m.shapes, &text, &paths, &o);
     }
     let new = render_slide(pres, index, opts);
     let old = prev.map(|i| render_slide(pres, i, opts));

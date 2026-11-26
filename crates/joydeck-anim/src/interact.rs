@@ -32,13 +32,80 @@ pub(crate) struct SlideRun {
 /// Progress of one triggered sequence.
 #[derive(Clone, Debug, PartialEq)]
 pub(crate) struct TriggerRun {
-    pub shape: ShapeId,
+    shape: ShapeId,
     /// Clicks whose step has played to its end.
-    pub done: usize,
+    done: usize,
     /// Seconds the current step has played; `None` when no step is playing.
-    pub elapsed: Option<f64>,
+    elapsed: Option<f64>,
     /// When each step of this run was started, by step.
-    pub stamps: Vec<u64>,
+    stamps: Vec<u64>,
+}
+
+impl TriggerRun {
+    fn new(shape: ShapeId) -> Self {
+        Self {
+            shape,
+            done: 0,
+            elapsed: None,
+            stamps: Vec::new(),
+        }
+    }
+
+    fn finish_step(&mut self) {
+        self.done += 1;
+        self.elapsed = None;
+    }
+
+    fn duration(&self, timeline: &Timeline) -> f64 {
+        timeline.trigger_step_duration(self.shape, self.done)
+    }
+
+    fn click(&mut self, timeline: &Timeline, clock: &mut u64) {
+        if self.elapsed.is_some() {
+            self.finish_step();
+            return;
+        }
+        if self.done >= timeline.trigger_steps(self.shape) {
+            self.stamps.clear();
+            self.done = 0;
+        }
+        *clock = clock.saturating_add(1);
+        self.stamps.push(*clock);
+        if self.duration(timeline) > 0.0 {
+            self.elapsed = Some(0.0);
+        } else {
+            self.finish_step();
+        }
+    }
+
+    fn tick(&mut self, timeline: &Timeline, delta: f64) -> bool {
+        let Some(elapsed) = self.elapsed else {
+            return false;
+        };
+        let elapsed = finite_or_zero(elapsed) + delta;
+        if elapsed < self.duration(timeline) {
+            self.elapsed = Some(elapsed);
+            false
+        } else {
+            self.finish_step();
+            true
+        }
+    }
+}
+
+impl SlideRun {
+    fn activate(&mut self, shape: ShapeId, timeline: &Timeline) {
+        let i = self
+            .triggers
+            .iter()
+            .position(|trigger| trigger.shape == shape)
+            .unwrap_or_else(|| {
+                let next = self.triggers.len();
+                self.triggers.push(TriggerRun::new(shape));
+                next
+            });
+        self.triggers[i].click(timeline, &mut self.clock);
+    }
 }
 
 /// One shape of the slide for hit testing, in drawing order (back to front; a group before its
@@ -150,9 +217,9 @@ impl ShowState {
             .into_iter()
             .flat_map(|run| &run.triggers)
             .filter_map(|trigger| {
-                trigger.elapsed.map(|elapsed| {
-                    timeline.trigger_step_duration(trigger.shape, trigger.done) - elapsed
-                })
+                trigger
+                    .elapsed
+                    .map(|elapsed| trigger.duration(timeline) - elapsed)
             })
             .fold(0., f64::max)
     }
@@ -183,19 +250,12 @@ impl ShowState {
         let Some(run) = self.runs.get_mut(&self.slide) else {
             return Click::None;
         };
-        let mut changed = false;
-        for t in run.triggers.iter_mut() {
-            let Some(e) = t.elapsed else { continue };
-            let e = finite_or_zero(e) + dt;
-            if e >= tl.trigger_step_duration(t.shape, t.done) {
-                t.done += 1;
-                t.elapsed = None;
-                changed = true;
-            } else {
-                t.elapsed = Some(e);
-            }
+        // Tick all tracks, including when one of them has finished on this frame.
+        let mut finished = false;
+        for trigger in &mut run.triggers {
+            finished |= trigger.tick(tl, dt);
         }
-        if changed {
+        if finished {
             Click::Animated
         } else {
             Click::None
@@ -281,44 +341,12 @@ impl ShowState {
         let Some(t) = self.target(pres, tl, shapes, visible) else {
             return self.background_click(pres);
         };
-        let mut animated = false;
-        if self.trigger_live(pres, tl, t.shape) {
-            let slide = self.slide;
-            let run = self.runs.entry(slide).or_default();
-            let at = match run.triggers.iter().position(|r| r.shape == t.shape) {
-                Some(p) => p,
-                None => {
-                    run.triggers.push(TriggerRun {
-                        shape: t.shape,
-                        done: 0,
-                        elapsed: None,
-                        stamps: vec![],
-                    });
-                    run.triggers.len() - 1
-                }
-            };
-            let stamp = run.clock.saturating_add(1);
-            if let Some(r) = run.triggers.get_mut(at) {
-                if r.elapsed.is_some() {
-                    // A click on a shape whose step is playing completes the step.
-                    r.done += 1;
-                    r.elapsed = None;
-                } else {
-                    if r.done >= tl.trigger_steps(t.shape) {
-                        // All steps have played: the sequence starts over.
-                        r.done = 0;
-                        r.stamps.clear();
-                    }
-                    r.stamps.push(stamp);
-                    run.clock = stamp;
-                    if tl.trigger_step_duration(t.shape, r.done) > 0.0 {
-                        r.elapsed = Some(0.0);
-                    } else {
-                        r.done += 1;
-                    }
-                }
-                animated = true;
-            }
+        let animated = self.trigger_live(pres, tl, t.shape);
+        if animated {
+            self.runs
+                .entry(self.slide)
+                .or_default()
+                .activate(t.shape, tl);
         }
         match t.link {
             // The link is followed at once, whatever the animation still has to play.

@@ -2,6 +2,8 @@
 //! in the old text to their place in the new one, growing or shrinking to the new size; the rest
 //! of the old text fades out and the rest of the new one fades in, both riding the moving box.
 
+use std::collections::{HashMap, VecDeque};
+
 use joydeck_geom::Xfrm;
 use joydeck_model::resolve::Ctx;
 use joydeck_model::{Shape, ShapeId};
@@ -86,18 +88,12 @@ fn tokens(l: &TextLayout, chars: bool) -> (Vec<Token>, Vec<(usize, usize)>) {
 
 /// For each token of `b`, the token of `a` with the same text, in reading order, each used once.
 fn matches(a: &[Token], b: &[Token]) -> Vec<Option<usize>> {
-    let mut used = vec![false; a.len()];
+    let mut available = HashMap::<&str, VecDeque<usize>>::new();
+    for (i, token) in a.iter().enumerate() {
+        available.entry(&token.key).or_default().push_back(i);
+    }
     b.iter()
-        .map(|tb| {
-            let i = a
-                .iter()
-                .enumerate()
-                .position(|(i, ta)| !used.get(i).copied().unwrap_or(true) && ta.key == tb.key)?;
-            if let Some(u) = used.get_mut(i) {
-                *u = true;
-            }
-            Some(i)
-        })
+        .map(|token| available.get_mut(token.key.as_str())?.pop_front())
         .collect()
 }
 
@@ -133,6 +129,32 @@ fn same_look(a: &GlyphRun, b: &GlyphRun) -> bool {
 
 fn lerp(a: f64, b: f64, t: f64) -> f64 {
     a + (b - a) * t
+}
+
+struct SharedGlyphs {
+    old: Point,
+    new: Point,
+    ratio: f64,
+}
+
+fn draw_token(
+    ctx: &mut RenderContext,
+    layout: &TextLayout,
+    token: &Token,
+    transform: Affine,
+    opacity: f64,
+) {
+    for &glyph in &token.glyphs {
+        if let Some((run, id, pos)) = glyph_at(layout, glyph) {
+            draw_glyph(
+                ctx,
+                run,
+                id,
+                transform * Affine::translate(pos - token.origin),
+                opacity,
+            );
+        }
+    }
 }
 
 /// Draw the morphing text of `a` (old slide, `ca`) and `b` (new slide, `cb`); `now` is the box both
@@ -187,7 +209,7 @@ pub(crate) fn draw(
     let c = mta.as_coeffs();
     let linear = Affine::new([c[0], c[1], c[2], c[3], 0.0, 0.0]);
     let mut moved_a = vec![false; ta.len()];
-    // Shared tokens travel.
+    let mut shared = Vec::new();
     for (j, i) in pairs.iter().enumerate() {
         let (Some(i), Some(tok_b)) = (*i, tb.get(j)) else {
             continue;
@@ -199,58 +221,40 @@ pub(crate) fn draw(
         let (Some(ra), Some(rb)) = (la.runs.get(tok_a.run), lb.runs.get(tok_b.run)) else {
             continue;
         };
-        let p = (ma * tok_a.origin).lerp(mb * tok_b.origin, t);
         let ratio = if ra.size > 0.0 && rb.size > 0.0 {
             rb.size / ra.size
         } else {
             1.0
         };
+        let old = ma * tok_a.origin;
+        let new = mb * tok_b.origin;
+        shared.push(SharedGlyphs { old, new, ratio });
+        let at = Affine::translate(old.lerp(new, t).to_vec2()) * linear;
         let same = same_look(ra, rb);
-        let alpha_a = if same { 1.0 } else { 1.0 - t };
-        let sa = lerp(1.0, ratio, t);
-        for &g in &tok_a.glyphs {
-            if let Some((run, gid, pos)) = glyph_at(&la, g) {
-                let at = Affine::translate(p.to_vec2())
-                    * linear
-                    * Affine::scale(sa)
-                    * Affine::translate(pos - tok_a.origin);
-                draw_glyph(ctx, run, gid, at, alpha_a);
-            }
-        }
+        draw_token(
+            ctx,
+            &la,
+            tok_a,
+            at * Affine::scale(lerp(1.0, ratio, t)),
+            if same { 1.0 } else { 1.0 - t },
+        );
         if !same {
-            let sb = lerp(1.0 / ratio, 1.0, t);
-            for &g in &tok_b.glyphs {
-                if let Some((run, gid, pos)) = glyph_at(&lb, g) {
-                    let at = Affine::translate(p.to_vec2())
-                        * linear
-                        * Affine::scale(sb)
-                        * Affine::translate(pos - tok_b.origin);
-                    draw_glyph(ctx, run, gid, at, t);
-                }
-            }
+            draw_token(
+                ctx,
+                &lb,
+                tok_b,
+                at * Affine::scale(lerp(1.0 / ratio, 1.0, t)),
+                t,
+            );
         }
     }
     // The rest fades while following the shared tokens: they define a scale and shift from the old
     // text to the new one (F(p) = s·p + c, in pixels), so a line grows, shrinks and rearranges as
     // one. With nothing shared it rides the moving box.
-    let shared: Vec<(Point, Point, f64)> = pairs
-        .iter()
-        .enumerate()
-        .filter_map(|(j, i)| {
-            let (tok_a, tok_b) = (ta.get((*i)?)?, tb.get(j)?);
-            let (ra, rb) = (la.runs.get(tok_a.run)?, lb.runs.get(tok_b.run)?);
-            let ratio = if ra.size > 0.0 && rb.size > 0.0 {
-                rb.size / ra.size
-            } else {
-                1.0
-            };
-            Some((ma * tok_a.origin, mb * tok_b.origin, ratio))
-        })
-        .collect();
-    let n = shared.len() as f64;
-    let s = shared.iter().map(|x| x.2).sum::<f64>() / n;
-    let c = shared.iter().fold(Vec2::ZERO, |acc, (pa, pb, _)| {
-        acc + (pb.to_vec2() - pa.to_vec2() * s)
+    let n = shared.len().max(1) as f64;
+    let s = shared.iter().map(|pair| pair.ratio).sum::<f64>() / n;
+    let c = shared.iter().fold(Vec2::ZERO, |acc, pair| {
+        acc + (pair.new.to_vec2() - pair.old.to_vec2() * s)
     }) / n;
     let (place_a, place_b) = if !shared.is_empty() && s.is_finite() && s > 0.0 && c.is_finite() {
         // Old text: p ↦ lerp(p, F(p), t). New text: q ↦ lerp(F⁻¹(q), q, t).

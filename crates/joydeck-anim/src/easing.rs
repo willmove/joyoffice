@@ -7,35 +7,35 @@ use crate::clampf;
 /// `bounce` (0..1) makes the last part of the motion bounce against the end.
 pub fn ease(p: f64, accel: f64, decel: f64, bounce: f64) -> f64 {
     let p = clampf(p, 0.0, 1.0, 0.0);
-    let mut a = clampf(accel, 0.0, 1.0, 0.0);
-    let mut d = clampf(decel, 0.0, 1.0, 0.0);
-    if a + d > 1.0 {
-        let s = a + d;
-        a /= s;
-        d /= s;
-    }
-    let v = 2.0 / (2.0 - a - d);
-    let mut y = if a > 0.0 && p < a {
-        v * p * p / (2.0 * a)
-    } else if d > 0.0 && p > 1.0 - d {
-        let q = 1.0 - p;
-        1.0 - v * q * q / (2.0 * d)
-    } else {
-        v * a / 2.0 + v * (p - a)
-    };
-    let b = clampf(bounce, 0.0, 1.0, 0.0);
-    if b > 0.0 {
-        // Reach the end early, then bounce back with decaying hops over the last `b` fraction.
-        let hit = 1.0 - b;
-        if p < hit {
-            let q = if hit > 0.0 { p / hit } else { 1.0 };
-            y = q * q;
+    let bounce = clampf(bounce, 0.0, 1.0, 0.0);
+    let position = if bounce > 0.0 {
+        let impact = 1.0 - bounce;
+        if p < impact {
+            let approach = p / impact;
+            approach * approach
         } else {
-            let s = (p - hit) / b;
-            y = 1.0 - bounce_hops(s) * 0.25;
+            1.0 - bounce_hops((p - impact) / bounce) * 0.25
         }
+    } else {
+        let rise = clampf(accel, 0.0, 1.0, 0.0);
+        let fall = clampf(decel, 0.0, 1.0, 0.0);
+        let sum = (rise + fall).max(1.0);
+        ramp_position(p, rise / sum, fall / sum)
+    };
+    clampf(position, -1.0, 2.0, 0.0)
+}
+
+fn ramp_position(p: f64, rise: f64, fall: f64) -> f64 {
+    // Integrate the trapezoidal velocity curve. Its area over one iteration is one.
+    let speed = 2.0 / (2.0 - rise - fall);
+    if p < rise {
+        speed * p * p / (2.0 * rise)
+    } else if p > 1.0 - fall {
+        let remaining = 1.0 - p;
+        1.0 - speed * remaining * remaining / (2.0 * fall)
+    } else {
+        speed * rise / 2.0 + speed * (p - rise)
     }
-    clampf(y, -1.0, 2.0, 0.0)
 }
 
 /// Decaying hops for s in 0..1: 0 at the ends of each hop, peaks shrinking.

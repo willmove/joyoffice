@@ -46,6 +46,7 @@ use unicode_segmentation::UnicodeSegmentation;
 
 mod autonum;
 mod breaking;
+mod caret;
 mod layout;
 mod run;
 mod shape;
@@ -311,28 +312,6 @@ impl LineInfo {
         self.extent.0 += dx;
         self.extent.1 += dx;
     }
-    /// Graphemes on the line as (first, end) character indices from the line start.
-    fn graphemes(&self) -> Vec<(usize, usize)> {
-        let n = self.len();
-        let mut out = Vec::new();
-        let mut k = 0;
-        while k < n {
-            let mut e = k + 1;
-            while e < n && !self.boundary.get(e).copied().unwrap_or(true) {
-                e += 1;
-            }
-            out.push((k, e));
-            k = e;
-        }
-        out
-    }
-    /// Visual extent of characters `from..to` (k from the line start).
-    fn grapheme_box(&self, from: usize, to: usize) -> Option<(f64, f64)> {
-        let es = self.edges.get(from..to)?;
-        let l = es.iter().map(|e| e.0).fold(f64::INFINITY, f64::min);
-        let r = es.iter().map(|e| e.1).fold(f64::NEG_INFINITY, f64::max);
-        (l <= r).then_some((l, r))
-    }
     /// Visual x intervals covering paragraph characters `from..to` on this line, left to right
     /// and merged where they touch. Bidi text can make a logical range several boxes.
     pub fn spans(&self, from: usize, to: usize) -> Vec<(f64, f64)> {
@@ -344,45 +323,6 @@ impl LineInfo {
     pub fn span(&self, from: usize, to: usize) -> Option<(f64, f64)> {
         let s = self.spans(from, to);
         Some((s.first()?.0, s.last()?.1))
-    }
-    /// Caret stops left to right: (x, character offset in the paragraph, affinity).
-    fn visual_stops(&self) -> Vec<(f64, usize, Affinity)> {
-        let mut gs: Vec<(f64, f64, usize, usize, bool)> = self
-            .graphemes()
-            .into_iter()
-            .filter_map(|(a, b)| {
-                self.grapheme_box(a, b)
-                    .map(|(l, r)| (l, r, a, b, self.odd(a)))
-            })
-            .collect();
-        gs.sort_by(|x, y| x.0.total_cmp(&y.0));
-        let mut out: Vec<(f64, usize, Affinity)> = Vec::with_capacity(gs.len() * 2 + 1);
-        let mut push = |s: (f64, usize, Affinity)| {
-            if !out
-                .last()
-                .is_some_and(|l: &(f64, usize, Affinity)| (l.0 - s.0).abs() < 0.01 && l.1 == s.1)
-            {
-                out.push(s);
-            }
-        };
-        for (l, r, a, b, rtl) in gs {
-            let (a, b) = (self.start + a, self.start + b);
-            if rtl {
-                push((l, b, Affinity::Upstream));
-                push((r, a, Affinity::Downstream));
-            } else {
-                push((l, a, Affinity::Downstream));
-                push((r, b, Affinity::Upstream));
-            }
-        }
-        if out.is_empty() {
-            out.push((
-                self.caret_x.first().copied().unwrap_or(0.0),
-                self.start,
-                Affinity::Downstream,
-            ));
-        }
-        out
     }
 }
 
@@ -415,25 +355,37 @@ impl TextLayout {
     /// The line containing a caret position: at a soft wrap boundary, the earlier line for an
     /// upstream caret and the later one for a downstream caret.
     pub fn line_of_affine(&self, pos: Pos, affinity: Affinity) -> Option<usize> {
-        let mut found = None;
-        for (i, l) in self.lines.iter().enumerate() {
-            if l.para == pos.para && pos.ch >= l.start && pos.ch <= l.end {
-                if affinity == Affinity::Upstream && pos.ch == l.end && pos.ch > l.start {
-                    return Some(i);
+        let paragraph = self.para_lines.get(pos.para).and_then(|&(start, count)| {
+            let end = start.checked_add(count)?;
+            let rows = self.lines.get(start..end)?;
+            (rows.first()?.para == pos.para && rows.last()?.para == pos.para)
+                .then_some((start, rows))
+        });
+        let (first, rows) = paragraph.unwrap_or((0, self.lines.as_slice()));
+        let mut on_boundary = None;
+        let mut before = None;
+        let mut last = None;
+        for (index, line) in rows
+            .iter()
+            .enumerate()
+            .filter(|(_, row)| row.para == pos.para)
+        {
+            let index = first + index;
+            last = Some(index);
+            if pos.ch >= line.start {
+                before = Some(index);
+                if pos.ch < line.end {
+                    return Some(index);
                 }
-                found = Some(i);
-                if pos.ch < l.end {
-                    break;
+                if pos.ch == line.end {
+                    if affinity == Affinity::Upstream && line.start < line.end {
+                        return Some(index);
+                    }
+                    on_boundary = Some(index);
                 }
             }
         }
-        found
-            .or_else(|| {
-                self.lines
-                    .iter()
-                    .rposition(|l| l.para == pos.para && l.start <= pos.ch)
-            })
-            .or_else(|| self.lines.iter().rposition(|l| l.para == pos.para))
+        on_boundary.or(before).or(last)
     }
     /// Caret line segment (x, top, bottom) in shape-local, unrotated coordinates (downstream).
     pub fn caret(&self, pos: Pos) -> Option<(f64, f64, f64)> {
@@ -462,110 +414,7 @@ impl TextLayout {
     /// Nearest caret position for a point, with the affinity that keeps the caret on the side of
     /// the character that was hit (bidi text has two carets at a direction change).
     pub fn hit_affinity(&self, p: Point) -> (Pos, Affinity) {
-        let distance = |l: &LineInfo| {
-            let x0 = l
-                .extent
-                .0
-                .min(l.caret_x.first().copied().unwrap_or(l.extent.0));
-            let x1 = l
-                .extent
-                .1
-                .max(l.caret_x.last().copied().unwrap_or(l.extent.1));
-            let dx = (x0 - p.x).max(p.x - x1).max(0.);
-            let dy = (l.top - p.y).max(p.y - l.bottom).max(0.);
-            (dy, dx)
-        };
-        // First choose a line per column. Within a column a point past the last letter
-        // still belongs to that line. Compare both axes only when choosing the column.
-        let mut columns = std::collections::BTreeMap::new();
-        for line in &self.lines {
-            let (dy, dx) = distance(line);
-            let current = columns.entry(line.column).or_insert((line, dy, dx));
-            if dy
-                .total_cmp(&current.1)
-                .then(dx.total_cmp(&current.2))
-                .is_lt()
-            {
-                *current = (line, dy, dx);
-            }
-        }
-        let Some((line, _, _)) = columns
-            .into_values()
-            .min_by(|a, b| a.1.hypot(a.2).total_cmp(&b.1.hypot(b.2)))
-        else {
-            return (Pos::default(), Affinity::Downstream);
-        };
-        Self::hit_line(line, p.x)
-    }
-
-    fn hit_line(l: &LineInfo, x: f64) -> (Pos, Affinity) {
-        let mut gs: Vec<(f64, f64, usize, usize, bool)> = l
-            .graphemes()
-            .into_iter()
-            .filter_map(|(a, b)| {
-                l.grapheme_box(a, b)
-                    .map(|(x0, x1)| (x0, x1, a, b, l.odd(a)))
-            })
-            .collect();
-        if gs.is_empty() {
-            return (
-                Pos {
-                    para: l.para,
-                    ch: l.start,
-                },
-                Affinity::Downstream,
-            );
-        }
-        gs.sort_by(|x, y| x.0.total_cmp(&y.0));
-        let hit = gs
-            .iter()
-            .find(|g| x >= g.0 && x <= g.1 && g.1 > g.0)
-            .copied();
-        let (g, left_half) = match hit {
-            Some(g) => (g, x < (g.0 + g.1) / 2.0),
-            None => match (gs.first().copied(), gs.last().copied()) {
-                (Some(f), _) if x < f.0 => (f, true),
-                (_, Some(z)) if x > z.1 => (z, false),
-                // Between zero-width graphemes: the nearest one.
-                _ => match gs
-                    .iter()
-                    .min_by(|a, b| {
-                        ((a.0 + a.1) / 2.0 - x)
-                            .abs()
-                            .total_cmp(&((b.0 + b.1) / 2.0 - x).abs())
-                    })
-                    .copied()
-                {
-                    Some(g) => (g, x < (g.0 + g.1) / 2.0),
-                    None => {
-                        return (
-                            Pos {
-                                para: l.para,
-                                ch: l.start,
-                            },
-                            Affinity::Downstream,
-                        );
-                    }
-                },
-            },
-        };
-        let (_, _, a, b, rtl) = g;
-        let (before, after) = (
-            Pos {
-                para: l.para,
-                ch: l.start + a,
-            },
-            Pos {
-                para: l.para,
-                ch: l.start + b,
-            },
-        );
-        // The leading half of a character puts the caret before it, the trailing half after it.
-        if left_half != rtl {
-            (before, Affinity::Downstream)
-        } else {
-            (after, Affinity::Upstream)
-        }
+        caret::hit(self, p)
     }
     /// Move a caret one grapheme: logically (`forward` = towards the end of the text, crossing
     /// paragraphs) or visually (`forward` = to the right on screen, continuing on the next or
@@ -581,7 +430,7 @@ impl TextLayout {
             && let Some(li) = self.line_of_affine(pos, affinity)
             && let Some(l) = self.lines.get(li)
         {
-            let stops = l.visual_stops();
+            let stops = caret::visual_stops(l);
             let cur_x = self.caret_at(pos, affinity).map(|c| c.0).unwrap_or(0.0);
             let idx = stops
                 .iter()
@@ -825,7 +674,7 @@ impl TextLayout {
             .iter()
             .filter(|other| other.column == line.column && distance(other) > 0.)
             .min_by(|a, b| distance(a).total_cmp(&distance(b)))
-            .map_or((pos, affinity), |other| Self::hit_line(other, x))
+            .map_or((pos, affinity), |other| caret::hit_line(other, x))
     }
     /// Start/end of the visual line containing `pos` (logical: Home/End).
     pub fn line_bounds(&self, pos: Pos) -> (Pos, Pos) {

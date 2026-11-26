@@ -1,0 +1,618 @@
+{
+  "clientDate": "2026-11-26",
+  "frozenCommit": "14cbb29616d7c0ababbf40a8f6c0218b996e7ae8",
+  "stage4Base": "c172e907d5a908bb89f91f48eaf90e41e20ae9fd",
+  "frozenCliSha256": "f8fd32a31570e241f17ced00dbce66f7e2ae53739b18e3c70bea03c2e78794f7",
+  "candidateCliSha256": "1add87793a37280e8abc34dad2130e4fb1937e2086d1d87284b1f08fa7290e63",
+  "layout": {
+    "matched": {
+      "case": 60,
+      "line": 372,
+      "caret": 4904,
+      "hit": 4904,
+      "face": 436,
+      "glyph": 2038
+    },
+    "fontFaceIdentities": [
+      "451df9bb5546055af625ff86aa72695df43e8e170b4c6c1316fe44e9c7a22f7c/0",
+      "57e93ff143572bcc092c1f56202d43ddc07bb119aa104c6d7af163470fb551f6/0",
+      "7a183cf1c6c56b9609fcc16eda8b5229fbc11758a21e669ec00343239b02192f/0",
+      "a4a35dcc62cd30e1a6c97b695ecef83e59d2b149e3af834f6a49f11851d56b37/0",
+      "cd24b5617c1e26572b0a7fe7e558f7121ca42c36f7b50e8d9216ac222a1c0a93/0",
+      "edfbd22a3d088fc2f5d7c79b8c9c732df6dc878a60f0a80be0f92a3c7a634404/0"
+    ]
+  },
+  "playback": {
+    "records": {
+      "effect": 990,
+      "frame": 38,
+      "held": 198,
+      "office-timing": 1,
+      "stamps": 1,
+      "terminal": 1
+    },
+    "matchingFrames": 35,
+    "officeTiming": "[EffectTiming { anim: 0, shape: ShapeId(2), paragraph: None, sequence: Main, step: 0, start: 0.0, duration: 0.5, iterations: 1.0, until_next_click: false, auto_reverse: false, rewind: false, span: 0.5, class: Entrance }]",
+    "officeFrames": {
+      "office/original": {
+        "rasterSha256": "d015983d12b84bdec9127812df800368bb7914ddc7dafc0d044d759dea19ed59",
+        "status": {
+          "page": 1,
+          "step": 0,
+          "playing": false,
+          "ended": false,
+          "paused": false,
+          "blank": null,
+          "elapsed_seconds": 0.0,
+          "slide_seconds": 0.0,
+          "total_seconds": 0.0,
+          "order": [
+            1
+          ],
+          "previous": null,
+          "serial": 0
+        }
+      },
+      "office/settled": {
+        "rasterSha256": "00427052e66e1ffc54a8affb0919f54eee08416cd5fdde0b7544e9ef3e1ba9b6",
+        "status": {
+          "page": 1,
+          "step": 1,
+          "playing": false,
+          "ended": false,
+          "paused": false,
+          "blank": null,
+          "elapsed_seconds": 0.0,
+          "slide_seconds": 0.625,
+          "total_seconds": 0.625,
+          "order": [
+            1
+          ],
+          "previous": null,
+          "serial": 1
+        }
+      },
+      "office/step-0/done": {
+        "rasterSha256": "00427052e66e1ffc54a8affb0919f54eee08416cd5fdde0b7544e9ef3e1ba9b6",
+        "status": {
+          "page": 1,
+          "step": 1,
+          "playing": false,
+          "ended": false,
+          "paused": false,
+          "blank": null,
+          "elapsed_seconds": 0.0,
+          "slide_seconds": 0.625,
+          "total_seconds": 0.625,
+          "order": [
+            1
+          ],
+          "previous": null,
+          "serial": 1
+        }
+      },
+      "office/step-0/middle": {
+        "rasterSha256": "6f4840bb741561958c4440095db191d7db7ff4714e3c7a9bb852f669bd476449",
+        "status": {
+          "page": 1,
+          "step": 0,
+          "playing": true,
+          "ended": false,
+          "paused": false,
+          "blank": null,
+          "elapsed_seconds": 0.25,
+          "slide_seconds": 0.25,
+          "total_seconds": 0.25,
+          "order": [
+            1
+          ],
+          "previous": null,
+          "serial": 1
+        }
+      }
+    },
+    "combinedFrames": {
+      "combined/back-from-end": {
+        "rasterSha256": "2029d9105a13a0f20108fdddb17fc67a883ad2cea7de2a09958021227faa7778",
+        "status": {
+          "page": 1,
+          "step": 1,
+          "playing": false,
+          "ended": false,
+          "paused": false,
+          "blank": null,
+          "elapsed_seconds": 0.0,
+          "slide_seconds": 0.0,
+          "total_seconds": 3.5,
+          "order": [
+            1
+          ],
+          "previous": 1,
+          "serial": 8
+        }
+      },
+      "combined/both-triggers": {
+        "rasterSha256": "741476aa3a082046f86b1aa76e48fb682f71cab010f4ccdea2a39efa317e3d19",
+        "status": {
+          "page": 1,
+          "step": 0,
+          "playing": true,
+          "ended": false,
+          "paused": false,
+          "blank": null,
+          "elapsed_seconds": 1.0,
+          "slide_seconds": 1.0,
+          "total_seconds": 1.0,
+          "order": [
+            1
+          ],
+          "previous": null,
+          "serial": 3
+        }
+      },
+      "combined/end-screen": {
+        "rasterSha256": "9839bcaab35b2a185d87854eb6ccab273ff64e0f5addc319f402df3091b7a4ff",
+        "status": {
+          "page": 1,
+          "step": 1,
+          "playing": false,
+          "ended": true,
+          "paused": false,
+          "blank": null,
+          "elapsed_seconds": 0.0,
+          "slide_seconds": 3.5,
+          "total_seconds": 3.5,
+          "order": [
+            1
+          ],
+          "previous": null,
+          "serial": 6
+        }
+      },
+      "combined/finished": {
+        "rasterSha256": "2029d9105a13a0f20108fdddb17fc67a883ad2cea7de2a09958021227faa7778",
+        "status": {
+          "page": 1,
+          "step": 1,
+          "playing": false,
+          "ended": false,
+          "paused": false,
+          "blank": null,
+          "elapsed_seconds": 0.0,
+          "slide_seconds": 3.0,
+          "total_seconds": 3.0,
+          "order": [
+            1
+          ],
+          "previous": null,
+          "serial": 5
+        }
+      },
+      "combined/first-trigger": {
+        "rasterSha256": "a679db6ad1d14919b39525cbc7522a4f4b58b1ce4e7fbff68cd9016516ce3e4a",
+        "status": {
+          "page": 1,
+          "step": 0,
+          "playing": true,
+          "ended": false,
+          "paused": false,
+          "blank": null,
+          "elapsed_seconds": 0.875,
+          "slide_seconds": 0.875,
+          "total_seconds": 0.875,
+          "order": [
+            1
+          ],
+          "previous": null,
+          "serial": 2
+        }
+      },
+      "combined/main-with": {
+        "rasterSha256": "575cc5989a261d7592eec498c7101371764830d04188eb601090af2066c0df9a",
+        "status": {
+          "page": 1,
+          "step": 0,
+          "playing": true,
+          "ended": false,
+          "paused": false,
+          "blank": null,
+          "elapsed_seconds": 0.75,
+          "slide_seconds": 0.75,
+          "total_seconds": 0.75,
+          "order": [
+            1
+          ],
+          "previous": null,
+          "serial": 1
+        }
+      },
+      "combined/paused": {
+        "rasterSha256": "741476aa3a082046f86b1aa76e48fb682f71cab010f4ccdea2a39efa317e3d19",
+        "status": {
+          "page": 1,
+          "step": 0,
+          "playing": true,
+          "ended": false,
+          "paused": true,
+          "blank": null,
+          "elapsed_seconds": 1.0,
+          "slide_seconds": 1.0,
+          "total_seconds": 1.0,
+          "order": [
+            1
+          ],
+          "previous": null,
+          "serial": 4
+        }
+      },
+      "combined/settled": {
+        "rasterSha256": "2029d9105a13a0f20108fdddb17fc67a883ad2cea7de2a09958021227faa7778",
+        "status": {
+          "page": 1,
+          "step": 1,
+          "playing": false,
+          "ended": false,
+          "paused": false,
+          "blank": null,
+          "elapsed_seconds": 0.0,
+          "slide_seconds": 3.5,
+          "total_seconds": 3.5,
+          "order": [
+            1
+          ],
+          "previous": null,
+          "serial": 5
+        }
+      },
+      "combined/start": {
+        "rasterSha256": "e707e98ead5762bc502fc10216c8d76282e71740c558bd97ad158be56c4272ac",
+        "status": {
+          "page": 1,
+          "step": 0,
+          "playing": false,
+          "ended": false,
+          "paused": false,
+          "blank": null,
+          "elapsed_seconds": 0.0,
+          "slide_seconds": 0.0,
+          "total_seconds": 0.0,
+          "order": [
+            1
+          ],
+          "previous": null,
+          "serial": 0
+        }
+      },
+      "combined/still-paused": {
+        "rasterSha256": "741476aa3a082046f86b1aa76e48fb682f71cab010f4ccdea2a39efa317e3d19",
+        "status": {
+          "page": 1,
+          "step": 0,
+          "playing": true,
+          "ended": false,
+          "paused": true,
+          "blank": null,
+          "elapsed_seconds": 1.0,
+          "slide_seconds": 1.0,
+          "total_seconds": 1.0,
+          "order": [
+            1
+          ],
+          "previous": null,
+          "serial": 4
+        }
+      }
+    },
+    "triggerStamps": "[StepStamp { trigger: ShapeId(11), step: 0, at: 1 }, StepStamp { trigger: ShapeId(12), step: 0, at: 2 }]",
+    "terminal": {
+      "visible": true,
+      "opacity": 0.5,
+      "offset_x": 96.0,
+      "offset_y": 43.2,
+      "scale_x": 1.0,
+      "scale_y": 1.0,
+      "rotate": 0.0,
+      "clip": null,
+      "tint": null
+    },
+    "morph": {
+      "objects": {
+        "frozenStart": "b230593945d228e4a8bb1aadfe34fc08c4a9461a90b46d3d51f52face6ca7c7f",
+        "candidateStart": "e332c37b9fef8858844a485446957bf9497b00687babfadb2ed3e13ad844046b",
+        "end": "40277993e4e05df7e124b560736a1b4e26884d10cab5e5b998593f93d262b7e7",
+        "intermediateFrames": {
+          "0.5": "cd572bba7d1eeacc1e938515da29ca402e56010bd0dae208c85618db5bbdfce2",
+          "0.75": "d7166ec6859e686b92a35e64576453316f89137c3723451de4547765f85a85e0",
+          "1": "d06b3760c78d102d04a90e6b7d7faf3e430949b6bf9e931b726f717a66607a8f",
+          "1.75": "e0981ce5e3aac70549100f6f32a1860c0d121c327e4ad4b90610405d2287359d"
+        }
+      },
+      "words": {
+        "frozenStart": "b230593945d228e4a8bb1aadfe34fc08c4a9461a90b46d3d51f52face6ca7c7f",
+        "candidateStart": "e332c37b9fef8858844a485446957bf9497b00687babfadb2ed3e13ad844046b",
+        "end": "40277993e4e05df7e124b560736a1b4e26884d10cab5e5b998593f93d262b7e7",
+        "intermediateFrames": {
+          "0.5": "92ad80b0b443760291e3c376dfb308490ac89e09d93ded95de397a87b89f5250",
+          "0.75": "4ca3306eaa99192a16815c41f3a782f3b4307f5de1e42e9aed215bcf27b850c7",
+          "1": "f010d67e107dca8ba17330ef1aeea1287b3386c3505196259e491fea0f68f09f",
+          "1.75": "edae58c2ae95ab957c3e7a84129fd61690afe8450008ec5d2cd4033d6f5b2f7f"
+        }
+      },
+      "characters": {
+        "frozenStart": "b230593945d228e4a8bb1aadfe34fc08c4a9461a90b46d3d51f52face6ca7c7f",
+        "candidateStart": "e332c37b9fef8858844a485446957bf9497b00687babfadb2ed3e13ad844046b",
+        "end": "40277993e4e05df7e124b560736a1b4e26884d10cab5e5b998593f93d262b7e7",
+        "intermediateFrames": {
+          "0.5": "7a012d5eaa813b95a0910ec5b837c6e615fa790913920c6a7e27f4c4d0ec79ab",
+          "0.75": "92b35f14ad08d5916fb957dec387d3eaee829dc13d531619fc8fd185d55f890b",
+          "1": "c0d17358025dc1eac97fa877f1384504956957c4e10be1dea6fe26a8757892ca",
+          "1.75": "132e886f35a37085f9dd21c04678db4728c0d989ccd570bb11b57aea6cdd12c8"
+        }
+      }
+    },
+    "trackedOfficeSha256": "4894295c02485ed37eef99e2bb93562661793a682ef0675257f5a0d7b869bfdd",
+    "additionalOffice": {
+      "sha256": "908952738dcf9d4c2f084b742e381d67366d00181161880ad5f77a76481f50d1",
+      "timing": "[EffectTiming { anim: 0, shape: ShapeId(2), paragraph: None, sequence: Main, step: 0, start: 0.2, duration: 0.55, iterations: 1.0, until_next_click: false, auto_reverse: false, rewind: false, span: 0.55, class: Entrance }, EffectTiming { anim: 1, shape: ShapeId(2), paragraph: None, sequence: Main, step: 0, start: 0.0, duration: 0.8, iterations: 1.0, until_next_click: false, auto_reverse: true, rewind: false, span: 1.6, class: Emphasis }, EffectTiming { anim: 2, shape: ShapeId(3), paragraph: None, sequence: Main, step: 0, start: 1.75, duration: 1.2, iterations: 1.0, until_next_click: false, auto_reverse: false, rewind: false, span: 1.2, class: Path }, EffectTiming { anim: 3, shape: ShapeId(3), paragraph: None, sequence: Trigger(ShapeId(4)), step: 0, start: 0.0, duration: 0.6, iterations: 1.0, until_next_click: false, auto_reverse: false, rewind: false, span: 0.6, class: Entrance }]",
+      "frames": {
+        "office/original": {
+          "rasterSha256": "9683ae8bc302649982402ac8dea99ec66addb593cdfa24b202dde0ef2f6b2632",
+          "status": {
+            "page": 1,
+            "step": 0,
+            "playing": false,
+            "ended": false,
+            "paused": false,
+            "blank": null,
+            "elapsed_seconds": 0.0,
+            "slide_seconds": 0.0,
+            "total_seconds": 0.0,
+            "order": [
+              1
+            ],
+            "previous": null,
+            "serial": 0
+          }
+        },
+        "office/settled": {
+          "rasterSha256": "9343855f097455f9af850a7648b957cd5c0c66ed71390fcfefe33c0b23193938",
+          "status": {
+            "page": 1,
+            "step": 1,
+            "playing": false,
+            "ended": false,
+            "paused": false,
+            "blank": null,
+            "elapsed_seconds": 0.0,
+            "slide_seconds": 3.075,
+            "total_seconds": 3.075,
+            "order": [
+              1
+            ],
+            "previous": null,
+            "serial": 1
+          }
+        },
+        "office/step-0/done": {
+          "rasterSha256": "9343855f097455f9af850a7648b957cd5c0c66ed71390fcfefe33c0b23193938",
+          "status": {
+            "page": 1,
+            "step": 1,
+            "playing": false,
+            "ended": false,
+            "paused": false,
+            "blank": null,
+            "elapsed_seconds": 0.0,
+            "slide_seconds": 3.075,
+            "total_seconds": 3.075,
+            "order": [
+              1
+            ],
+            "previous": null,
+            "serial": 1
+          }
+        },
+        "office/step-0/middle": {
+          "rasterSha256": "f69c97957ea84456da5420f676fb298cd4a567e8651f499e14f0f07e31524c8e",
+          "status": {
+            "page": 1,
+            "step": 0,
+            "playing": true,
+            "ended": false,
+            "paused": false,
+            "blank": null,
+            "elapsed_seconds": 1.475,
+            "slide_seconds": 1.475,
+            "total_seconds": 1.475,
+            "order": [
+              1
+            ],
+            "previous": null,
+            "serial": 1
+          }
+        }
+      }
+    }
+  },
+  "nativeWindows": {
+    "powerPointAnimation": {
+      "developmentBuildSha256": "d3731b31857f7fbb310833e016739db51d63d1ae1761e3c4240e2f0eecfd47c6",
+      "sampleSha256": "908952738dcf9d4c2f084b742e381d67366d00181161880ad5f77a76481f50d1",
+      "logSha256": "8644b98a1a53d7feaf2a59115938b2a76fe0c58b56c134a4fe6ad052c0a5bd57",
+      "states": [
+        {
+          "page": 1,
+          "step": 0,
+          "playing": false,
+          "ended": false,
+          "paused": false,
+          "blank": null,
+          "elapsed_seconds": 0.0,
+          "slide_seconds": 0.0,
+          "total_seconds": 0.0,
+          "order": [
+            1
+          ],
+          "previous": null,
+          "serial": 0
+        },
+        {
+          "page": 1,
+          "step": 0,
+          "playing": true,
+          "ended": false,
+          "paused": false,
+          "blank": null,
+          "elapsed_seconds": 0.0,
+          "slide_seconds": 12.320844300000006,
+          "total_seconds": 12.320844300000006,
+          "order": [
+            1
+          ],
+          "previous": null,
+          "serial": 1
+        },
+        {
+          "page": 1,
+          "step": 1,
+          "playing": false,
+          "ended": true,
+          "paused": false,
+          "blank": null,
+          "elapsed_seconds": 0.0,
+          "slide_seconds": 49.94654000000004,
+          "total_seconds": 49.94654000000004,
+          "order": [
+            1
+          ],
+          "previous": null,
+          "serial": 3
+        }
+      ],
+      "frameEvents": [
+        "JoyDeck show_frame pixels=2467x1388 scale=2.5694 prepare_us=125817 frames=1 rasters=2 cache_hits=0",
+        "JoyDeck show_frame pixels=2467x1388 scale=2.5694 prepare_us=97907 frames=23 rasters=25 cache_hits=0",
+        "JoyDeck show_frame pixels=2467x1388 scale=2.5694 prepare_us=89094 frames=30 rasters=32 cache_hits=0"
+      ]
+    },
+    "morphWords": {
+      "developmentBuildSha256": "d958d5ff4c8413a8f6044a0c1c72f78fc57fdfa5d705b1a41fc0a58d8fa58db4",
+      "sampleSha256": "3b64a75a133ea5929c2bccff054a2e813e7fdbb99ce50154390a5bd3d2086f0e",
+      "logSha256": "1748c9672312a456c556f02ab22a2b49031a5689949a0c25f3f8474050305a8b",
+      "states": [
+        {
+          "page": 1,
+          "step": 0,
+          "playing": false,
+          "ended": false,
+          "paused": false,
+          "blank": null,
+          "elapsed_seconds": 0.0,
+          "slide_seconds": 0.0,
+          "total_seconds": 0.0,
+          "order": [
+            1,
+            2
+          ],
+          "previous": null,
+          "serial": 0
+        },
+        {
+          "page": 2,
+          "step": 0,
+          "playing": false,
+          "ended": false,
+          "paused": false,
+          "blank": null,
+          "elapsed_seconds": 0.0,
+          "slide_seconds": 0.0,
+          "total_seconds": 7.818404000000001,
+          "order": [
+            1,
+            2
+          ],
+          "previous": 1,
+          "serial": 1
+        }
+      ],
+      "frameEvents": [
+        "JoyDeck show_frame pixels=2467x1388 scale=2.5694 prepare_us=123871 frames=1 rasters=2 cache_hits=0",
+        "JoyDeck show_frame pixels=2467x1388 scale=2.5694 prepare_us=128456 frames=12 rasters=13 cache_hits=0"
+      ]
+    }
+  },
+  "composition": [
+    {
+      "adapter": "Intel(R) Arc(TM) 140T GPU (16GB)",
+      "backend": "Vulkan",
+      "size": [
+        64,
+        36
+      ],
+      "frames": 925,
+      "maximumChannelDifference": 1,
+      "exactEndpoints": true,
+      "cpuManifestSha256": "04c43864d6760bbed4555acc00d5a869ccb7affd73fcdf4be1d2cb0e4af5ab0a",
+      "missingSources": {
+        "frames": 48,
+        "maximumChannelDifference": 0
+      }
+    },
+    {
+      "adapter": "Intel(R) Arc(TM) 140T GPU (16GB)",
+      "backend": "Vulkan",
+      "size": [
+        193,
+        109
+      ],
+      "frames": 925,
+      "maximumChannelDifference": 1,
+      "exactEndpoints": true,
+      "cpuManifestSha256": "a615c2f1ac5bf0b69f6d781660dc80964087ea79b4c32db7a2017e5ba11e6fab",
+      "missingSources": {
+        "frames": 48,
+        "maximumChannelDifference": 1
+      }
+    }
+  ],
+  "transitionExchange": {
+    "kinds": 17,
+    "cases": 48,
+    "readerWriterPairs": 192,
+    "originalsUnchanged": true
+  },
+  "engineering": {
+    "passed": 1063,
+    "failed": 0,
+    "ignored": 0,
+    "cli": {
+      "r1": "R1 executable verification passed: 28 checks",
+      "r2": "R2 verification passed: 20 commands",
+      "r3": "R3 public/native/table/text/notes checks passed: 20 executable calls",
+      "r4-r5": "R4/R5 verification passed: 23 executable calls",
+      "r6-r7": "R6/R7 passed: 35 CLI calls, 64 MCP responses"
+    }
+  },
+  "remainingPersonWeeks": {
+    "cpuComposition": [
+      3,
+      5
+    ],
+    "metafiles": [
+      2,
+      4
+    ],
+    "pdf": [
+      3,
+      5
+    ],
+    "ribbon": [
+      2,
+      4
+    ],
+    "total": [
+      10,
+      18
+    ]
+  }
+}

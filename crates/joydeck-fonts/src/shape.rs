@@ -47,78 +47,118 @@ pub fn shape_range(
     params: &ShapeParams,
     map: impl Fn(char) -> char,
 ) -> Vec<ShapedGlyph> {
-    let (Some(pre), Some(text), Some(post)) = (
-        para.get(..range.start),
-        para.get(range.clone()),
-        para.get(range.end..),
-    ) else {
+    let Some(input) = TextItem::new(para, range) else {
         return Vec::new();
     };
-    let mut out = Vec::with_capacity(text.len());
-    let shaped = face.hb().map(|hb| {
-        let shaper = face
+    if let Some(font) = face.hb() {
+        let buffer = input.buffer(params, &map);
+        let shaped = face
             .shaper
-            .shaper(&hb)
+            .shaper(&font)
             .instance(face.instance.as_ref())
-            .build();
-        let mut buf = UnicodeBuffer::new();
-        buf.set_pre_context(pre);
-        buf.set_post_context(post);
-        for (i, c) in text.char_indices() {
-            buf.add(map(c), (range.start + i) as u32);
+            .build()
+            .shape(buffer, ShapeOptions::new().features(params.features));
+        return shaped
+            .glyph_infos()
+            .iter()
+            .zip(shaped.glyph_positions())
+            .map(|(info, position)| ShapedGlyph {
+                gid: info.glyph_id,
+                cluster: info.cluster as usize,
+                x_advance: position.x_advance,
+                x_offset: position.x_offset,
+                y_offset: position.y_offset,
+            })
+            .collect();
+    }
+    cmap_glyphs(face, input, params.rtl, map)
+}
+
+struct TextItem<'a> {
+    before: &'a str,
+    active: &'a str,
+    after: &'a str,
+}
+
+impl<'a> TextItem<'a> {
+    fn new(paragraph: &'a str, range: Range<usize>) -> Option<Self> {
+        // HarfRust stores clusters as u32. Keep them tied to the original UTF-8 byte positions.
+        u32::try_from(range.end).ok()?;
+        let (before, rest) = paragraph.split_at_checked(range.start)?;
+        let (active, after) = rest.split_at_checked(range.end.checked_sub(range.start)?)?;
+        (!active.is_empty()).then_some(Self {
+            before,
+            active,
+            after,
+        })
+    }
+
+    fn characters(&self) -> impl Iterator<Item = (usize, char)> + '_ {
+        self.active
+            .char_indices()
+            .map(|(offset, character)| (self.before.len() + offset, character))
+    }
+
+    fn buffer(&self, params: &ShapeParams, map: impl Fn(char) -> char) -> UnicodeBuffer {
+        let mut buffer = UnicodeBuffer::new();
+        buffer.set_pre_context(self.before);
+        buffer.set_post_context(self.after);
+        for (cluster, character) in self.characters() {
+            buffer.add(map(character), cluster as u32);
         }
-        buf.guess_segment_properties();
-        if let Some(s) = params
+        buffer.guess_segment_properties();
+        if let Some(script) = params
             .script
-            .and_then(|t| Script::from_iso15924_tag(Tag::new(&t)))
+            .and_then(|tag| Script::from_iso15924_tag(Tag::new(&tag)))
         {
-            buf.set_script(s);
+            buffer.set_script(script);
         }
-        if let Some(l) = params
+        let language = params
             .language
-            .or_else(|| params.script.and_then(crate::script::default_language))
-            .and_then(|l| l.parse::<Language>().ok())
-        {
-            buf.set_language(l);
+            .or_else(|| params.script.and_then(crate::script::default_language));
+        if let Some(language) = language.and_then(|tag| tag.parse::<Language>().ok()) {
+            buffer.set_language(language);
         }
-        buf.set_direction(if params.rtl {
+        buffer.set_direction(if params.rtl {
             Direction::RightToLeft
         } else {
             Direction::LeftToRight
         });
-        let gb = shaper.shape(buf, ShapeOptions::new().features(params.features));
-        for (info, pos) in gb.glyph_infos().iter().zip(gb.glyph_positions()) {
-            out.push(ShapedGlyph {
-                gid: info.glyph_id,
-                cluster: info.cluster as usize,
-                x_advance: pos.x_advance,
-                x_offset: pos.x_offset,
-                y_offset: pos.y_offset,
-            });
-        }
-    });
-    if shaped.is_none()
-        && let Some(f) = face.skrifa()
-    {
-        // No shaper for this face: one glyph per character from the cmap, in visual order.
-        let cmap = f.charmap();
-        let gm = f.glyph_metrics(Size::unscaled(), face.location());
-        for (i, c) in text.char_indices() {
-            let g = cmap.map(map(c)).unwrap_or_default();
-            let adv = gm.advance_width(g).unwrap_or(face.upem as f32 * 0.5);
-            out.push(ShapedGlyph {
-                gid: g.to_u32(),
-                cluster: range.start + i,
-                x_advance: adv.round() as i32,
+        buffer
+    }
+}
+
+fn cmap_glyphs(
+    face: &FontFace,
+    input: TextItem<'_>,
+    rtl: bool,
+    map: impl Fn(char) -> char,
+) -> Vec<ShapedGlyph> {
+    let Some(font) = face.skrifa() else {
+        return Vec::new();
+    };
+    let cmap = font.charmap();
+    let metrics = font.glyph_metrics(Size::unscaled(), face.location());
+    let mut glyphs: Vec<_> = input
+        .characters()
+        .map(|(cluster, character)| {
+            let glyph = cmap.map(map(character)).unwrap_or_default();
+            let advance = metrics
+                .advance_width(glyph)
+                .unwrap_or(face.upem as f32 / 2.0);
+            ShapedGlyph {
+                gid: glyph.to_u32(),
+                cluster,
+                x_advance: advance.round() as i32,
                 x_offset: 0,
                 y_offset: 0,
-            });
-        }
-        if params.rtl {
-            out.reverse();
-        }
+            }
+        })
+        .collect();
+    if rtl {
+        glyphs.reverse();
     }
-    out
+    glyphs
 }
 
 #[cfg(test)]

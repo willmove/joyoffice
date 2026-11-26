@@ -6,11 +6,11 @@ use std::sync::Arc;
 use joydeck_model::anim::{BuildRole, TextBuild, paragraph_build_roles};
 use joydeck_model::style::Fill;
 use joydeck_model::{
-    AnimClass, AnimStart, Animation, ColorScheme, Rgba, SchemeSlot, Shape, ShapeId, Slide, Xfrm,
+    AnimClass, AnimStart, ColorScheme, Rgba, SchemeSlot, Shape, ShapeId, Slide, Xfrm,
 };
 
 use crate::AnimState;
-use crate::effects::{EffectSpec, exit_base, motion_path};
+use crate::effects::EffectSpec;
 
 /// Delay between paragraphs of a by-paragraph build that isn't on click (seconds).
 pub const PARAGRAPH_STAGGER: f64 = 0.5;
@@ -77,6 +77,45 @@ struct StepInfo {
     duration: f64,
 }
 
+/// Separate the last group start (With Previous) from the latest effect end (After Previous).
+#[derive(Default)]
+struct SequenceClock {
+    steps: Vec<StepInfo>,
+    group_start: f64,
+    group_end: f64,
+}
+
+impl SequenceClock {
+    fn place(
+        &mut self,
+        mode: AnimStart,
+        delay: f64,
+        staggered_start: Option<f64>,
+        span: f64,
+        media: bool,
+    ) -> (usize, f64) {
+        if mode == AnimStart::OnClick || self.steps.is_empty() {
+            self.steps.push(StepInfo {
+                auto: mode != AnimStart::OnClick,
+                duration: 0.0,
+            });
+            self.group_start = 0.0;
+            self.group_end = 0.0;
+        }
+        if mode == AnimStart::AfterPrevious {
+            self.group_start = self.group_end;
+        }
+        let start = staggered_start.unwrap_or(self.group_start + delay);
+        let end = start + span;
+        self.group_end = self.group_end.max(end);
+        let index = self.steps.len() - 1;
+        let step = &mut self.steps[index];
+        // Media continues in the background after its cue but delays After Previous.
+        step.duration = step.duration.max(if media { start } else { end });
+        (index, start)
+    }
+}
+
 #[derive(Clone, Debug)]
 enum After {
     None,
@@ -98,19 +137,16 @@ struct Effect {
 #[derive(Clone, Debug, Default)]
 pub struct Timeline {
     effects: Vec<Effect>,
+    // Each target's effect indices, in Animation Pane order. Sampling a frame touches only the
+    // effects that can change that shape or paragraph.
+    targets: HashMap<(ShapeId, Option<usize>), Vec<usize>>,
     main: Vec<StepInfo>,
     triggers: Vec<(ShapeId, Vec<StepInfo>)>,
     /// Base fill colour per shape (for colour emphasis).
-    colors: Vec<(ShapeId, Rgba)>,
+    colors: HashMap<ShapeId, Rgba>,
     /// By-paragraph builds animate first-level paragraphs; deeper paragraphs follow their parent:
     /// (shape, member paragraph, owner paragraph).
-    groups: Vec<(ShapeId, usize, usize)>,
-}
-
-enum Status {
-    NotStarted,
-    Active(f64),
-    Done,
+    groups: HashMap<(ShapeId, usize), usize>,
 }
 
 fn secs(ms: u32) -> f64 {
@@ -199,15 +235,11 @@ impl Timeline {
                 members.push(ai);
             }
         }
-        // Paragraph groups already recorded (the list itself keeps their order).
-        let mut grouped: HashSet<(ShapeId, usize, usize)> = HashSet::new();
         for (seq, members) in seqs {
             if tl.effects.len() >= MAX_EFFECTS {
                 break;
             }
-            let mut steps: Vec<StepInfo> = Vec::new();
-            let mut group_begin = 0.0f64;
-            let mut max_end = 0.0f64;
+            let mut clock = SequenceClock::default();
             for ai in members {
                 let Some(a) = slide.animations.get(ai) else {
                     continue;
@@ -227,9 +259,7 @@ impl Timeline {
                                     match role {
                                         BuildRole::Top => v.push(Some(i)),
                                         BuildRole::Member(o) => {
-                                            if grouped.insert((a.shape, i, o)) {
-                                                tl.groups.push((a.shape, i, o));
-                                            }
+                                            tl.groups.insert((a.shape, i), o);
                                         }
                                         BuildRole::Unowned => {}
                                     }
@@ -248,7 +278,7 @@ impl Timeline {
                     .or_else(|| shape.and_then(|s| s.xfrm))
                     .unwrap_or(Xfrm::new(sw / 4.0, sh / 4.0, sw / 2.0, sh / 2.0));
                 let xf = sanitize_xfrm(xf, sw, sh);
-                let spec = Arc::new(build_spec(a, xf, sw, sh, &resolve));
+                let spec = Arc::new(EffectSpec::compile(a, xf, sw, sh, &resolve));
                 let dur = secs(a.duration_ms);
                 let delay = secs(a.delay_ms);
                 let until_next_click = a.repeat == u32::MAX;
@@ -266,66 +296,25 @@ impl Timeline {
                 };
                 let mut first_start = 0.0;
                 for (k, para) in paras.iter().enumerate() {
-                    let mode = if k == 0 {
-                        a.start
-                    } else if a.start == AnimStart::OnClick {
-                        AnimStart::OnClick
-                    } else {
-                        AnimStart::WithPrevious
-                    };
-                    let first_of_seq = steps.is_empty();
-                    let mode = if first_of_seq && matches!(seq, Sequence::Trigger(_)) {
-                        AnimStart::OnClick
-                    } else {
-                        mode
-                    };
-                    match mode {
-                        AnimStart::OnClick => {
-                            steps.push(StepInfo {
-                                auto: false,
-                                duration: 0.0,
-                            });
-                            group_begin = 0.0;
-                            max_end = 0.0;
-                        }
-                        AnimStart::WithPrevious => {
-                            if first_of_seq {
-                                steps.push(StepInfo {
-                                    auto: true,
-                                    duration: 0.0,
-                                });
-                            }
-                        }
-                        AnimStart::AfterPrevious => {
-                            if first_of_seq {
-                                steps.push(StepInfo {
-                                    auto: true,
-                                    duration: 0.0,
-                                });
-                            }
-                            group_begin = max_end;
-                        }
+                    if tl.effects.len() == MAX_EFFECTS {
+                        break;
                     }
-                    let start = if k > 0 && a.start != AnimStart::OnClick {
-                        first_start + k as f64 * PARAGRAPH_STAGGER
-                    } else {
-                        group_begin + delay
+                    let staggered = (k > 0 && a.start != AnimStart::OnClick)
+                        .then_some(first_start + k as f64 * PARAGRAPH_STAGGER);
+                    let mode = match (clock.steps.is_empty(), seq, staggered) {
+                        (true, Sequence::Trigger(_), _) => AnimStart::OnClick,
+                        (_, _, Some(_)) => AnimStart::WithPrevious,
+                        _ => a.start,
                     };
+                    let (step, start) =
+                        clock.place(mode, delay, staggered, span, a.class == AnimClass::Media);
                     if k == 0 {
                         first_start = start;
                     }
-                    let end = start + span;
-                    max_end = max_end.max(end);
-                    let step = steps.len().saturating_sub(1);
-                    if let Some(s) = steps.last_mut() {
-                        // Media plays on by itself once started: it holds back an After Previous
-                        // effect (`max_end`), but not the next click (#116).
-                        s.duration = s.duration.max(if a.class == AnimClass::Media {
-                            start
-                        } else {
-                            end
-                        });
-                    }
+                    tl.targets
+                        .entry((a.shape, *para))
+                        .or_default()
+                        .push(tl.effects.len());
                     tl.effects.push(Effect {
                         timing: EffectTiming {
                             anim: ai,
@@ -348,22 +337,22 @@ impl Timeline {
                 }
             }
             match seq {
-                Sequence::Main => tl.main = steps,
-                Sequence::Trigger(s) => tl.triggers.push((s, steps)),
+                Sequence::Main => tl.main = clock.steps,
+                Sequence::Trigger(s) => tl.triggers.push((s, clock.steps)),
             }
         }
+        for indices in tl.targets.values_mut() {
+            indices.sort_by_key(|&i| tl.effects[i].timing.anim);
+        }
         // Base colours of animated shapes.
-        let mut colored: HashSet<ShapeId> = HashSet::new();
         for e in &tl.effects {
             let id = e.timing.shape;
-            if !colored.insert(id) {
-                continue;
-            }
-            let c = match shapes.get(&id).copied().and_then(|s| s.fill.as_ref()) {
-                Some(Fill::Solid { color }) => resolve(color),
-                _ => accent,
-            };
-            tl.colors.push((id, c));
+            tl.colors.entry(id).or_insert_with(|| {
+                match shapes.get(&id).copied().and_then(|s| s.fill.as_ref()) {
+                    Some(Fill::Solid { color }) => resolve(color),
+                    _ => accent,
+                }
+            });
         }
         tl
     }
@@ -478,8 +467,8 @@ impl Timeline {
         v.extend(
             self.groups
                 .iter()
-                .filter(|g| g.0 == shape && v.contains(&g.2))
-                .map(|g| g.1)
+                .filter(|&(&(id, _), owner)| id == shape && v.contains(owner))
+                .map(|(&(_, member), _)| member)
                 .collect::<Vec<_>>(),
         );
         v.sort_unstable();
@@ -489,13 +478,12 @@ impl Timeline {
 
     /// Shapes with any effect.
     pub fn animated_shapes(&self) -> Vec<ShapeId> {
-        let mut v: Vec<ShapeId> = Vec::new();
-        for e in &self.effects {
-            if !v.contains(&e.timing.shape) {
-                v.push(e.timing.shape);
-            }
-        }
-        v
+        let mut seen = HashSet::new();
+        self.effects
+            .iter()
+            .map(|e| e.timing.shape)
+            .filter(|&id| seen.insert(id))
+            .collect()
     }
 
     /// State of `shape` (or of one of its paragraphs, `para`) when `step` main steps have been
@@ -530,82 +518,52 @@ impl Timeline {
         triggers: &[TriggerPlay],
         stamps: &[StepStamp],
     ) -> AnimState {
-        let para = para.map(|p| {
-            self.groups
-                .iter()
-                .find(|g| g.0 == shape && g.1 == p)
-                .map(|g| g.2)
-                .unwrap_or(p)
-        });
-        let mine = self
-            .effects
-            .iter()
-            .filter(|e| e.timing.shape == shape && e.timing.paragraph == para);
+        let para = para.map(|p| self.groups.get(&(shape, p)).copied().unwrap_or(p));
+        let Some(indices) = self.targets.get(&(shape, para)) else {
+            return AnimState::default();
+        };
         let base_color = self
             .colors
-            .iter()
-            .find(|(s, _)| *s == shape)
-            .map(|(_, c)| *c)
+            .get(&shape)
+            .copied()
             .unwrap_or(Rgba::rgb(0x15, 0x60, 0x82));
-        let mut st = AnimState::default();
-        // Initial visibility comes from the first effect in the Animation Pane order.
-        let mut ordered: Vec<&Effect> = mine.collect();
-        ordered.sort_by_key(|e| e.timing.anim);
-        if let Some(e0) = ordered.first()
-            && e0.timing.class == AnimClass::Entrance
-        {
-            st.visible = false;
-        }
-        // Then play in time order: main sequence first, then triggered sequences as they were clicked.
-        if !stamps.is_empty() {
-            let when = |e: &Effect| match e.timing.sequence {
-                Sequence::Main => 0,
-                Sequence::Trigger(tr) => stamps
-                    .iter()
-                    .find(|s| s.trigger == tr && s.step == e.timing.step)
-                    .map_or(u64::MAX, |s| s.at.saturating_add(1)),
+        let initial = AnimState {
+            visible: indices
+                .first()
+                .is_none_or(|&i| self.effects[i].timing.class != AnimClass::Entrance),
+            ..Default::default()
+        };
+        let apply = |state, &i: &usize| {
+            let effect = &self.effects[i];
+            let cursor = match effect.timing.sequence {
+                Sequence::Main => Cursor { step, elapsed: t },
+                Sequence::Trigger(id) => triggers.iter().find(|play| play.trigger == id).map_or(
+                    Cursor::default(),
+                    |play| Cursor {
+                        step: play.step,
+                        elapsed: play.t,
+                    },
+                ),
             };
-            ordered.sort_by_key(|e| (when(e), e.timing.anim));
-        }
-        for e in &ordered {
-            let (pstep, pt) = match e.timing.sequence {
-                Sequence::Main => (step, t),
-                Sequence::Trigger(tr) => triggers
-                    .iter()
-                    .find(|p| p.trigger == tr)
-                    .map(|p| (p.step, p.t))
-                    .unwrap_or((0, 0.0)),
-            };
-            let cur = st.tint.unwrap_or(base_color);
-            let revert = e.timing.rewind || e.timing.auto_reverse;
-            match status(&e.timing, pstep, pt) {
-                Status::NotStarted => {}
-                Status::Active(p) => {
-                    if e.timing.class == AnimClass::Entrance || e.timing.class == AnimClass::Exit {
-                        st.visible = true;
-                    }
-                    st = st.compose(&e.spec.eval(p, cur));
+            effect.apply(state, base_color, cursor)
+        };
+        let value = if stamps.is_empty() {
+            indices.iter().fold(initial, apply)
+        } else {
+            let mut ordered = indices.clone();
+            ordered.sort_by_cached_key(|&i| {
+                let timing = &self.effects[i].timing;
+                match timing.sequence {
+                    Sequence::Main => 0,
+                    Sequence::Trigger(id) => stamps
+                        .iter()
+                        .find(|s| s.trigger == id && s.step == timing.step)
+                        .map_or(u64::MAX, |s| s.at.saturating_add(1)),
                 }
-                Status::Done => {
-                    match e.timing.class {
-                        AnimClass::Entrance => st.visible = !revert,
-                        AnimClass::Exit => st.visible = revert,
-                        AnimClass::Emphasis | AnimClass::Path if !revert => {
-                            let end = e.spec.end_state(cur);
-                            st = st.compose(&end);
-                        }
-                        _ => {}
-                    }
-                    match e.after {
-                        After::Hide => st.visible = false,
-                        After::HideOnNextClick if pstep > e.timing.step => st.visible = false,
-                        After::Dim(c) if pstep > e.timing.step => st.tint = Some(c),
-                        _ => {}
-                    }
-                }
-            }
-        }
-        st.sanitized()
+            });
+            ordered.iter().fold(initial, apply)
+        };
+        value.sanitized()
     }
 
     /// State on the "play everything" clock (Animation Pane ▸ Play All, preview).
@@ -615,33 +573,80 @@ impl Timeline {
     }
 }
 
-fn status(e: &EffectTiming, step: usize, t: f64) -> Status {
-    if e.step < step {
-        return Status::Done;
+#[derive(Clone, Copy, Default)]
+struct Cursor {
+    step: usize,
+    elapsed: f64,
+}
+
+enum Phase {
+    Pending,
+    Running(f64),
+    Held { beyond_step: bool },
+}
+
+impl Cursor {
+    fn phase(self, timing: &EffectTiming) -> Phase {
+        match self.step.cmp(&timing.step) {
+            std::cmp::Ordering::Less => Phase::Pending,
+            std::cmp::Ordering::Greater => Phase::Held { beyond_step: true },
+            std::cmp::Ordering::Equal => {
+                let t = finite_or(self.elapsed, 0.0);
+                let age = t - timing.start;
+                let d = timing.duration;
+                if t <= 0.0 || age < 0.0 {
+                    Phase::Pending
+                } else if !d.is_finite()
+                    || d <= 0.0
+                    || (!timing.until_next_click && age >= timing.span)
+                {
+                    Phase::Held { beyond_step: false }
+                } else {
+                    let length = if timing.auto_reverse { d * 2.0 } else { d };
+                    let iteration = finite_or(age % length, 0.0);
+                    let progress = if iteration > d {
+                        2.0 - iteration / d
+                    } else {
+                        iteration / d
+                    };
+                    Phase::Running(progress.clamp(0.0, 1.0))
+                }
+            }
+        }
     }
-    if e.step > step {
-        return Status::NotStarted;
+}
+
+impl Effect {
+    fn apply(&self, mut state: AnimState, base: Rgba, cursor: Cursor) -> AnimState {
+        let color = state.tint.unwrap_or(base);
+        match cursor.phase(&self.timing) {
+            Phase::Pending => state,
+            Phase::Running(progress) => {
+                if matches!(self.timing.class, AnimClass::Entrance | AnimClass::Exit) {
+                    state.visible = true;
+                }
+                state.compose(&self.spec.eval(progress, color))
+            }
+            Phase::Held { beyond_step } => {
+                let restore = self.timing.rewind || self.timing.auto_reverse;
+                match self.timing.class {
+                    AnimClass::Entrance => state.visible = !restore,
+                    AnimClass::Exit => state.visible = restore,
+                    AnimClass::Emphasis | AnimClass::Path if !restore => {
+                        state = state.compose(&self.spec.end_state(color));
+                    }
+                    _ => {}
+                }
+                match self.after {
+                    After::Hide => state.visible = false,
+                    After::HideOnNextClick if beyond_step => state.visible = false,
+                    After::Dim(fill) if beyond_step => state.tint = Some(fill),
+                    _ => {}
+                }
+                state
+            }
+        }
     }
-    let t = finite_or(t, 0.0);
-    if t <= 0.0 {
-        return Status::NotStarted;
-    }
-    let local = t - e.start;
-    if local < 0.0 {
-        return Status::NotStarted;
-    }
-    let dur = e.duration;
-    if dur.is_nan() || dur <= 0.0 || !dur.is_finite() {
-        return Status::Done;
-    }
-    if !e.until_next_click && local >= e.span {
-        return Status::Done;
-    }
-    let period = if e.auto_reverse { 2.0 * dur } else { dur };
-    let c = local % period;
-    let c = if c.is_finite() { c } else { 0.0 };
-    let p = if c > dur { 2.0 - c / dur } else { c / dur };
-    Status::Active(p.clamp(0.0, 1.0))
 }
 
 /// Shapes by id in the order `Slide::shape` searches (a shape before its children, groups at most
@@ -659,42 +664,4 @@ fn shape_index(shapes: &[Shape]) -> HashMap<ShapeId, &Shape> {
     let mut out = HashMap::new();
     walk(shapes, 0, &mut out);
     out
-}
-
-fn build_spec(
-    a: &Animation,
-    xf: Xfrm,
-    sw: f64,
-    sh: f64,
-    resolve: &dyn Fn(&joydeck_model::ColorRef) -> Rgba,
-) -> EffectSpec {
-    let effect = if a.class == AnimClass::Exit {
-        exit_base(&a.effect).to_string()
-    } else {
-        a.effect.clone()
-    };
-    let path = if a.class == AnimClass::Path {
-        Some(motion_path(&a.effect, &a.option, a.path.as_deref()))
-    } else {
-        None
-    };
-    EffectSpec {
-        class: a.class,
-        effect,
-        // Sink Down is Rise Up played backwards, leaving downward.
-        option: if a.effect == "sinkDown" {
-            "d".into()
-        } else {
-            a.option.clone()
-        },
-        accel: a.smooth_start,
-        decel: a.smooth_end,
-        bounce: a.bounce_end,
-        amount: a.amount,
-        color: a.color.as_ref().map(resolve),
-        path,
-        xf,
-        slide_w: sw,
-        slide_h: sh,
-    }
 }

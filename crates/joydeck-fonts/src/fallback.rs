@@ -144,131 +144,124 @@ pub fn bundled_families(script: ScriptTag) -> Vec<&'static str> {
     v
 }
 
+struct Cluster<'a> {
+    text: &'a [char],
+    visible: Option<char>,
+    script: Option<ScriptTag>,
+    emoji: bool,
+    plain: bool,
+}
+
+impl<'a> Cluster<'a> {
+    fn of(text: &'a [char]) -> Self {
+        Self {
+            text,
+            visible: text.iter().copied().find(|&c| !is_font_ignorable(c)),
+            script: text.iter().find_map(|&c| script_of(c)),
+            emoji: is_emoji_cluster(text),
+            plain: text.iter().any(|c| matches!(*c, TEXT_SELECTOR | KEYCAP)),
+        }
+    }
+
+    fn covered_by(&self, face: &FontFace) -> bool {
+        covers_cluster(face, self.text)
+    }
+}
+
 impl FontDb {
-    /// The face for one grapheme cluster: the first of `chain` that draws all of it, else the
-    /// bundled face for its script, else an installed face for the script, else any loaded
-    /// face that draws it, else `chain[0]` (or the default face if `chain` is empty).
-    pub fn cascade(&self, cluster: &[char], chain: &[Arc<FontFace>], style: &str) -> Arc<FontFace> {
-        // Emoji take a colour face (with its ZWJ sequences, skin tones and flags) before the
-        // document's fonts, as PowerPoint draws them, even when a text font has a plain glyph.
-        if is_emoji_cluster(cluster) {
-            if let Some(f) = chain
-                .iter()
-                .find(|f| f.is_color() && covers_cluster(f, cluster))
-            {
-                return f.clone();
-            }
-            if let Some(key) = cluster.iter().copied().find(|c| !is_font_ignorable(*c))
-                && let Some(f) = self.color_face_for(key, cluster)
-            {
-                return f;
-            }
-        }
-        if let Some(f) = chain.iter().find(|f| covers_cluster(f, cluster)) {
-            return f.clone();
-        }
-        // Text presentation (U+FE0E) and keycaps: a plain face, not a colour emoji one.
-        let text_style = cluster.contains(&TEXT_SELECTOR) || cluster.contains(&KEYCAP);
-        if text_style
-            && let Some(key) = cluster.iter().copied().find(|c| !is_font_ignorable(*c))
-            && let Some(f) = self.plain_face_for(key, cluster)
-        {
-            return f;
-        }
-        let first = || {
+    /// Select a face for the complete grapheme using the document's typeface order.
+    pub fn cascade(&self, text: &[char], chain: &[Arc<FontFace>], style: &str) -> Arc<FontFace> {
+        let cluster = Cluster::of(text);
+        let requested = || {
             chain
                 .first()
                 .cloned()
                 .unwrap_or_else(|| self.face(crate::DEFAULT_FAMILY, style))
         };
-        let Some(key) = cluster.iter().copied().find(|c| !is_font_ignorable(*c)) else {
-            return first();
+        let Some(base) = cluster.visible else {
+            return requested();
         };
-        let script = cluster.iter().find_map(|c| script_of(*c));
-        // Scripts with a platform cascade (Arabic, Hebrew, Thai, Devanagari): the bundled face,
-        // then installed ones; the others keep the loaded-faces-first order (Japanese documents
-        // prefer the bundled craft-fonts faces).
-        if let Some(s) = script.filter(|s| !os_families(*s).is_empty()) {
-            let bundled = bundled_families(s);
-            for fam in &bundled {
-                let f = self.face(fam, style);
-                if f.family.eq_ignore_ascii_case(fam) && covers_cluster(&f, cluster) {
-                    return f;
-                }
-            }
-            for fam in os_families(s) {
-                if bundled.contains(fam) {
-                    continue;
-                }
-                if self.is_loaded(fam) || self.has_family(fam) {
-                    let f = self.face(fam, style);
-                    if f.family.eq_ignore_ascii_case(fam) && covers_cluster(&f, cluster) {
-                        return f;
-                    }
-                }
-            }
-            #[cfg(not(target_arch = "wasm32"))]
-            if let Some(f) = self.system_face_for(key, cluster, &bundled) {
-                return f;
+        if cluster.emoji {
+            let color = chain
+                .iter()
+                .find(|face| face.is_color() && cluster.covered_by(face))
+                .cloned()
+                .or_else(|| self.color_face_for(base, cluster.text));
+            if let Some(face) = color {
+                return face;
             }
         }
-        let exclude = chain.first().map(|f| f.id()).unwrap_or(u32::MAX);
-        let f = match self.fallback_for(key, exclude) {
-            Some(f) if covers_cluster(&f, cluster) => f,
-            Some(f) if chain.iter().all(|c| !c.covers(key)) => f,
-            // A letter with marks the run's font lacks (stacked combining marks): a loaded plain
-            // face that draws the whole cluster, as PowerPoint draws the marks, before the run's
-            // font with missing-glyph boxes.
-            _ => {
-                // Searched before `first` runs: it may load the default family, which needs the
-                // faces' write lock, so the read lock must not be held across it.
-                let found = self
-                    .read_faces()
-                    .iter()
-                    .find(|f| !f.is_color() && covers_cluster(f, cluster))
-                    .cloned();
-                found.unwrap_or_else(first)
-            }
-        };
-        // A pictograph that defaults to text presentation (⚠ ♥ ⬆ ▶) whose first fallback is the
-        // colour emoji font: PowerPoint draws it from a plain symbol font.
-        if f.is_color()
-            && !is_emoji_cluster(cluster)
-            && let Some(plain) = self.plain_face_for(key, cluster)
+        if let Some(face) = chain.iter().find(|face| cluster.covered_by(face)) {
+            return face.clone();
+        }
+        if cluster.plain
+            && let Some(face) = self.plain_face_for(base, cluster.text)
         {
-            return plain;
+            return face;
         }
-        f
+        if let Some(face) = self.script_face(&cluster, base, style) {
+            return face;
+        }
+
+        let skip = chain.first().map_or(u32::MAX, |face| face.id());
+        let selected = self
+            .fallback_for(base, skip)
+            .filter(|face| cluster.covered_by(face) || chain.iter().all(|face| !face.covers(base)))
+            .or_else(|| {
+                self.read_faces()
+                    .iter()
+                    .find(|face| !face.is_color() && cluster.covered_by(face))
+                    .cloned()
+            })
+            .unwrap_or_else(requested);
+        if selected.is_color() && !cluster.emoji {
+            return self.plain_face_for(base, cluster.text).unwrap_or(selected);
+        }
+        selected
     }
 
-    /// An installed (non-bundled) face covering the cluster, loading one from the system catalog
-    /// if no loaded face does.
-    #[cfg(not(target_arch = "wasm32"))]
-    fn system_face_for(
-        &self,
-        key: char,
-        cluster: &[char],
-        bundled: &[&str],
-    ) -> Option<Arc<FontFace>> {
-        let pick = |db: &FontDb| {
-            let faces = db.read_faces();
-            let mut v: Vec<&Arc<FontFace>> = faces
-                .iter()
-                .filter(|f| {
-                    !bundled.iter().any(|b| f.family.eq_ignore_ascii_case(b))
-                        && !CRAFT_FONTS.iter().any(|c| c.family == f.family)
-                })
-                .filter(|f| covers_cluster(f, cluster))
-                .collect();
-            v.sort_by_key(|f| (f.italic, (f.weight - 400.0).abs() as i32));
-            v.first().map(|f| (*f).clone())
-        };
-        if let Some(f) = pick(self) {
-            return Some(f);
+    fn script_face(&self, cluster: &Cluster<'_>, base: char, style: &str) -> Option<Arc<FontFace>> {
+        let script = cluster.script?;
+        let families = os_families(script);
+        if families.is_empty() {
+            return None;
         }
-        if self.system_fallback(key) {
-            pick(self)
-        } else {
+        let bundled = bundled_families(script);
+        let by_name = |family: &str| {
+            let face = self.face(family, style);
+            (face.family.eq_ignore_ascii_case(family) && cluster.covered_by(&face)).then_some(face)
+        };
+        if let Some(face) = bundled.iter().find_map(|family| by_name(family)) {
+            return Some(face);
+        }
+        for family in families {
+            if !bundled.contains(family)
+                && (self.is_loaded(family) || self.has_family(family))
+                && let Some(face) = by_name(family)
+            {
+                return Some(face);
+            }
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            let covered = || {
+                self.read_faces()
+                    .iter()
+                    .filter(|face| {
+                        !bundled
+                            .iter()
+                            .any(|family| face.family.eq_ignore_ascii_case(family))
+                            && !CRAFT_FONTS.iter().any(|entry| entry.family == face.family)
+                            && cluster.covered_by(face)
+                    })
+                    .min_by_key(|face| (face.italic, (face.weight - 400.0).abs() as i32))
+                    .cloned()
+            };
+            covered().or_else(|| self.system_fallback(base).then(covered).flatten())
+        }
+        #[cfg(target_arch = "wasm32")]
+        {
+            let _ = base;
             None
         }
     }

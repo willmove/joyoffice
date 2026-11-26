@@ -200,34 +200,23 @@ fn center(pts: &[Point]) -> Point {
     bounds(pts).map(|r| r.center()).unwrap_or(Point::ZERO)
 }
 
-/// The same contour, starting at anchor `s`, optionally run backwards.
-fn turn(pts: &[Point], s: usize, back: bool) -> Vec<Point> {
-    let q: Vec<Point> = if back {
-        pts.iter().rev().copied().collect()
-    } else {
-        pts.to_vec()
-    };
-    if s == 0 {
-        return q;
-    }
-    let body = q.get(1..).unwrap_or(&[]);
-    let cut = (3 * s).min(body.len());
-    let mut out = Vec::with_capacity(q.len());
-    out.extend(cut.checked_sub(1).and_then(|i| body.get(i)).copied());
-    out.extend_from_slice(body.get(cut..).unwrap_or(&[]));
-    out.extend_from_slice(body.get(..cut).unwrap_or(&[]));
-    out
+/// A closed contour's cubic controls in traversal order from `anchor`. The complete final
+/// segment includes the closing anchor. Open contours start at zero and retain their endpoints.
+fn controls(pts: &[Point], anchor: usize) -> impl Iterator<Item = Point> + '_ {
+    let body = pts.get(1..).unwrap_or_default();
+    let cut = (3 * anchor).min(body.len());
+    let (before, after) = body.split_at(cut);
+    pts.get(cut).into_iter().chain(after).chain(before).copied()
 }
 
 /// One contour pair of equal curve count: `b` runs backwards if `back` is set, then the closed side
 /// (`b` if it is closed, else `a`) gets the start that lets the points travel least. Both sides are
 /// compared around their own centre, so where the shapes are does not matter.
 fn match_pair(a: &Contour, b: &Contour, back: bool) -> (Contour, Contour, f64) {
-    let bp = if back {
-        turn(&b.pts, 0, true)
-    } else {
-        b.pts.clone()
-    };
+    let mut bp = b.pts.clone();
+    if back {
+        bp.reverse();
+    }
     let turn_a = !b.closed && a.closed;
     let (fixed, free) = if turn_a { (&bp, &a.pts) } else { (&a.pts, &bp) };
     let (fc, gc) = (center(fixed), center(free));
@@ -236,22 +225,22 @@ fn match_pair(a: &Contour, b: &Contour, back: bool) -> (Contour, Contour, f64) {
     } else {
         1
     };
-    let mut best = free.clone();
+    let mut anchor = 0;
     let mut best_cost = f64::INFINITY;
     for s in (0..tries.max(1)).step_by(tries.div_ceil(MAX_TRIES).max(1)) {
-        let q = turn(free, s, false);
         let mut cost = 0.0;
-        for (p, f) in q.iter().zip(fixed.iter()) {
-            cost += ((*p - gc) - (*f - fc)).hypot2();
+        for (p, f) in controls(free, s).zip(fixed) {
+            cost += ((p - gc) - (*f - fc)).hypot2();
             if cost >= best_cost {
                 break;
             }
         }
         if cost < best_cost {
             best_cost = cost;
-            best = q;
+            anchor = s;
         }
     }
+    let best = controls(free, anchor).collect();
     let (pa, pb) = if turn_a {
         (best, bp)
     } else {
@@ -322,14 +311,11 @@ pub fn align(
         for (x, y, point) in &pairs {
             if *point {
                 xs.push(x.clone());
-                ys.push(if back {
-                    Contour {
-                        closed: y.closed,
-                        pts: turn(&y.pts, 0, true),
-                    }
-                } else {
-                    y.clone()
-                });
+                let mut y = y.clone();
+                if back {
+                    y.pts.reverse();
+                }
+                ys.push(y);
             } else {
                 let (mx, my, c) = match_pair(x, y, back);
                 xs.push(mx);

@@ -127,7 +127,11 @@ pub fn slot_of_script(s: ScriptTag) -> FontSlot {
 /// The slot of `c` on its own: `None` for characters that take their neighbours' slot. CJK
 /// punctuation and full-width forms are East Asian although their script is Common.
 pub fn slot_of(c: char) -> Option<FontSlot> {
-    if let Some(s) = script_of(c) {
+    slot(c, script_of(c))
+}
+
+fn slot(c: char, script: Option<ScriptTag>) -> Option<FontSlot> {
+    if let Some(s) = script {
         return Some(slot_of_script(s));
     }
     let cp = c as u32;
@@ -156,21 +160,23 @@ pub fn default_language(s: ScriptTag) -> Option<&'static str> {
 /// Resolve every character's script and slot, giving Common/Inherited characters the value of the
 /// preceding character with one (or, at the start, the following one; Latin when there is none).
 pub fn resolve(chars: &[char]) -> Vec<(Option<ScriptTag>, FontSlot)> {
-    let own: Vec<(Option<ScriptTag>, Option<FontSlot>)> =
-        chars.iter().map(|c| (script_of(*c), slot_of(*c))).collect();
-    let first = own
-        .iter()
-        .find_map(|(s, sl)| sl.map(|sl| (*s, sl)))
-        .unwrap_or((None, FontSlot::Latin));
-    let mut prev = first;
-    own.into_iter()
-        .map(|(s, sl)| {
-            if let Some(sl) = sl {
-                prev = (s, sl);
+    let mut resolved = Vec::with_capacity(chars.len());
+    let mut context = None;
+    for (i, &c) in chars.iter().enumerate() {
+        let script = script_of(c);
+        if let Some(slot) = slot(c, script) {
+            let item = (script, slot);
+            if context.is_none() {
+                resolved.resize(i, item);
             }
-            prev
-        })
-        .collect()
+            context = Some(item);
+        }
+        if let Some(item) = context {
+            resolved.push(item);
+        }
+    }
+    resolved.resize(chars.len(), (None, FontSlot::Latin));
+    resolved
 }
 
 /// Arabic letters that join to the following letter (joining type D, dual-joining): a kashida

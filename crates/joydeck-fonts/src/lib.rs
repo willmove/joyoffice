@@ -141,54 +141,38 @@ pub fn shape(
     features: &[Feature],
     map: impl Fn(char) -> char,
 ) -> Vec<ShapedGlyph> {
-    let mut out = Vec::with_capacity(text.len());
-    for (r, rtl) in direction_runs(text) {
-        let mut g = shape_range(
-            face,
-            text,
-            r,
-            &ShapeParams {
-                features,
-                rtl,
-                ..Default::default()
-            },
-            &map,
-        );
-        if rtl {
-            // Visual (clusters descending) → logical; the sort is stable, so each cluster's
-            // glyphs keep the shaper's order.
-            g.sort_by_key(|x| x.cluster);
-        }
-        out.extend(g);
-    }
-    out
-}
+    use unicode_bidi::{BidiClass, bidi_class};
 
-/// Maximal runs of one direction (neutrals join the run they're in): (byte range, right-to-left).
-fn direction_runs(text: &str) -> Vec<(std::ops::Range<usize>, bool)> {
-    let mut runs: Vec<(std::ops::Range<usize>, bool)> = Vec::new();
-    let mut cur: Option<bool> = None;
+    let mut output = Vec::new();
     let mut start = 0;
-    for (i, c) in text.char_indices() {
-        let strong = if is_rtl(c) {
-            Some(true)
-        } else if unicode_bidi::bidi_class(c) == unicode_bidi::BidiClass::L {
-            Some(false)
-        } else {
-            None
+    let mut direction = None;
+    let mut append = |range, rtl| {
+        let options = ShapeParams {
+            features,
+            rtl,
+            ..Default::default()
         };
-        match (cur, strong) {
-            (None, Some(d)) => cur = Some(d),
-            (Some(a), Some(d)) if a != d => {
-                runs.push((start..i, a));
-                start = i;
-                cur = Some(d);
-            }
-            _ => {}
+        let mut glyphs = shape_range(face, text, range, &options, &map);
+        if rtl {
+            glyphs.sort_by_key(|glyph| glyph.cluster);
+        }
+        output.extend(glyphs);
+    };
+    for (offset, character) in text.char_indices() {
+        let rtl = match bidi_class(character) {
+            BidiClass::AL | BidiClass::R => true,
+            BidiClass::L => false,
+            _ => continue,
+        };
+        if let Some(previous) = direction.replace(rtl)
+            && previous != rtl
+        {
+            append(start..offset, previous);
+            start = offset;
         }
     }
-    runs.push((start..text.len(), cur.unwrap_or(false)));
-    runs
+    append(start..text.len(), direction.unwrap_or(false));
+    output
 }
 
 /// Glyph id of the first of `chars` the face has (0 = .notdef).

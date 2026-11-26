@@ -133,46 +133,48 @@ impl Player {
         self.total += delta;
         self.slide_elapsed += delta;
         let duration = self.transition_duration();
-        let blocked = (duration - self.transition_elapsed).max(0.).min(delta);
+        let transition_left = (duration - self.transition_elapsed).max(0.);
         self.transition_elapsed += delta;
         let timeline = ShowState::timeline(&self.model, self.state.slide);
-        let trigger_remaining = self.state.remaining_trigger_seconds(&timeline);
+        let trigger_left = self.state.remaining_trigger_seconds(&timeline);
         self.state.tick(&timeline, self.total);
-        let mut idle = delta - blocked;
-        if self.state.playing {
-            self.elapsed += idle;
+        let after_transition = (delta - transition_left).max(0.);
+        let after_main = self.advance_main(&timeline, after_transition);
+        if trigger_left > 0. {
             self.hold_elapsed = 0.;
-            idle = 0.;
         }
-        for _ in 0..128 {
-            if !self.state.playing || self.elapsed < timeline.step_duration(self.state.step) {
-                break;
-            }
-            self.elapsed = (self.elapsed - timeline.step_duration(self.state.step)).max(0.);
-            self.state.step_done(&self.model);
-            if self.state.step < timeline.steps() && timeline.step_is_auto(self.state.step) {
-                self.state.next(&self.model);
-            } else {
-                idle = self.elapsed;
-                self.elapsed = 0.;
-                break;
-            }
-        }
-        if trigger_remaining > 0. {
-            self.hold_elapsed = 0.;
-            idle = idle.min((delta - trigger_remaining).max(0.));
-        }
-        if self.transition_elapsed < duration || self.state.playing || self.state.trigger_playing()
-        {
+        if self.animated() {
             return Ok(());
         }
-        self.hold_elapsed += idle;
+        // Triggers run alongside the main sequence. Only time after both can count towards hold.
+        self.hold_elapsed += after_main.min((delta - trigger_left).max(0.));
         if self.state.auto_advance_due(&self.model, self.hold_elapsed) {
             let old = self.state.slide;
             let action = self.state.next(&self.model);
             self.changed(old, action);
         }
         Ok(())
+    }
+
+    fn advance_main(&mut self, timeline: &Timeline, available: f64) -> f64 {
+        if !self.state.playing {
+            return available;
+        }
+        self.hold_elapsed = 0.;
+        self.elapsed += available;
+        for _ in 0..128 {
+            let duration = timeline.step_duration(self.state.step);
+            if self.elapsed < duration {
+                break;
+            }
+            self.elapsed -= duration;
+            self.state.step_done(&self.model);
+            if !timeline.step_is_auto(self.state.step) {
+                return std::mem::take(&mut self.elapsed);
+            }
+            self.state.next(&self.model);
+        }
+        0.
     }
     pub fn status(&self) -> Value {
         json!({"page":self.state.slide+1,"step":self.state.step,"playing":self.state.playing,"ended":self.state.ended,"paused":self.paused,"blank":self.blank,"elapsed_seconds":self.elapsed,"slide_seconds":self.slide_elapsed,"total_seconds":self.total,"order":self.state.visit(&self.model).iter().map(|p|p+1).collect::<Vec<_>>(),"previous":self.previous.map(|p|p+1),"serial":self.serial})
@@ -297,7 +299,9 @@ impl Player {
             .map_err(|_| "show renderer lock poisoned")?;
         let panics = joydeck_render::panics_caught();
         let tl = ShowState::timeline(&self.model, self.state.slide);
-        let f = |id| self.shape_state(&tl, id);
+        let triggers = self.state.trigger_plays();
+        let stamps = self.state.trigger_stamps();
+        let f = |id| self.shape_state(&tl, id, &triggers, &stamps);
         let gif_times = self.model.slides[self.state.slide]
             .shapes
             .iter()
@@ -317,8 +321,24 @@ impl Player {
         Ok(result)
     }
 
-    fn shape_state(&self, tl: &Timeline, id: ShapeId) -> joydeck_render::ShapeState {
-        let s = self.state.anim_state(tl, id, self.elapsed);
+    fn shape_state(
+        &self,
+        tl: &Timeline,
+        id: ShapeId,
+        triggers: &[joydeck_anim::TriggerPlay],
+        stamps: &[joydeck_anim::StepStamp],
+    ) -> joydeck_render::ShapeState {
+        let sample = |paragraph| {
+            tl.state_ordered(
+                id,
+                paragraph,
+                self.state.step,
+                self.elapsed,
+                triggers,
+                stamps,
+            )
+        };
+        let s = sample(None);
         joydeck_render::ShapeState {
             visible: s.visible,
             opacity: s.opacity,
@@ -331,14 +351,7 @@ impl Player {
                 .paragraph_targets(id)
                 .into_iter()
                 .map(|p| {
-                    let s = tl.state_ordered(
-                        id,
-                        Some(p),
-                        self.state.step,
-                        self.elapsed,
-                        &self.state.trigger_plays(),
-                        &self.state.trigger_stamps(),
-                    );
+                    let s = sample(Some(p));
                     (
                         p,
                         joydeck_render::ParaState {

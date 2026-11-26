@@ -1512,27 +1512,19 @@ impl FontDb {
     /// an open substitute ([`substitutes`]), then to Inter. Installed system fonts are found by name
     /// whatever ran before.
     pub fn face(&self, family: &str, style: &str) -> Arc<FontFace> {
-        if let Some(f) = self.try_family(family, style) {
-            return f;
-        }
-        for sub in substitutes(family) {
-            if let Some(f) = self.try_family(sub, style) {
-                return f;
-            }
-        }
-        for sub in [
+        const SYSTEM_FALLBACKS: &[&str] = &[
             FALLBACK_FAMILY,
             "Helvetica Neue",
             "Arial",
             "Liberation Sans",
             "DejaVu Sans",
             "Segoe UI",
-        ] {
-            if let Some(f) = self.try_family(sub, style) {
-                return f;
-            }
-        }
-        self.find(LAST_RESORT_FAMILY, "Regular")
+        ];
+        std::iter::once(family)
+            .chain(substitutes(family).iter().copied())
+            .chain(SYSTEM_FALLBACKS.iter().copied())
+            .find_map(|candidate| self.try_family(candidate, style))
+            .or_else(|| self.find(LAST_RESORT_FAMILY, "Regular"))
             .or_else(|| self.find(FALLBACK_FAMILY, "Regular"))
             .or_else(|| self.read_faces().first().cloned())
             .unwrap_or_else(last_resort_face)
@@ -1700,61 +1692,48 @@ impl FontDb {
             }
             return self.instance(family, style);
         }
-        let faces = self.read_faces();
-        let mut cands: Vec<&Arc<FontFace>> = faces
+        let requested = norm(style);
+        let weight = style_weight(style);
+        let italic = style_italic(style);
+        let legacy_default = if italic { "italic" } else { "regular" };
+        self.read_faces()
             .iter()
-            .filter(|f| f.family.eq_ignore_ascii_case(family) && !f.style.contains('{'))
-            .collect();
-        cands.sort_by(|a, b| a.bytes.system_path.cmp(&b.bytes.system_path));
-        let ns = norm(style);
-        if cands.is_empty() {
-            // A Windows family name ("Segoe UI Semibold", "Arial Black"): its faces, matched by
-            // their Windows style ("Regular", "Bold"…).
-            cands = faces
-                .iter()
-                .filter(|f| {
-                    f.legacy
-                        .as_ref()
-                        .is_some_and(|(lf, _)| lf.eq_ignore_ascii_case(family))
-                })
-                .collect();
-            cands.sort_by(|a, b| a.bytes.system_path.cmp(&b.bytes.system_path));
-            if let Some(f) = cands
-                .iter()
-                .find(|f| f.legacy.as_ref().is_some_and(|(_, ls)| norm(ls) == ns))
-            {
-                return Some((*f).clone());
-            }
-            // Bold of a family that is itself a weight (Semibold, Light): the face, made bolder
-            // by the caller, as Windows does, rather than a face of another weight.
-            if let Some(f) = cands.iter().find(|f| {
-                f.legacy.as_ref().is_some_and(|(_, ls)| {
-                    norm(ls)
-                        == norm(if style_italic(style) {
-                            "Italic"
-                        } else {
-                            "Regular"
-                        })
-                })
-            }) {
-                return Some((*f).clone());
-            }
-        }
-        if cands.is_empty() {
-            return None;
-        }
-        if let Some(f) = cands.iter().find(|f| norm(&f.style) == ns) {
-            return Some((*f).clone());
-        }
-        let (tw, ti) = (style_weight(style), style_italic(style));
-        cands
-            .iter()
-            .min_by(|a, b| {
-                let sa = (a.weight - tw).abs() + if a.italic != ti { 1000.0 } else { 0.0 };
-                let sb = (b.weight - tw).abs() + if b.italic != ti { 1000.0 } else { 0.0 };
-                sa.total_cmp(&sb)
+            .filter_map(|face| {
+                let rank = if face.family.eq_ignore_ascii_case(family) && !face.style.contains('{')
+                {
+                    if norm(&face.style) == requested { 0 } else { 1 }
+                } else {
+                    let (name, style) = face.legacy.as_ref()?;
+                    if !name.eq_ignore_ascii_case(family) {
+                        return None;
+                    }
+                    let style = norm(style);
+                    if style == requested {
+                        2
+                    } else if style == legacy_default {
+                        // Keep the style's own family weight and let the caller synthesize bold.
+                        3
+                    } else if norm(&face.style) == requested {
+                        4
+                    } else {
+                        5
+                    }
+                };
+                let distance = match rank {
+                    1 | 5 => {
+                        (face.weight - weight).abs()
+                            + if face.italic == italic { 0. } else { 1000. }
+                    }
+                    _ => 0.,
+                };
+                Some((rank, distance, face))
             })
-            .map(|f| (*f).clone())
+            .min_by(|a, b| {
+                a.0.cmp(&b.0)
+                    .then_with(|| a.1.total_cmp(&b.1))
+                    .then_with(|| a.2.bytes.system_path.cmp(&b.2.bytes.system_path))
+            })
+            .map(|(_, _, face)| face.clone())
     }
 
     /// First face (fallback family first, then load order) that covers `c`; on native, system

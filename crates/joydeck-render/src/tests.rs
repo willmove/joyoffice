@@ -1411,6 +1411,40 @@ fn morph_path_ends_match_the_slides() {
 }
 
 #[test]
+fn morph_transition_cuts_use_the_exact_slide_rasters() {
+    use joydeck_model::Transition;
+
+    let from = |name, geom, x| Shape {
+        id: ShapeId(1),
+        name,
+        geom,
+        xfrm: Some(Xfrm::new(x, 100.0, 200.0, 170.0)),
+        style: Some(ShapeStyle::accent(joydeck_color::SchemeSlot::Accent1)),
+        ..Default::default()
+    };
+    let mut p = deck_with(vec![from(
+        "!!Contour".into(),
+        Geom::preset("ellipse"),
+        50.0,
+    )]);
+    let mut next = (*p.slides[0]).clone();
+    next.shapes = vec![from("!!Contour".into(), Geom::preset("star5"), 350.0)];
+    next.transition = Some(Transition {
+        kind: "morph".into(),
+        ..Default::default()
+    });
+    p.slides.push(next.into());
+    let opts = RenderOpts {
+        scale: 0.55,
+        ..Default::default()
+    };
+    for (t, page) in [(0.0, 0), (1.0, 1)] {
+        let cut = crate::render_transition(&p, 1, t, &opts);
+        assert_eq!(cut.pixels, render_slide(&p, page, &opts).pixels);
+    }
+}
+
+#[test]
 fn morph_path_fades_a_fill_only_one_side_has() {
     let bx = Xfrm::new(100.0, 100.0, 200.0, 200.0);
     let form = |id: u32, g: &str| Shape {

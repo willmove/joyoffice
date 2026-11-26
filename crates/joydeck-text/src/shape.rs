@@ -224,16 +224,16 @@ fn shape_cells(
     let levels = bidi::levels_lang(text, &chars, rtl, &rtl_lang);
     let scripts = script::resolve(&chars);
     let mut boundary = vec![false; n];
-    let mut graphemes: Vec<(usize, usize)> = Vec::new();
-    for (b, g) in text.grapheme_indices(true) {
-        let Some(&i) = char_at_byte.get(&b) else {
-            continue;
-        };
-        if let Some(x) = boundary.get_mut(i) {
-            *x = true;
-        }
-        graphemes.push((i, i + g.chars().count()));
-    }
+    let graphemes: Vec<_> = text
+        .graphemes(true)
+        .scan(0, |start, grapheme| {
+            let end = *start + grapheme.chars().count();
+            let range = (*start, end);
+            boundary[*start] = true;
+            *start = end;
+            Some(range)
+        })
+        .collect();
     let face_index = |faces: &mut Vec<Arc<FontFace>>, f: &Arc<FontFace>| -> usize {
         if let Some(i) = faces.iter().position(|x| Arc::ptr_eq(x, f)) {
             return i;
@@ -328,47 +328,21 @@ fn shape_cells(
             }
         }
     }
-    // Items: maximal ranges of one level, face, script and shaping style (case mapping, language).
-    let upper = |i: usize| {
-        styles
-            .get(char_style.get(i).copied().unwrap_or(0))
-            .is_some_and(|st| st.caps != Caps::None)
-    };
-    let lang = |i: usize| {
-        styles
-            .get(char_style.get(i).copied().unwrap_or(0))
-            .and_then(|st| st.lang.as_deref())
-    };
-    let kern = |i: usize| {
-        styles
-            .get(char_style.get(i).copied().unwrap_or(0))
-            .is_some_and(|st| st.kern)
-    };
-    let up = |i: usize| cells.get(i).is_some_and(|c| c.upright);
-    let key = |i: usize| {
-        (
-            levels.get(i).copied(),
-            char_face.get(i).copied(),
-            scripts.get(i).map(|s| s.0),
-            upper(i),
-            lang(i),
-            kern(i),
-            up(i),
-        )
-    };
-    let mut items: Vec<(usize, usize)> = Vec::new();
-    let mut a = 0;
-    while a < n {
-        let mut b = a + 1;
-        while b < n && key(b) == key(a) {
-            b += 1;
-        }
-        items.push((a, b));
-        a = b;
-    }
-    // Upright glyphs keep their horizontal forms: PowerPoint turns "、", "。" and "「" as they are
-    // (no `vert` alternates).
-    for (a, b) in items {
+    // Shape a contiguous item whenever any property that affects glyph selection changes.
+    // Paint-only styles can still share the item so contextual shaping crosses style boundaries.
+    let mut remaining = 0;
+    while remaining < cells.len() {
+        let key_at = |i: usize| {
+            ItemKey::at(
+                &cells[i],
+                scripts.get(i).and_then(|script| script.0),
+                styles,
+            )
+        };
+        let key = key_at(remaining);
+        let end = (remaining + 1..cells.len())
+            .find(|&offset| key_at(offset) != key)
+            .unwrap_or(cells.len());
         shape_item(
             &mut cells,
             styles,
@@ -376,11 +350,12 @@ fn shape_cells(
             text,
             &byte_of,
             &char_at_byte,
-            a..b,
-            scripts.get(a).and_then(|s| s.0),
-            lang(a),
-            upper(a),
+            remaining..end,
+            key.script,
+            key.language,
+            key.uppercase,
         );
+        remaining = end;
     }
     // Stacked text: each character takes one em down the line, centred across it (PowerPoint
     // stacks 18 pt Latin letters about 18 pt apart, a space only its own width).
@@ -411,6 +386,32 @@ fn shape_cells(
         }
     }
     cells
+}
+
+#[derive(PartialEq, Eq)]
+struct ItemKey<'a> {
+    level: u8,
+    face: usize,
+    script: Option<ScriptTag>,
+    language: Option<&'a str>,
+    uppercase: bool,
+    kerning: bool,
+    upright: bool,
+}
+
+impl<'a> ItemKey<'a> {
+    fn at(cell: &Cell, script: Option<ScriptTag>, styles: &'a [Style]) -> Self {
+        let style = styles.get(cell.style);
+        Self {
+            level: cell.level,
+            face: cell.face,
+            script,
+            language: style.and_then(|style| style.lang.as_deref()),
+            uppercase: style.is_some_and(|style| style.caps != Caps::None),
+            kerning: style.is_some_and(|style| style.kern),
+            upright: cell.upright,
+        }
+    }
 }
 
 /// A character in capitals (`cap="all"`/`"small"`): its uppercase when that is one character.

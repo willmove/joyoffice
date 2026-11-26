@@ -4,6 +4,8 @@
 )]
 //! Morph: matching shapes between two slides, interpolating their boxes and building the frames.
 
+use std::collections::{HashMap, VecDeque};
+
 use joydeck_model::resolve::{self, Ctx};
 use joydeck_model::{
     ColorRef, Fill, Geom, Presentation, Rgba, Shape, ShapeId, ShapeKind, Slide, Xfrm, walk,
@@ -22,49 +24,72 @@ fn text_of(s: &Shape) -> String {
 /// the other slide stays unpaired and fades in place, as in PowerPoint (#119). Each shape is used
 /// once; top-level shapes only (groups move whole).
 pub fn morph_pairs(a: &Slide, b: &Slide) -> Vec<(ShapeId, ShapeId)> {
-    let mut pairs: Vec<(ShapeId, ShapeId)> = Vec::new();
-    let mut used_a = vec![false; a.shapes.len()];
-    let mut used_b = vec![false; b.shapes.len()];
-    let passes: [&dyn Fn(&Shape, &Shape) -> bool; 4] = [
-        &|x, y| x.name.starts_with("!!") && x.name == y.name,
-        &|x, y| !x.name.is_empty() && x.name == y.name,
-        &|x, y| {
-            if x.kind_name() != y.kind_name() {
-                return false;
+    match_shapes(&a.shapes, &b.shapes)
+        .into_iter()
+        .map(|(i, j)| (a.shapes[i].id, b.shapes[j].id))
+        .collect()
+}
+
+#[derive(Clone, Copy)]
+enum Rule {
+    ExplicitName,
+    Name,
+    Text,
+    Outline,
+}
+
+#[derive(PartialEq, Eq, Hash)]
+enum Key<'a> {
+    Name(&'a str),
+    Text(&'static str, &'a str),
+    Outline(&'static str, &'a str),
+}
+
+impl Rule {
+    fn key<'a>(self, shape: &'a Shape, text: &'a str) -> Option<Key<'a>> {
+        match self {
+            Self::ExplicitName if shape.name.starts_with("!!") => Some(Key::Name(&shape.name)),
+            Self::Name if !shape.name.is_empty() => Some(Key::Name(&shape.name)),
+            Self::Text if !text.trim().is_empty() => Some(Key::Text(shape.kind_name(), text)),
+            Self::Outline if text.trim().is_empty() => {
+                Some(Key::Outline(shape.kind_name(), shape.geom.preset_name()?))
             }
-            let tx = text_of(x);
-            !tx.trim().is_empty() && tx == text_of(y)
-        },
-        &|x, y| {
-            x.kind_name() == y.kind_name()
-                && x.geom.preset_name().is_some()
-                && x.geom.preset_name() == y.geom.preset_name()
-                && text_of(x).trim().is_empty()
-                && text_of(y).trim().is_empty()
-        },
-    ];
-    for pass in passes {
-        for (i, sa) in a.shapes.iter().enumerate() {
-            if used_a.get(i).copied().unwrap_or(true) {
+            _ => None,
+        }
+    }
+}
+
+fn match_shapes(old: &[Shape], new: &[Shape]) -> Vec<(usize, usize)> {
+    let texts_old: Vec<_> = old.iter().map(text_of).collect();
+    let texts_new: Vec<_> = new.iter().map(text_of).collect();
+    let mut used_old = vec![false; old.len()];
+    let mut used_new = vec![false; new.len()];
+    let mut matches = Vec::new();
+    for rule in [Rule::ExplicitName, Rule::Name, Rule::Text, Rule::Outline] {
+        let mut candidates = HashMap::<_, VecDeque<usize>>::new();
+        for (j, shape) in new.iter().enumerate() {
+            if !used_new[j]
+                && let Some(key) = rule.key(shape, &texts_new[j])
+            {
+                candidates.entry(key).or_default().push_back(j);
+            }
+        }
+        for (i, shape) in old.iter().enumerate() {
+            if used_old[i] {
                 continue;
             }
-            let found = b
-                .shapes
-                .iter()
-                .enumerate()
-                .find(|(j, sb)| !used_b.get(*j).copied().unwrap_or(true) && pass(sa, sb));
-            if let Some((j, sb)) = found {
-                if let Some(u) = used_a.get_mut(i) {
-                    *u = true;
-                }
-                if let Some(u) = used_b.get_mut(j) {
-                    *u = true;
-                }
-                pairs.push((sa.id, sb.id));
+            let destination = rule
+                .key(shape, &texts_old[i])
+                .and_then(|key| candidates.get_mut(&key))
+                .and_then(VecDeque::pop_front);
+            if let Some(j) = destination {
+                used_old[i] = true;
+                used_new[j] = true;
+                matches.push((i, j));
             }
         }
     }
-    pairs
+    matches
 }
 
 fn lerp(a: f64, b: f64, t: f64) -> f64 {
@@ -297,10 +322,15 @@ pub fn morph_frame(
     let s = smooth(clampf(t, 0.0, 1.0, 0.0));
     let ca = Ctx::for_slide(pres, a);
     let cb = Ctx::for_slide(pres, b);
-    let pairs: Vec<(ShapeId, ShapeId)> = morph_pairs(a, b)
-        .into_iter()
-        .filter(|(_, ib)| !hidden_b(*ib))
-        .collect();
+    let visible: Vec<_> = b.shapes.iter().map(|shape| !hidden_b(shape.id)).collect();
+    let mut paired_old = vec![false; a.shapes.len()];
+    let mut origin = vec![None; b.shapes.len()];
+    for (i, j) in match_shapes(&a.shapes, &b.shapes) {
+        if visible[j] {
+            paired_old[i] = true;
+            origin[j] = Some(i);
+        }
+    }
     let mut next = 1u32;
     walk(&a.shapes, &mut |x, _| {
         next = next.max(x.id.0.saturating_add(1))
@@ -334,20 +364,17 @@ pub fn morph_frame(
         f.shapes.push((sh, old));
         id
     };
-    for sa in &a.shapes {
-        if !pairs.iter().any(|(ia, _)| *ia == sa.id) {
+    for (i, sa) in a.shapes.iter().enumerate() {
+        if !paired_old[i] {
             push(sa.clone(), true, 1.0 - s);
         }
     }
-    for sb in &b.shapes {
-        let pair = pairs
-            .iter()
-            .find(|(_, ib)| *ib == sb.id)
-            .and_then(|(ia, _)| a.shapes.iter().find(|x| x.id == *ia));
-        let Some(sa) = pair else {
-            if !hidden_b(sb.id) {
-                push(sb.clone(), false, s);
-            }
+    for (j, sb) in b.shapes.iter().enumerate() {
+        if !visible[j] {
+            continue;
+        }
+        let Some(sa) = origin[j].map(|i| &a.shapes[i]) else {
+            push(sb.clone(), false, s);
             continue;
         };
         let (xa, xb) = (box_of(ca.as_ref(), sa), box_of(cb.as_ref(), sb));
@@ -417,7 +444,7 @@ pub fn morph_frame(
             if (by_text || same_text)
                 && has_text(sa)
                 && has_text(sb)
-                && let (Some(from), Some(to)) = (box_of(ca.as_ref(), sa), box_of(cb.as_ref(), sb))
+                && let (Some(from), Some(to)) = (xa, xb)
             {
                 text.push(MorphText {
                     old,

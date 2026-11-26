@@ -21,68 +21,51 @@ thread_local! {
 
 /// Lay out a shape's text body.
 pub fn layout(ctx: &Ctx, shape: &Shape, body: &TextBody, opts: &Opts) -> TextLayout {
-    let bp = resolve::body(ctx, shape);
-    let autofit = bp.autofit.unwrap_or(AutoFit::None);
-    // Shrink on overflow starts from the scale the file was saved with (`fontScale`,
-    // `lnSpcReduction`), which is what PowerPoint draws; editing the text resets it.
-    let (scale0, reduce0, no_saved_scale) = match (autofit, opts.no_shrink) {
-        (
-            AutoFit::Shrink {
-                font_scale,
-                line_reduction,
-            },
-            false,
-        ) => (
-            font_scale
-                .filter(|s| s.is_finite())
-                .map(|s| s.clamp(0.1, 1.0))
-                .unwrap_or(1.0),
-            if line_reduction.is_finite() {
-                line_reduction.clamp(0.0, 0.2)
-            } else {
-                0.0
-            },
-            font_scale.is_none(),
-        ),
-        _ => (1.0, 0.0, false),
+    let properties = resolve::body(ctx, shape);
+    let measure =
+        |scale, reduction| layout_scaled(ctx, shape, body, &properties, opts, scale, reduction);
+    let Some(AutoFit::Shrink {
+        font_scale,
+        line_reduction,
+    }) = properties.autofit.filter(|_| !opts.no_shrink)
+    else {
+        return measure(1.0, 0.0);
     };
-    let mut l = layout_scaled(ctx, shape, body, &bp, opts, scale0, reduce0);
-    // A scale PowerPoint saved is drawn as it is: PowerPoint fits the text again only when it
-    // changes (and editing resets the saved scale), not when a file opens, even where our
-    // metrics would call it overflowing (trailing empty paragraphs, substituted fonts).
-    // A body whose file has no `fontScale` at all (`<a:normAutofit/>`) is the schema default
-    // 100 % and is drawn as it is too, not refitted on open (#724).
-    let saved = no_saved_scale || scale0 < 1.0 || reduce0 > 0.0;
-    if let (AutoFit::Shrink { .. }, false) = (autofit, opts.no_shrink)
-        && l.overflow
-        && !saved
-    {
-        // Text that overflows even at the smallest scale gets that scale: every larger one
-        // overflows too, so searching would only lay it out a dozen more times (seconds for a
-        // body of tens of thousands of paragraphs, on every redraw of the slide).
-        let smallest = layout_scaled(ctx, shape, body, &bp, opts, 0.1, 0.2);
-        if smallest.overflow {
-            return smallest;
-        }
-        // Binary search the largest scale that fits (steps like 90%, 80%… with line reduction).
-        let (mut lo, mut hi) = (0.1_f64, scale0);
-        let mut best = Some(smallest);
-        for _ in 0..12 {
-            let mid = (lo + hi) / 2.0;
-            let red: f64 = ((1.0 - mid) * 0.8_f64).min(0.2).max(reduce0);
-            let t = layout_scaled(ctx, shape, body, &bp, opts, mid, red);
-            if t.overflow {
-                hi = mid;
-            } else {
-                lo = mid;
-                best = Some(t);
-            }
-        }
-        if let Some(b) = best {
-            l = b;
+    let scale = font_scale
+        .filter(|value| value.is_finite())
+        .map_or(1.0, |value| value.clamp(0.1, 1.0));
+    let reduction = if line_reduction.is_finite() {
+        line_reduction.clamp(0.0, 0.2)
+    } else {
+        0.0
+    };
+    let original = measure(scale, reduction);
+    // Both explicit saved shrinkage and the schema's implicit 100% keep their file appearance.
+    // The editor requests reflow by supplying an explicit full scale without leading reduction.
+    if !original.overflow || font_scale.is_none() || scale < 1.0 || reduction > 0.0 {
+        return original;
+    }
+    largest_fit(measure)
+}
+
+fn largest_fit(measure: impl Fn(f64, f64) -> TextLayout) -> TextLayout {
+    let mut best = measure(0.1, 0.2);
+    if best.overflow {
+        return best;
+    }
+    let mut lower = 0.1;
+    let mut upper = 1.0;
+    for _ in 0..12 {
+        let scale: f64 = (lower + upper) / 2.0;
+        let trial = measure(scale, ((1.0 - scale) * 0.8).min(0.2));
+        if trial.overflow {
+            upper = scale;
+        } else {
+            lower = scale;
+            best = trial;
         }
     }
-    l
+    best
 }
 
 /// Geometry of the text box shared by every line: rotation, inner rectangle, wrapping and columns.
