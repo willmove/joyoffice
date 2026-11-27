@@ -177,7 +177,18 @@ pub(super) fn draw_text(ctx: &mut RenderContext, t: &Text, m: Affine) {
         ctx.fill_path(&(at * Rect::new(0.0, -a, width, d).to_path(0.1)));
     }
     let color = rgba(t.color);
+    let copy = t.composition == joydeck_metafile::ImageComposition::SourceCopy;
     ctx.set_paint(color);
+    let paint = |ctx: &mut RenderContext, path: &BezPath| {
+        if copy {
+            super::metafile_scene::source_copy(ctx, |ctx| {
+                ctx.set_paint(color);
+                ctx.fill_path(path);
+            });
+        } else {
+            ctx.fill_path(path);
+        }
+    };
     for (g, _) in &shaped {
         let path = db.outline(&g.face, g.gid);
         if path.elements().is_empty() {
@@ -205,12 +216,17 @@ pub(super) fn draw_text(ctx: &mut RenderContext, t: &Text, m: Affine) {
         {
             continue;
         }
-        ctx.fill_path(&p);
+        paint(ctx, &p);
         if bold && g.face.weight < 600.0 {
-            ctx.set_stroke(
-                kurbo::Stroke::new(em * 0.025 * scale_of(at)).with_join(kurbo::Join::Round),
-            );
-            ctx.stroke_path(&p);
+            let stroke =
+                kurbo::Stroke::new(em * 0.025 * scale_of(at)).with_join(kurbo::Join::Round);
+            if copy {
+                let outline = kurbo::stroke(p.iter(), &stroke, &kurbo::StrokeOpts::default(), 0.25);
+                paint(ctx, &outline);
+            } else {
+                ctx.set_stroke(stroke);
+                ctx.stroke_path(&p);
+            }
         }
     }
     // Underline and strike-out: the font's own positions and thickness.
@@ -242,7 +258,7 @@ pub(super) fn draw_text(ctx: &mut RenderContext, t: &Text, m: Affine) {
         ),
     ];
     for r in lines.into_iter().flatten() {
-        ctx.fill_path(&(at * r.to_path(0.1)));
+        paint(ctx, &(at * r.to_path(0.1)));
     }
 }
 

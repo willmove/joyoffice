@@ -38,12 +38,12 @@ def emfplus(*records):
     return wrap_emf([(70, pack("<II", len(stream) + 4, 0x2B464D45) + stream)])
 
 
-def enlarged_shell(source, target, payload):
+def enlarged_shell(source, target, payload, member=PLAYBACK.MEMBER):
     slide = "ppt/slides/slide2.xml"
     with ZipFile(source) as archive, ZipFile(target, "w", ZIP_DEFLATED) as copy:
-        for member in archive.namelist():
-            data = archive.read(member)
-            if member == slide:
+        for part in archive.namelist():
+            data = archive.read(part)
+            if part == slide:
                 original = b'<a:off x="4114800" y="2743200"/><a:ext cx="2194560" cy="1463040"/>'
                 larger = b'<a:off x="635000" y="508000"/><a:ext cx="10922000" cy="5842000"/>'
                 assert data.count(original) == 1
@@ -51,9 +51,9 @@ def enlarged_shell(source, target, payload):
                 # Retain the shell's compatibility markup and media relationship. Remove slide
                 # decorations whose opaque fills would cover probes in the enlarged picture.
                 data = re.sub(rb"<p:(sp|graphicFrame)>.*?</p:\1>", b"", data, flags=re.DOTALL)
-            if member == PLAYBACK.MEMBER:
+            if part == member:
                 data = payload
-            copy.writestr(member, data)
+            copy.writestr(part, data)
 
 
 def hatch_scene():

@@ -1491,6 +1491,7 @@ fn place_fits_the_frame_scales_strokes_and_drops_far_paths() {
                 fill: None,
                 stroke: Some(([0, 0, 0, 255], 4.0)),
                 even_odd: true,
+                mix: crate::VectorMix::SourceOver,
                 region: None,
             },
             Item::Path {
@@ -1498,6 +1499,7 @@ fn place_fits_the_frame_scales_strokes_and_drops_far_paths() {
                 fill: None,
                 stroke: None,
                 even_odd: true,
+                mix: crate::VectorMix::SourceOver,
                 region: None,
             },
         ],
@@ -1577,6 +1579,7 @@ fn take_pixels_returns_only_drawable_bitmaps() {
         fill: None,
         stroke: None,
         even_odd: false,
+        mix: crate::VectorMix::SourceOver,
         region: None,
     };
     assert_eq!(path.take_pixels(), None);
@@ -2212,7 +2215,7 @@ fn hatch_brushes_draw_lines_over_the_background_mode() {
 }
 
 #[test]
-fn xor_mask_xor_draws_the_pattern_in_the_xor_colour() {
+fn xor_mask_xor_keeps_three_ordered_operations_and_the_original_pattern() {
     // The see-through shadow: XOR a grey polygon, AND a checker pattern, XOR the polygon again.
     let square = wrec(
         0x0324,
@@ -2249,19 +2252,24 @@ fn xor_mask_xor_draws_the_pattern_in_the_xor_colour() {
         square,
     ];
     let p = wmf200(&recs);
+    assert_eq!(p.items.len(), 3);
+    let xor = crate::Rop2::read(7).unwrap();
+    let and = crate::Rop2::read(9).unwrap();
+    assert!(matches!(
+        p.items.as_slice(),
+        [Item::Path { mix: crate::VectorMix::Raster(a), .. },
+         Item::Pattern { mix: crate::VectorMix::Raster(b), .. },
+         Item::Path { mix: crate::VectorMix::Raster(c), .. }] if *a == xor && *b == and && *c == xor
+    ));
+    let t = pattern_of(&p.items[1]);
+    let backdrop = [170, 85, 51, 255];
+    let gray = [128, 128, 128, 255];
+    let first = xor.paint(gray, backdrop).unwrap();
+    assert_eq!(and.paint(tile_px(t, 0, 0), first), None);
+    assert_eq!(xor.paint(gray, first), Some(backdrop));
     assert_eq!(
-        p.items.len(),
-        2,
-        "only the AND pattern (and its outline) draw: {:?}",
-        p.items
-    );
-    let t = pattern_of(&p.items[0]);
-    // 0x55 = 0101 0101: white, black, …
-    assert_eq!(tile_px(t, 0, 0)[3], 0, "white keeps what is below");
-    assert_eq!(
-        tile_px(t, 1, 0),
-        [128, 128, 128, 255],
-        "black takes the XOR colour"
+        xor.paint(gray, and.paint(tile_px(t, 1, 0), first).unwrap()),
+        Some(gray)
     );
 }
 
@@ -3682,7 +3690,7 @@ fn emfplus_curve_offsets_and_degenerate_input_are_safe() {
 }
 
 #[test]
-fn emfplus_clear_paints_the_whole_frame_and_transparent_clears_nothing() {
+fn emfplus_clear_ignores_world_transform_and_uses_the_clip_and_copy_mode() {
     let dot = prec(
         0x400A,
         0x8000,
@@ -3704,7 +3712,7 @@ fn emfplus_clear_paints_the_whole_frame_and_transparent_clears_nothing() {
         ))
         .unwrap()
     };
-    // A translated, clipped world doesn't move or cut the clear.
+    // The clear primitive spans the original device surface and uses the established device clip.
     let shift = prec(0x402D, 0, &f32s(&[30.0, 30.0]));
     let clip = prec(0x4032, 0, &f32s(&[0.0, 0.0, 5.0, 5.0]));
     let p = file(vec![
@@ -3716,6 +3724,13 @@ fn emfplus_clear_paints_the_whole_frame_and_transparent_clears_nothing() {
     ]);
     assert_eq!(p.items.len(), 2);
     let (segs, fill, ..) = path_segs(&p.items[0]);
+    assert!(matches!(
+        p.items[0],
+        Item::Path {
+            region: Some(_),
+            ..
+        }
+    ));
     assert_eq!(fill, Some([255, 255, 255, 255]));
     let xs: Vec<f32> = segs
         .iter()
@@ -3734,8 +3749,15 @@ fn emfplus_clear_paints_the_whole_frame_and_transparent_clears_nothing() {
         "clear spans {span} of {}",
         p.width
     );
-    // Transparent: only the dot.
-    assert_eq!(file(vec![clear(0x00FF_FFFF), dot.clone()]).items.len(), 1);
+    let p = file(vec![clear(0x00FF_FFFF), dot.clone()]);
+    assert!(matches!(
+        p.items[0],
+        Item::Path {
+            fill: Some([255, 255, 255, 0]),
+            mix: crate::VectorMix::SourceCopy,
+            ..
+        }
+    ));
     // No frame: nothing to clear.
     assert_eq!(plus_pic(vec![clear(0xFFFF_FFFF), dot]).items.len(), 1);
 }

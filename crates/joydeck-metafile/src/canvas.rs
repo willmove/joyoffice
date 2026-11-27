@@ -12,6 +12,7 @@ use crate::geom::{Op, P};
 use crate::raster_transfer::{Logic, RasterTransfer, TransferBrush};
 use crate::text::{ETO_CLIPPED, ETO_OPAQUE, Font, Text};
 use crate::text_records::Placement;
+use crate::vector_mix::{Rop2, VectorMix};
 use crate::{
     ClipRegion, GlyphPlacement, ImageComposition, ImagePlacement, IndexedGlyphs, MAX_BYTES,
     MAX_ITEMS, MAX_OBJECTS, MAX_PATH_OPS, MAX_STACK, Picture,
@@ -31,13 +32,6 @@ const BS_PATTERN: u32 = 3;
 const BS_DIBPATTERN: u32 = 5;
 const BS_DIBPATTERNPT: u32 = 6;
 const WINDING: u32 = 2;
-/// SETROP2 mix modes. R2_NOP leaves the destination alone: outlines and fills draw nothing.
-/// R2_XORPEN and R2_MASKPEN draw the classic see-through shadow (XOR a colour, AND a pattern, XOR
-/// the colour again); the others draw as R2_COPYPEN.
-const R2_XORPEN: u32 = 7;
-const R2_MASKPEN: u32 = 9;
-const R2_NOP: u32 = 11;
-const R2_COPYPEN: u32 = 13;
 /// SETBKMODE OPAQUE: text cells and hatch gaps are filled with the background colour.
 const OPAQUE: u32 = 2;
 const PATCOPY: u32 = 0x00F0_0021;
@@ -164,6 +158,7 @@ pub(crate) enum Raw {
         fill: Option<[u8; 4]>,
         stroke: Option<([u8; 4], f64)>,
         even_odd: bool,
+        mix: VectorMix,
         /// Device-space clip region. None is the default clip.
         region: Option<ClipRegion<f64>>,
     },
@@ -172,6 +167,8 @@ pub(crate) enum Raw {
         ops: Vec<Op>,
         even_odd: bool,
         tile: Arc<RawTile>,
+        stroke: Option<([u8; 4], f64)>,
+        mix: VectorMix,
         region: Option<ClipRegion<f64>>,
     },
     Bitmap {
@@ -184,6 +181,7 @@ pub(crate) enum Raw {
         img: Rgba,
         region: Option<ClipRegion<f64>>,
         composition: ImageComposition,
+        nearest: bool,
     },
     Transfer {
         transfer: Box<RasterTransfer>,
@@ -203,6 +201,24 @@ pub(crate) enum Raw {
 }
 
 impl Raw {
+    fn exact_mask(&self) -> bool {
+        matches!(
+            self,
+            Self::Text { .. }
+                | Self::AffineBitmap { .. }
+                | Self::Nested { .. }
+                | Self::Transfer { .. }
+                | Self::Path {
+                    mix: VectorMix::SourceCopy,
+                    ..
+                }
+                | Self::Pattern {
+                    mix: VectorMix::SourceCopy,
+                    ..
+                }
+        )
+    }
+
     fn set_region(&mut self, region: Option<ClipRegion<f64>>) {
         match self {
             Raw::Path { region: slot, .. }
@@ -249,7 +265,8 @@ struct Saved {
     pen: Pen,
     brush: Brush,
     even_odd: bool,
-    rop2: u32,
+    rop2: Rop2,
+    composition: ImageComposition,
     text: TextState,
     clip: Option<Vec<[f64; 4]>>,
 }
@@ -269,9 +286,8 @@ pub(crate) struct Canvas {
     brush: Brush,
     even_odd: bool,
     /// SETROP2 mix mode.
-    rop2: u32,
-    /// The colour of the last fill drawn with R2_XORPEN, for the see-through shadow idiom.
-    xor_color: Option<[u8; 4]>,
+    rop2: Rop2,
+    composition: ImageComposition,
     text: TextState,
     /// Device units per pattern-brush pixel: brushes are laid out in 96-dpi pixels.
     pub pattern_px: f64,
@@ -303,8 +319,8 @@ impl Canvas {
             },
             brush: Brush::new(BS_SOLID, [255, 255, 255, 255]),
             even_odd: true,
-            rop2: R2_COPYPEN,
-            xor_color: None,
+            rop2: Rop2::PEN,
+            composition: ImageComposition::SourceOver,
             text: TextState {
                 color: [0, 0, 0, 255],
                 bk_color: [255, 255, 255, 255],
@@ -345,15 +361,7 @@ impl Canvas {
     fn push(&mut self, raw: Raw) {
         match self.plus_clip.clone() {
             None => self.push_raw(raw, None),
-            Some(PlusClip::Convex { vertices, outline })
-                if matches!(
-                    raw,
-                    Raw::Text { .. }
-                        | Raw::AffineBitmap { .. }
-                        | Raw::Nested { .. }
-                        | Raw::Transfer { .. }
-                ) =>
-            {
+            Some(PlusClip::Convex { vertices, outline }) if raw.exact_mask() => {
                 if vertices.len() >= 3 {
                     self.push_raw(raw, Some(outline));
                 }
@@ -460,10 +468,26 @@ impl Canvas {
         self.even_odd = mode != WINDING;
     }
 
-    /// SETROP2. R2_NOP draws nothing; R2_XORPEN and R2_MASKPEN are read as the see-through shadow
-    /// idiom (see [`Canvas::fill_paint`]); the other mix modes draw as copy.
+    /// SETROP2 updates the GDI vector mix independently of bitmap transfers and text.
     pub fn set_rop2(&mut self, mode: u32) {
-        self.rop2 = mode;
+        if let Some(rop) = Rop2::read(mode) {
+            self.rop2 = rop;
+        }
+    }
+
+    pub fn set_plus_composition(&mut self, composition: ImageComposition) {
+        self.rop2 = Rop2::PEN;
+        self.composition = composition;
+    }
+
+    fn vector_mix(&self) -> VectorMix {
+        if self.composition == ImageComposition::SourceCopy {
+            VectorMix::SourceCopy
+        } else if self.rop2 != Rop2::PEN {
+            VectorMix::Raster(self.rop2)
+        } else {
+            VectorMix::SourceOver
+        }
     }
 
     pub fn set_text_color(&mut self, c: u32) {
@@ -472,6 +496,10 @@ impl Canvas {
 
     pub fn set_bk_color(&mut self, c: u32) {
         self.text.bk_color = colorref(c);
+    }
+
+    pub fn monochrome_colors(&self) -> ([u8; 4], [u8; 4]) {
+        (self.text.color, self.text.bk_color)
     }
 
     pub fn set_bk_mode(&mut self, mode: u32) {
@@ -542,6 +570,8 @@ impl Canvas {
                 ops: dev,
                 even_odd,
                 tile,
+                stroke: None,
+                mix: self.vector_mix(),
                 region: None,
             });
         }
@@ -576,6 +606,8 @@ impl Canvas {
         self.push(Raw::Pattern {
             ops: dev,
             even_odd,
+            stroke: None,
+            mix: self.vector_mix(),
             tile: Arc::new(RawTile {
                 w,
                 h,
@@ -598,6 +630,7 @@ impl Canvas {
                 brush: self.brush.clone(),
                 even_odd: self.even_odd,
                 rop2: self.rop2,
+                composition: self.composition,
                 text: self.text.clone(),
                 clip: self.clip.clone(),
             });
@@ -623,6 +656,7 @@ impl Canvas {
         self.brush = s.brush;
         self.even_odd = s.even_odd;
         self.rop2 = s.rop2;
+        self.composition = s.composition;
         self.text = s.text;
         self.clip = s.clip;
     }
@@ -770,10 +804,7 @@ impl Canvas {
         }
     }
 
-    /// The current brush's paint. Hatch and monochrome brushes take the background colour (when
-    /// the background mode is opaque) and the text colour. Under R2_MASKPEN (destination AND
-    /// brush) a tile's white pixels keep what is below, and its black ones take the colour of the
-    /// XOR fill before it: XOR, AND, XOR again leaves that colour where the tile is black.
+    /// The current brush's paint. Monochrome bitmaps use the current background and text colors.
     fn fill_paint(&self) -> Option<Paint> {
         let b = &self.brush;
         match b.style {
@@ -792,7 +823,7 @@ impl Canvas {
             }
             BS_PATTERN | BS_DIBPATTERN | BS_DIBPATTERNPT => {
                 let p = b.pattern.as_ref()?;
-                if !p.mono && self.rop2 != R2_MASKPEN {
+                if !p.mono {
                     let cell = self.pattern_px;
                     return Some(Paint::Tile(
                         p.plain
@@ -811,24 +842,12 @@ impl Canvas {
                 }
                 let mut px = p.px.clone();
                 for c in px.as_chunks_mut::<4>().0 {
-                    if p.mono {
-                        let light = u16::from(c[0]) + u16::from(c[1]) + u16::from(c[2]) >= 384;
-                        let v = if light {
-                            self.text.bk_color
-                        } else {
-                            self.text.color
-                        };
-                        *c = [v[0], v[1], v[2], 255];
-                    }
-                    if self.rop2 == R2_MASKPEN {
-                        if c[..3] == [255, 255, 255] {
-                            c[3] = 0;
-                        } else if c[..3] == [0, 0, 0]
-                            && let Some(x) = self.xor_color
-                        {
-                            *c = x;
-                        }
-                    }
+                    let light = u16::from(c[0]) + u16::from(c[1]) + u16::from(c[2]) >= 384;
+                    *c = if light {
+                        self.text.bk_color
+                    } else {
+                        self.text.color
+                    };
                 }
                 Some(Paint::Tile(Arc::new(RawTile {
                     w: p.w,
@@ -845,15 +864,33 @@ impl Canvas {
 
     /// Pushes device ops filled with `fill` and stroked with `stroke`: a tile fill and its outline
     /// are two items.
-    fn push_shape(&mut self, ops: Vec<Op>, fill: Option<Paint>, stroke: Option<([u8; 4], f64)>) {
+    fn push_shape(
+        &mut self,
+        ops: Vec<Op>,
+        fill: Option<Paint>,
+        stroke: Option<([u8; 4], f64)>,
+        mix: VectorMix,
+    ) {
         let even_odd = self.even_odd;
         match fill {
+            Some(Paint::Tile(tile)) if matches!(mix, VectorMix::Raster(_)) => {
+                self.push(Raw::Pattern {
+                    ops,
+                    even_odd,
+                    tile,
+                    stroke,
+                    mix,
+                    region: None,
+                });
+            }
             Some(Paint::Tile(tile)) => {
                 if stroke.is_some() {
                     self.push(Raw::Pattern {
                         ops: ops.clone(),
                         even_odd,
                         tile,
+                        stroke: None,
+                        mix,
                         region: None,
                     });
                     self.push(Raw::Path {
@@ -861,6 +898,7 @@ impl Canvas {
                         fill: None,
                         stroke,
                         even_odd,
+                        mix,
                         region: None,
                     });
                 } else {
@@ -868,6 +906,8 @@ impl Canvas {
                         ops,
                         even_odd,
                         tile,
+                        stroke: None,
+                        mix,
                         region: None,
                     });
                 }
@@ -877,6 +917,7 @@ impl Canvas {
                 fill: Some(c),
                 stroke,
                 even_odd,
+                mix,
                 region: None,
             }),
             None if stroke.is_some() => self.push(Raw::Path {
@@ -884,25 +925,10 @@ impl Canvas {
                 fill: None,
                 stroke,
                 even_odd,
+                mix,
                 region: None,
             }),
             None => {}
-        }
-    }
-
-    /// Whether the mix mode suppresses drawing: R2_NOP draws nothing, and R2_XORPEN shapes only
-    /// remember their fill colour (an XOR pair cancels; the see-through shadow idiom draws its
-    /// pattern in that colour).
-    fn mix_skips(&mut self, fill: bool) -> bool {
-        match self.rop2 {
-            R2_NOP => true,
-            R2_XORPEN => {
-                if fill && self.brush.style == BS_SOLID {
-                    self.xor_color = Some(self.brush.color);
-                }
-                true
-            }
-            _ => false,
         }
     }
 
@@ -935,12 +961,12 @@ impl Canvas {
         if self.in_path {
             return self.push_path_ops(dev);
         }
-        if self.mix_skips(fill) || dev.len() < 2 {
+        if self.rop2 == Rop2::DESTINATION || dev.len() < 2 {
             return;
         }
         let fill = if fill { self.fill_paint() } else { None };
         let stroke = if stroke { self.stroke_pen() } else { None };
-        self.push_shape(dev, fill, stroke);
+        self.push_shape(dev, fill, stroke, self.vector_mix());
     }
 
     pub fn move_to(&mut self, p: P) {
@@ -1021,25 +1047,22 @@ impl Canvas {
     /// FILLPATH, STROKEPATH and STROKEANDFILLPATH: paints the bracketed path and empties it.
     pub fn paint_path(&mut self, fill: bool, stroke: bool) {
         let ops = std::mem::take(&mut self.path);
-        if self.mix_skips(fill) || ops.len() < 2 {
+        if self.rop2 == Rop2::DESTINATION || ops.len() < 2 {
             return;
         }
         let fill = if fill { self.fill_paint() } else { None };
         let stroke = if stroke { self.stroke_pen() } else { None };
-        self.push_shape(ops, fill, stroke);
+        self.push_shape(ops, fill, stroke, self.vector_mix());
     }
 
     /// Fills a logical rectangle `[l, t, r, b]` with the current brush (PATBLT, PATCOPY blits).
     pub fn fill_brush_rect(&mut self, [l, t, r, b]: [f64; 4]) {
-        if self.mix_skips(true) {
-            return;
-        }
         let fill = self.fill_paint();
         let dev: Vec<Op> = crate::geom::rect(l, t, r, b)
             .iter()
             .map(|o| self.map_op(*o))
             .collect();
-        self.push_shape(dev, fill, None);
+        self.push_shape(dev, fill, None, VectorMix::SourceOver);
     }
 
     /// Fills a logical rectangle `[l, t, r, b]` with a solid colour (ROP fills such as BLACKNESS).
@@ -1053,6 +1076,7 @@ impl Canvas {
             fill: Some(color),
             stroke: None,
             even_odd: true,
+            mix: VectorMix::SourceOver,
             region: None,
         });
     }
@@ -1143,6 +1167,7 @@ impl Canvas {
                 dx,
                 font: lf.font,
                 color: self.text.color,
+                composition: self.composition,
                 background: self.text.bk_opaque.then_some(self.text.bk_color),
                 h_align: placement.horizontal,
                 v_align: placement.vertical,
@@ -1169,6 +1194,7 @@ impl Canvas {
                 dx: Vec::new(),
                 font: font.font.clone(),
                 color: self.text.color,
+                composition: self.composition,
                 background: None,
                 h_align: placement.horizontal,
                 v_align: placement.vertical,
@@ -1215,7 +1241,13 @@ impl Canvas {
         source: [f64; 4],
         img: Rgba,
     ) -> Option<()> {
-        self.composited_bitmap(destination, source, img, ImageComposition::SourceOver)
+        self.composited_bitmap(
+            destination,
+            source,
+            img,
+            ImageComposition::SourceOver,
+            false,
+        )
     }
 
     pub fn raster_transfer(&mut self, mut transfer: RasterTransfer) {
@@ -1248,6 +1280,7 @@ impl Canvas {
         mut source: [f64; 4],
         img: Rgba,
         composition: ImageComposition,
+        nearest: bool,
     ) -> Option<()> {
         let (w, h) = (img.w as f64, img.h as f64);
         if img.bottom_up {
@@ -1260,6 +1293,7 @@ impl Canvas {
             img,
             region: None,
             composition,
+            nearest,
         });
         Some(())
     }

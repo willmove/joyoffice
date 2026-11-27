@@ -103,6 +103,7 @@ pub(crate) fn clip_raw(raw: Raw, clip: &[P]) -> Vec<Raw> {
             fill,
             stroke,
             even_odd,
+            mix,
             region,
         } => {
             let Some(b) = ops_bbox(&ops) else {
@@ -114,6 +115,7 @@ pub(crate) fn clip_raw(raw: Raw, clip: &[P]) -> Vec<Raw> {
                     fill,
                     stroke,
                     even_odd,
+                    mix,
                     region,
                 }];
             }
@@ -130,6 +132,7 @@ pub(crate) fn clip_raw(raw: Raw, clip: &[P]) -> Vec<Raw> {
                         fill,
                         stroke: None,
                         even_odd,
+                        mix,
                         region: region.clone(),
                     });
                 }
@@ -142,6 +145,7 @@ pub(crate) fn clip_raw(raw: Raw, clip: &[P]) -> Vec<Raw> {
                         fill: None,
                         stroke,
                         even_odd,
+                        mix,
                         region,
                     });
                 }
@@ -152,6 +156,8 @@ pub(crate) fn clip_raw(raw: Raw, clip: &[P]) -> Vec<Raw> {
             ops,
             even_odd,
             tile,
+            stroke,
+            mix,
             region,
         } => {
             let Some(b) = ops_bbox(&ops) else {
@@ -162,6 +168,8 @@ pub(crate) fn clip_raw(raw: Raw, clip: &[P]) -> Vec<Raw> {
                     ops,
                     even_odd,
                     tile,
+                    stroke,
+                    mix,
                     region,
                 }];
             }
@@ -176,6 +184,8 @@ pub(crate) fn clip_raw(raw: Raw, clip: &[P]) -> Vec<Raw> {
                     ops: f,
                     even_odd,
                     tile,
+                    stroke,
+                    mix,
                     region,
                 }]
             }

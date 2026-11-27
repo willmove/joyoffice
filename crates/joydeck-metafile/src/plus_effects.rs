@@ -157,16 +157,18 @@ impl Effect {
         *work = work.checked_sub(pixels)?;
         match self {
             Self::Blur(radius, expand) => {
-                if *radius < 1.0 {
+                if radius.round() == 0.0 {
                     return Some(0);
                 }
                 let pad = if *expand { radius.ceil() as usize } else { 0 };
-                *image = blurred(image, *radius, pad, work)?;
+                // Windows GDI+ expands the horizontal profile in bitmap coordinates in
+                // both direct DrawImage and serialized EMF+ playback.
+                *image = blurred(image, *radius, pad, false, work)?;
                 return Some(pad);
             }
             Self::Sharpen(radius, amount) => {
                 if *radius >= 1.0 && *amount > 0.0 {
-                    let blurred = blurred(image, *radius, 0, work)?;
+                    let blurred = blurred(image, *radius, 0, true, work)?;
                     for (pixel, b) in image
                         .px
                         .as_chunks_mut::<4>()
@@ -298,17 +300,32 @@ fn hsl_to_rgb(h: f64, s: f64, l: f64) -> [u8; 3] {
     })
 }
 
-fn blurred(image: &Rgba, radius: f64, pad: usize, work: &mut usize) -> Option<Rgba> {
+fn blurred(
+    image: &Rgba,
+    radius: f64,
+    pad: usize,
+    vertical: bool,
+    work: &mut usize,
+) -> Option<Rgba> {
     let w = image.w.checked_add(pad * 2)?;
     let h = image.h.checked_add(pad * 2)?;
     let size = w.checked_mul(h)?;
     if size > MAX_FILTER_PIXELS || size > MAX_PIXELS {
         return None;
     }
-    let support = radius.floor() as usize;
+    let support = if vertical {
+        radius.floor()
+    } else {
+        radius.round()
+    } as usize;
     let samples = 2 * support + 1;
-    *work = work.checked_sub(size.saturating_mul(2 * samples + 1))?;
-    let sigma = radius * 0.5;
+    let passes = 1 + usize::from(vertical);
+    *work = work.checked_sub(size.saturating_mul(passes * samples + 1))?;
+    let sigma = if vertical {
+        radius * 0.5
+    } else {
+        radius * 0.505
+    };
     let weights: Vec<u32> = (0..samples)
         .map(|i| {
             let x = (i as f64 - support as f64) / sigma;
@@ -338,8 +355,12 @@ fn blurred(image: &Rgba, radius: f64, pad: usize, work: &mut usize) -> Option<Rg
     for y in 0..h {
         gaussian_line(&premultiplied, &mut temp, (y * w, w, 1), &weights, total);
     }
-    for x in 0..w {
-        gaussian_line(&temp, &mut premultiplied, (x, h, w), &weights, total);
+    if vertical {
+        for x in 0..w {
+            gaussian_line(&temp, &mut premultiplied, (x, h, w), &weights, total);
+        }
+    } else {
+        premultiplied = temp;
     }
     for [r, g, b, a] in premultiplied.as_chunks_mut::<4>().0 {
         if *a != 0 {
@@ -407,11 +428,10 @@ mod tests {
         assert_eq!(Effect::Blur(1.0, true).apply(&mut image, &mut 100), Some(1));
         assert_eq!((image.w, image.h), (3, 3));
         let pixels = image.px.as_chunks::<4>().0;
-        for pixel in pixels {
-            assert_eq!(&pixel[..3], &[255, 0, 0]);
-        }
-        assert!((150..=165).contains(&pixels[4][3]));
-        assert!(pixels[4][3] > pixels[1][3] && pixels[1][3] > pixels[0][3]);
-        assert_eq!(pixels[1], pixels[3]);
+        assert!(pixels[..3].iter().chain(&pixels[6..]).all(|p| *p == [0; 4]));
+        assert_eq!(&pixels[4][..3], &[255, 0, 0]);
+        assert!((197..=201).contains(&pixels[4][3]));
+        assert!((26..=30).contains(&pixels[3][3]));
+        assert_eq!(pixels[3], pixels[5]);
     }
 }

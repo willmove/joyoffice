@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use kurbo::{Affine, BezPath, Rect, Shape};
 
-use crate::{ClipRegion, ImagePlacement, Item, Picture, Seg};
+use crate::{ClipRegion, ImagePlacement, Item, Picture, Seg, VectorMix};
 
 pub const MAX_BITMAP_SIDE: u32 = 30_000;
 const COORDINATE_LIMIT: f64 = 1e6;
@@ -19,6 +19,7 @@ pub enum PlacedItem {
         fill: Option<[u8; 4]>,
         stroke: Option<([u8; 4], f64)>,
         even_odd: bool,
+        mix: VectorMix,
         region: Masks,
     },
     Bitmap {
@@ -41,6 +42,8 @@ pub enum PlacedItem {
         path: BezPath,
         even_odd: bool,
         tile: Affine,
+        stroke: Option<([u8; 4], f64)>,
+        mix: VectorMix,
         region: Masks,
     },
     Text {
@@ -135,6 +138,7 @@ impl Projector {
                 fill,
                 stroke,
                 even_odd,
+                mix,
                 region,
             } => {
                 let path = self.path(segs)?;
@@ -144,6 +148,7 @@ impl Projector {
                     fill: *fill,
                     stroke: stroke.map(|(color, w)| (color, f64::from(w) * self.stroke_scale)),
                     even_odd: *even_odd,
+                    mix: *mix,
                     region,
                 }
             }
@@ -151,6 +156,8 @@ impl Projector {
                 segs,
                 even_odd,
                 tile,
+                stroke,
+                mix,
                 region,
             } => {
                 let path = self.path(segs)?;
@@ -167,6 +174,8 @@ impl Projector {
                     path,
                     even_odd: *even_odd,
                     tile,
+                    stroke: stroke.map(|(color, w)| (color, f64::from(w) * self.stroke_scale)),
+                    mix: *mix,
                     region,
                 }
             }
