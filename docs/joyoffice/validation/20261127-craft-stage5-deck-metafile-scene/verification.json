@@ -1,0 +1,301 @@
+{
+  "date": "2026-11-27",
+  "base": "1fa0e1d9",
+  "frozenRevision": "14cbb29616d7c0ababbf40a8f6c0218b996e7ae8",
+  "binaries": {
+    "frozen": "f8fd32a31570e241f17ced00dbce66f7e2ae53739b18e3c70bea03c2e78794f7",
+    "candidate": "3c2da7f501f4f6c63107659339f14566bd3a526472c73c5b973398ba51f7b298"
+  },
+  "tests": {
+    "rustPassed": 1083,
+    "rustFailed": 0,
+    "rustIgnored": 0,
+    "cliChecks": {
+      "r1": 28,
+      "r2": 20,
+      "r3": 20,
+      "r4-r5": 23,
+      "r6-r7": 35
+    },
+    "mcpResponses": 60
+  },
+  "exchange": {
+    "samples": 17,
+    "outputs": 100,
+    "reads": 234,
+    "knownChartComparisons": 12,
+    "preserveRefusals": [
+      "signed",
+      "macro-enabled"
+    ],
+    "catalogRejections": [
+      "bad-member-crc",
+      "broken-pptx",
+      "future-native",
+      "symlink-metadata",
+      "unbound-source",
+      "unknown-capability",
+      "utf16-dtd"
+    ]
+  },
+  "directed": {
+    "caps": {
+      "emfSha256": "479555e32e44bbc2c1ba6d5192da27e802eb2d0ba76e3af1b22ab7f80fb3e3e1",
+      "candidateRgbSha256": "af79406f26e57c96bd2cbbd5797cc0d241dfa659f9ec4a2320fd38f52e5218d8",
+      "frozenRgbSha256": "079e0bd75e9811bd47212a7c4ec55960378af0e1493bd3ec41c26768d2bc1e54",
+      "measurements": {
+        "startCapOutsideStem": 1046,
+        "endCapOutsideStem": 1739
+      },
+      "preservedPartsExact": true
+    },
+    "hatch": {
+      "emfSha256": "bafb54f2a6306510188b0094f41b40e4b7cd25078d3816ee6be04b422bc4778e",
+      "candidateRgbSha256": "959178318d0bcfa30964e9d55e6fde9f726360f11e99a3df174d8bd96d576821",
+      "frozenRgbSha256": "6aa6250edba4658e8f7f120de0c594d2835f36f5ba7f2237f7b3419208b581ab",
+      "measurements": {
+        "styles": 47,
+        "probes": 3008
+      },
+      "preservedPartsExact": true
+    },
+    "clip": {
+      "emfSha256": "b863de1e90fb45349f972a8f2bea9feea01e1e805fe267851be20eed34f54c91",
+      "candidateRgbSha256": "32a929d6d329f1368219c54869990c2fe20490c995d362591a1051ce47997ffe",
+      "frozenRgbSha256": "36afa6d02d4597e403c44799c530da46b6e790a52eae64b223692fa5db4bb766",
+      "measurements": {
+        "bluePixels": 9547,
+        "outsideDiamond": 0,
+        "frozenOutsideDiamond": 4208
+      },
+      "preservedPartsExact": true
+    },
+    "bitmap": {
+      "emfSha256": "9141c073ab72ccf7d7dbe57b13f301920a93b1468363912de6201da1e5dcd197",
+      "candidateRgbSha256": "fc7395a1bf9bf9d8ddd37969d9cea38428e4d2486a5df1e501310beec2677041",
+      "frozenRgbSha256": "5ae10ac8e56bebf02c9f73ac29701262a32b07831d3921b7ad4358da4ef6d276",
+      "measurements": {
+        "colorProbes": 21
+      },
+      "preservedPartsExact": true
+    },
+    "gdi": {
+      "emfSha256": "8bc43c97981fb2b3e857228953d5d5703550bf698ecd990f69bea8927f84e192",
+      "candidateRgbSha256": "c57da547f9e81999e0a8e2f56528d0d1474206a0d92c8de3c248caefbe9000a0",
+      "frozenRgbSha256": "2e9c2624fd86edba6e73af83e2497fdb7b1618ea718d14a0621065145364643d",
+      "measurements": {
+        "colorProbes": 8
+      },
+      "preservedPartsExact": true
+    },
+    "nested": {
+      "emfSha256": "84635f2e4b5ea355a76f01753454fe3b20d58ac0342d89f795f273ba29f2a431",
+      "candidateRgbSha256": "4ad3316ccbe31b75210f1d8bdfe8b538b4dc2600683a08afe48e2efe3930e1ee",
+      "frozenRgbSha256": "f788024667730202e554be53faf9b64798c30fffe7b6315d6f6672c442b60704",
+      "measurements": {
+        "bluePixels": 9419,
+        "outsideDiamond": 0,
+        "frozenOutsideDiamond": 822
+      },
+      "preservedPartsExact": true
+    }
+  },
+  "powerPoint": {
+    "version": "16.0.20625.20108",
+    "slides": 18,
+    "cases": {
+      "caps": {
+        "slideCount": 3,
+        "member": "ppt/media/image1.emf",
+        "memberSha256": "479555e32e44bbc2c1ba6d5192da27e802eb2d0ba76e3af1b22ab7f80fb3e3e1",
+        "retainedMediaRelationship": true,
+        "candidateRasterIdenticalAfterOffice": true,
+        "rasterDiffBounds": null,
+        "powerPointFileSha256": "7b02cbbe8ed5c286d816b6dece5f5e46a94bb57050a6f1daced700ca2a945b58"
+      },
+      "hatch": {
+        "slideCount": 3,
+        "member": "ppt/media/image1.emf",
+        "memberSha256": "bafb54f2a6306510188b0094f41b40e4b7cd25078d3816ee6be04b422bc4778e",
+        "retainedMediaRelationship": true,
+        "candidateRasterIdenticalAfterOffice": true,
+        "rasterDiffBounds": null,
+        "powerPointFileSha256": "05c6e8ef7ace261c78d7e840c6b8d8909a701f21f94582e44d54127dc58ddcc1"
+      },
+      "clip": {
+        "slideCount": 3,
+        "member": "ppt/media/image1.emf",
+        "memberSha256": "b863de1e90fb45349f972a8f2bea9feea01e1e805fe267851be20eed34f54c91",
+        "retainedMediaRelationship": true,
+        "candidateRasterIdenticalAfterOffice": true,
+        "rasterDiffBounds": null,
+        "powerPointFileSha256": "768cc6185e8d19f0f9d6c6bafd91ed85e393fdfe3983551734009efef4fe84cd"
+      },
+      "bitmap": {
+        "slideCount": 3,
+        "member": "ppt/media/image1.emf",
+        "memberSha256": "9141c073ab72ccf7d7dbe57b13f301920a93b1468363912de6201da1e5dcd197",
+        "retainedMediaRelationship": true,
+        "candidateRasterIdenticalAfterOffice": true,
+        "rasterDiffBounds": null,
+        "powerPointFileSha256": "bdc19ccea7dbd17272b0e3aa57d1f0b7e7a9430b4588bb047978e303d3bf3beb"
+      },
+      "gdi": {
+        "slideCount": 3,
+        "member": "ppt/media/image1.emf",
+        "memberSha256": "8bc43c97981fb2b3e857228953d5d5703550bf698ecd990f69bea8927f84e192",
+        "retainedMediaRelationship": true,
+        "candidateRasterIdenticalAfterOffice": true,
+        "rasterDiffBounds": null,
+        "powerPointFileSha256": "87f8a23f3ca207d68a59e3bab742618063f4e36e8de96907e2a1982f8b3b0138"
+      },
+      "nested": {
+        "slideCount": 3,
+        "member": "ppt/media/image1.emf",
+        "memberSha256": "84635f2e4b5ea355a76f01753454fe3b20d58ac0342d89f795f273ba29f2a431",
+        "retainedMediaRelationship": true,
+        "candidateRasterIdenticalAfterOffice": true,
+        "rasterDiffBounds": null,
+        "powerPointFileSha256": "ca4a590b89266a51cc3a60fb804ae8061a5fbe66f01094e35bcdb162e38cd6ec"
+      }
+    }
+  },
+  "regression": {
+    "pdfCases": 7,
+    "pdfPages": 14,
+    "expectedFooterFixes": [
+      "handouts-3",
+      "handouts-6"
+    ],
+    "exactMetafiles": {
+      "wmf_original": "224d490d3bb534372bb1e56bc48a63824def6d955fc9644622662804f9e43ba6",
+      "emf_original": "a725d3bd5e6e39080a0d06af217e7d353025bd8c744083328ea34511c36718d6",
+      "wmf_vector": "c25ecad7949e81d9985fca3208732ad6bb4c454d9c2fd876f43674c431f3e95d",
+      "emf_vector": "e8677d4f7c2f7262843814178c2cc229e7c7e20f88cac3caed72bcbdae9908e3",
+      "emfplus": "b57f332aa696a41ea062b9f9b3c585462807bfbedb3c40754fecd1ea2a7e1cf7",
+      "codepages": "67fcaf03a2ab69362eff315fd0d1a9bf8679ec584a413fa473719b2da0cebc0b"
+    },
+    "knownGradientAndBaselineChanges": {
+      "same-baseline": {
+        "emfSha256": "9778ebe607edb435d35a26bb0181210dc789ec4c2d8e69c1bf7969d9a6618823",
+        "render": {
+          "frozen": {
+            "size": [
+              960,
+              540
+            ],
+            "sha256": "77573853d336e880d48b581b776fa7664e50c6372ace5991889c04c34e68e71f",
+            "redShapePixels": 12800,
+            "blueTextPixels": 56,
+            "blueHeight": 8,
+            "gradientColors": 9,
+            "gradientPixels": 2821
+          },
+          "candidate": {
+            "size": [
+              960,
+              540
+            ],
+            "sha256": "bc0fe1b9e164496529d64e754507efc21a669bfdb2bcc6289763ac0e4e1a8c31",
+            "redShapePixels": 12800,
+            "blueTextPixels": 56,
+            "blueHeight": 8,
+            "gradientColors": 236,
+            "gradientPixels": 2400
+          }
+        },
+        "sampledShade": {
+          "changedBounds": [
+            363,
+            261,
+            460,
+            293
+          ],
+          "changedPixels": 3064,
+          "frozenGradientSamples": [
+            [
+              117,
+              170,
+              42
+            ],
+            [
+              117,
+              170,
+              42
+            ],
+            [
+              117,
+              170,
+              42
+            ]
+          ],
+          "candidateGradientSamples": [
+            [
+              192,
+              170,
+              29
+            ],
+            [
+              121,
+              170,
+              42
+            ],
+            [
+              46,
+              170,
+              56
+            ]
+          ]
+        }
+      },
+      "explicit-baselines": {
+        "emfSha256": "e1dfd794b1b83b0f40167fbf943e74c5062e43ae1f9a25a2d6f83a68c1eefc15",
+        "render": {
+          "frozen": {
+            "size": [
+              960,
+              540
+            ],
+            "sha256": "77573853d336e880d48b581b776fa7664e50c6372ace5991889c04c34e68e71f",
+            "redShapePixels": 12800,
+            "blueTextPixels": 56,
+            "blueHeight": 8,
+            "gradientColors": 9,
+            "gradientPixels": 2821
+          },
+          "candidate": {
+            "size": [
+              960,
+              540
+            ],
+            "sha256": "7e457afb0d438804ebb9ab7aa27bed9842a665145a6c81d38335247d67a77f89",
+            "redShapePixels": 12862,
+            "blueTextPixels": 64,
+            "blueHeight": 51,
+            "gradientColors": 263,
+            "gradientPixels": 2353
+          }
+        }
+      }
+    },
+    "previousDirectedRasters": {
+      "regions": "1f98b8cee9a7f63d4aaf55880dfc2e551dc1aeead71abae28d0008e19d8aedb1",
+      "pens": "71bf446e3ef5120071fddfb53d5328c7d57cd3e9c4615965ed7deed0c492f0ed",
+      "glyphs": "de976ba1349192553a5119c02fb38f1d463167612067a3e220c6ba77654d7107",
+      "glyph-reference": "de976ba1349192553a5119c02fb38f1d463167612067a3e220c6ba77654d7107"
+    }
+  },
+  "sourceAudit": {
+    "mappedProductionRustFiles": {
+      "joydeck": 113,
+      "joydeck-cli": 112
+    },
+    "mappedBuildScripts": [
+      "crates/joydeck-fonts/build.rs"
+    ],
+    "retiredDeckPaths": 14,
+    "retiredInThisRound": [
+      "crates/joydeck-metafile/src/place.rs"
+    ]
+  }
+}

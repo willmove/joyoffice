@@ -1,230 +1,23 @@
-//! Windows Metafile and Enhanced Metafile pictures (`image/x-wmf`, `image/x-emf`): parsed by
-//! `joydeck-metafile` and drawn as vectors into a bitmap of the size the slide needs, so they go
-//! through the same crop, tile and recolour path as any other picture.
-//!
-//! Text items name the font the file asks for; they are drawn with the face slide text would use
-//! for that family (`FontDb::document_face`, so a missing font falls back the same way), symbol
-//! fonts mapped as bullets map them, and the file's own advances (the dx array) placing each
-//! character.
+//! Metafile entry points and the text adapter used by scene playback.
 
-use std::collections::HashMap;
 use std::sync::Arc;
 
 use joydeck_fonts::{FontDb, FontFace};
-use joydeck_metafile::{HAlign, Item, PlacedItem, Text, Tile, VAlign};
+use joydeck_metafile::{HAlign, Text, VAlign};
 use kurbo::{Affine, BezPath, Rect, Shape as _};
 use skrifa::MetadataProvider as _;
-use vello_cpu::{Pixmap, RenderContext, Resources, peniko};
+use vello_cpu::{RenderContext, peniko};
 
-/// Longest side of a metafile drawn without a target size (export, thumbnails of the picture).
 pub const DEFAULT_SIDE: u32 = 1024;
-/// Largest side drawn.
-const MAX_SIDE: u32 = 8192;
-/// Pattern cells smaller than this (output pixels) are drawn as the tile's average colour: a
-/// sub-pixel pattern would only alias.
-const MIN_CELL_PX: f64 = 1.5;
-/// Size of text whose font gives no height (LOGFONT height 0), in text units.
 const DEFAULT_EM: f64 = 12.0;
 
-/// Is `bytes` a WMF or EMF file?
 pub fn is_metafile(bytes: &[u8]) -> bool {
     joydeck_metafile::is_metafile(bytes)
 }
 
-/// Draw the metafile `bytes` into straight RGBA with its longer side `side` px (transparent where
-/// it draws nothing). `None` when it doesn't parse or has no size.
 pub fn rasterize(bytes: &[u8], side: u32) -> Option<image::RgbaImage> {
-    let mut pic = joydeck_metafile::parse(bytes).ok()?;
-    if !pic.has_size() {
-        return None;
-    }
-    let side = side.clamp(16, MAX_SIDE) as f64;
-    let (pw, ph) = (pic.width as f64, pic.height as f64);
-    let k = side / pw.max(ph);
-    let w = (pw * k).round().clamp(1.0, MAX_SIDE as f64) as u16;
-    let h = (ph * k).round().clamp(1.0, MAX_SIDE as f64) as u16;
-    let mut ctx = RenderContext::new_with(
-        w,
-        h,
-        vello_cpu::RenderSettings {
-            num_threads: 0,
-            ..Default::default()
-        },
-    );
-    let viewport = Rect::new(0.0, 0.0, w as f64, h as f64);
-    ctx.push_clip_layer(&viewport.to_path(0.1));
-    let mut painter = PicturePainter::default();
-    for item in pic.place(viewport, [0.0; 4]) {
-        painter.paint(&mut ctx, &mut pic.items, item);
-    }
-    ctx.set_fill_rule(peniko::Fill::NonZero);
-    ctx.pop_layer();
-    ctx.flush();
-    let mut px = vec![0u8; w as usize * h as usize * 4];
-    if let Some(pm) = vello_cpu::PixmapMut::new(w, h, &mut px) {
-        ctx.render(pm, &mut Resources::new());
-    }
-    // Premultiplied to straight.
-    for p in px.as_chunks_mut::<4>().0 {
-        let a = p[3] as u32;
-        if a != 0 && a != 255 {
-            for c in p.iter_mut().take(3) {
-                *c = ((*c as u32 * 255 + a / 2) / a).min(255) as u8;
-            }
-        }
-    }
-    image::RgbaImage::from_raw(w as u32, h as u32, px)
-}
-
-#[derive(Default)]
-struct PicturePainter {
-    tiles: HashMap<*const Tile, PreparedTile>,
-}
-
-struct PreparedTile {
-    pixels: Option<Arc<Pixmap>>,
-    color: peniko::Color,
-}
-
-impl PicturePainter {
-    fn paint(&mut self, ctx: &mut RenderContext, source: &mut [Item], item: PlacedItem) {
-        let region = match &item {
-            PlacedItem::Path { region, .. }
-            | PlacedItem::Bitmap { region, .. }
-            | PlacedItem::Pattern { region, .. }
-            | PlacedItem::Text { region, .. } => region.clone(),
-        };
-        clipped(ctx, region.as_deref(), |ctx| match item {
-            PlacedItem::Path {
-                path,
-                fill,
-                stroke,
-                even_odd,
-                ..
-            } => {
-                if let Some(fill) = fill {
-                    ctx.set_fill_rule(fill_rule(even_odd));
-                    ctx.set_paint(rgba(fill));
-                    ctx.fill_path(&path);
-                }
-                if let Some((color, width)) = stroke {
-                    ctx.set_paint(rgba(color));
-                    ctx.set_stroke(
-                        kurbo::Stroke::new(width.max(1.0))
-                            .with_caps(kurbo::Cap::Round)
-                            .with_join(kurbo::Join::Round),
-                    );
-                    ctx.stroke_path(&path);
-                }
-            }
-            PlacedItem::Bitmap { index, rect, .. } => {
-                // The decoded pixel buffer is consumed when this record is painted.
-                let Some((w, h, pixels)) = source.get_mut(index).and_then(Item::take_pixels) else {
-                    return;
-                };
-                let Some(image) = premul(w, h, &pixels) else {
-                    return;
-                };
-                let transform = Affine::translate((rect.x0, rect.y0))
-                    * Affine::scale_non_uniform(
-                        rect.width() / f64::from(w),
-                        rect.height() / f64::from(h),
-                    );
-                image_paint(
-                    ctx,
-                    image,
-                    peniko::ImageSampler::default().with_quality(peniko::ImageQuality::Medium),
-                    transform,
-                    |ctx| ctx.fill_rect(&rect),
-                );
-            }
-            PlacedItem::Pattern {
-                index,
-                path,
-                even_odd,
-                tile,
-                ..
-            } => {
-                let Some(Item::Pattern { tile: t, .. }) = source.get(index) else {
-                    return;
-                };
-                let prepared = self
-                    .tiles
-                    .entry(Arc::as_ptr(t))
-                    .or_insert_with(|| PreparedTile {
-                        pixels: premul(t.width, t.height, &t.rgba),
-                        color: average(&t.rgba),
-                    });
-                ctx.set_fill_rule(fill_rule(even_odd));
-                if let Some(image) = &prepared.pixels
-                    && (t.sampled || tile.determinant().abs().sqrt() >= MIN_CELL_PX)
-                {
-                    let sampler = peniko::ImageSampler {
-                        x_extend: peniko::Extend::Repeat,
-                        y_extend: peniko::Extend::Repeat,
-                        quality: peniko::ImageQuality::Low,
-                        alpha: 1.0,
-                    };
-                    image_paint(ctx, image.clone(), sampler, tile, |ctx| {
-                        ctx.fill_path(&path)
-                    });
-                } else {
-                    ctx.set_paint(prepared.color);
-                    ctx.fill_path(&path);
-                }
-            }
-            PlacedItem::Text {
-                index,
-                transform,
-                clip,
-                ..
-            } => {
-                if let Some(Item::Text(t)) = source.get(index) {
-                    let clip = clip.map(|r| r.to_path(0.1));
-                    clipped(ctx, clip.as_ref(), |ctx| draw_text(ctx, t, transform));
-                }
-            }
-        });
-    }
-}
-
-fn fill_rule(even_odd: bool) -> peniko::Fill {
-    if even_odd {
-        peniko::Fill::EvenOdd
-    } else {
-        peniko::Fill::NonZero
-    }
-}
-
-fn image_paint(
-    ctx: &mut RenderContext,
-    image: Arc<Pixmap>,
-    sampler: peniko::ImageSampler,
-    transform: Affine,
-    paint: impl FnOnce(&mut RenderContext),
-) {
-    ctx.set_paint(vello_cpu::Image {
-        image: vello_cpu::ImageSource::Pixmap(image),
-        sampler,
-    });
-    ctx.set_paint_transform(transform);
-    paint(ctx);
-    ctx.reset_paint_transform();
-}
-
-/// Draws `draw` inside the device-context clip. No region is the default clip.
-fn clipped(
-    ctx: &mut RenderContext,
-    region: Option<&BezPath>,
-    draw: impl FnOnce(&mut RenderContext),
-) {
-    if let Some(region) = region {
-        ctx.push_clip_layer(region);
-        draw(ctx);
-        ctx.pop_layer();
-    } else {
-        draw(ctx);
-    }
+    let picture = joydeck_metafile::parse(bytes).ok()?;
+    super::metafile_scene::rasterize(&picture, side)
 }
 
 /// One glyph placed in text space (x along the baseline from the string's start, font units at
@@ -237,7 +30,7 @@ struct Glyph {
 }
 
 /// Draws a text item; `m` maps its text space to the output.
-fn draw_text(ctx: &mut RenderContext, t: &Text, m: Affine) {
+pub(super) fn draw_text(ctx: &mut RenderContext, t: &Text, m: Affine) {
     let db = FontDb::global();
     let font = &t.font;
     let family = if font.family.trim().is_empty() {
@@ -482,52 +275,6 @@ fn avg_char_width(face: &FontFace) -> f64 {
         .unwrap_or(face.upem * 0.5)
 }
 
-fn rgba(c: [u8; 4]) -> peniko::Color {
+pub(super) fn rgba(c: [u8; 4]) -> peniko::Color {
     peniko::Color::from_rgba8(c[0], c[1], c[2], c[3])
-}
-
-/// The average colour of straight RGBA pixels (alpha-weighted).
-fn average(px: &[u8]) -> peniko::Color {
-    let (mut r, mut g, mut b, mut a, mut n) = (0u64, 0u64, 0u64, 0u64, 0u64);
-    for p in px.as_chunks::<4>().0 {
-        let w = u64::from(p[3]);
-        r += u64::from(p[0]) * w;
-        g += u64::from(p[1]) * w;
-        b += u64::from(p[2]) * w;
-        a += w;
-        n += 1;
-    }
-    if a == 0 || n == 0 {
-        return peniko::Color::from_rgba8(0, 0, 0, 0);
-    }
-    peniko::Color::from_rgba8((r / a) as u8, (g / a) as u8, (b / a) as u8, (a / n) as u8)
-}
-
-/// Straight RGBA rows to a premultiplied pixmap.
-fn premul(w: u32, h: u32, px: &[u8]) -> Option<Arc<Pixmap>> {
-    if w == 0
-        || h == 0
-        || w > u16::MAX as u32
-        || h > u16::MAX as u32
-        || px.len() < w as usize * h as usize * 4
-    {
-        return None;
-    }
-    let data = px
-        .as_chunks::<4>()
-        .0
-        .iter()
-        .take(w as usize * h as usize)
-        .map(|p| {
-            let a = p[3] as u16;
-            let m = |c: u8| ((c as u16 * a + 127) / 255) as u8;
-            vello_cpu::color::PremulRgba8 {
-                r: m(p[0]),
-                g: m(p[1]),
-                b: m(p[2]),
-                a: p[3],
-            }
-        })
-        .collect();
-    Some(Arc::new(Pixmap::from_parts(data, w as u16, h as u16)))
 }

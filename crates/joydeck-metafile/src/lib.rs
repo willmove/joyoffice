@@ -34,8 +34,10 @@ mod emf;
 mod emfplus;
 #[path = "path_geometry.rs"]
 mod geom;
-mod place;
+mod image_placement;
+mod plus_caps;
 mod plus_commands;
+mod plus_hatch;
 mod plus_image;
 mod plus_objects;
 mod plus_paint;
@@ -43,6 +45,7 @@ mod plus_pen;
 mod plus_region;
 mod plus_shapes;
 mod plus_text;
+mod projection;
 mod records;
 mod text;
 mod text_encoding;
@@ -65,7 +68,8 @@ use std::sync::Arc;
 use bytes::Bytes;
 use canvas::Raw;
 use geom::{Op, P};
-pub use place::{MAX_BITMAP_SIDE, PlacedItem};
+pub use image_placement::ImagePlacement;
+pub use projection::{MAX_BITMAP_SIDE, PlacedItem};
 pub use text::{Font, GlyphPlacement, HAlign, IndexedGlyphs, SYMBOL_CHARSET, Text, VAlign};
 
 /// Clip geometry in the same space as the drawing item. Outlines use nonzero winding.
@@ -73,6 +77,7 @@ pub use text::{Font, GlyphPlacement, HAlign, IndexedGlyphs, SYMBOL_CHARSET, Text
 pub enum ClipRegion<T> {
     Rectangles(Vec<[T; 4]>),
     Outline(Arc<kurbo::BezPath>),
+    Intersection(Box<(Self, Self)>),
 }
 
 /// Items kept from one file. Past the cap the parse stops and keeps what it has.
@@ -117,6 +122,18 @@ pub enum Item {
         height: u32,
         rgba: Vec<u8>,
         /// Clip region in picture units. None is the default clip.
+        region: Option<ClipRegion<f32>>,
+    },
+    AffineBitmap {
+        placement: ImagePlacement,
+        width: u32,
+        height: u32,
+        rgba: Vec<u8>,
+        region: Option<ClipRegion<f32>>,
+    },
+    Nested {
+        placement: ImagePlacement,
+        picture: Arc<Picture>,
         region: Option<ClipRegion<f32>>,
     },
     /// A path filled with a repeating tile (pattern and hatch brushes). Items filled with the same
@@ -171,6 +188,10 @@ pub(crate) struct Frame {
 
 /// Parses a WMF (placeable or plain) or EMF file.
 pub fn parse(bytes: &[u8]) -> Result<Picture, Error> {
+    parse_picture(bytes).map(|(picture, _, _)| picture)
+}
+
+pub(crate) fn parse_picture(bytes: &[u8]) -> Result<(Picture, Option<[f64; 2]>, usize), Error> {
     let b = Bytes(bytes);
     let (cv, frame) = if emf::is_emf(b) {
         emf::parse(b)?
@@ -181,7 +202,9 @@ pub fn parse(bytes: &[u8]) -> Result<Picture, Error> {
     } else {
         return Err(Error::NotMetafile);
     };
-    Ok(build(cv.items, frame))
+    let device_size = frame.as_ref().map(|frame| [frame.rect[2], frame.rect[3]]);
+    let memory = cv.recorded_bytes();
+    Ok((build(cv.items, frame), device_size, memory))
 }
 
 /// True when the bytes start like a WMF (placeable or plain header) or an EMF.
@@ -211,6 +234,8 @@ fn build(raw: Vec<Raw>, frame: Option<Frame>) -> Picture {
     let sx = if rect[2] > 0.0 { size.0 / rect[2] } else { 1.0 };
     let sy = if rect[3] > 0.0 { size.1 / rect[3] } else { 1.0 };
     let tf = move |p: P| ((p.0 - rect[0]) * sx, (p.1 - rect[1]) * sy);
+    let affine =
+        kurbo::Affine::scale_non_uniform(sx, sy) * kurbo::Affine::translate((-rect[0], -rect[1]));
     let stroke_scale = (sx + sy) / 2.0;
     // No stroke is wider than the picture's diagonal: anything wider is a mapping artefact.
     let diag = size.0.hypot(size.1);
@@ -238,7 +263,7 @@ fn build(raw: Vec<Raw>, frame: Option<Frame>) -> Picture {
                 fill,
                 stroke,
                 even_odd,
-                region: map_region(region, &tf)?,
+                region: map_region(region, &tf, affine)?,
             })
         }
         Raw::Bitmap {
@@ -253,9 +278,30 @@ fn build(raw: Vec<Raw>, frame: Option<Frame>) -> Picture {
                 width: img.w as u32,
                 height: img.h as u32,
                 rgba: img.px,
-                region: map_region(region, &tf)?,
+                region: map_region(region, &tf, affine)?,
             })
         }
+        Raw::AffineBitmap {
+            placement,
+            img,
+            region,
+        } => Some(Item::AffineBitmap {
+            placement: placement.map(affine),
+            width: u32::try_from(img.w).ok()?,
+            height: u32::try_from(img.h).ok()?,
+            rgba: img.px,
+            region: map_region(region, &tf, affine)?,
+        }),
+        Raw::Nested {
+            placement,
+            picture,
+            region,
+            ..
+        } => Some(Item::Nested {
+            placement: placement.map(affine),
+            picture,
+            region: map_region(region, &tf, affine)?,
+        }),
         Raw::Pattern {
             ops,
             even_odd,
@@ -273,7 +319,7 @@ fn build(raw: Vec<Raw>, frame: Option<Frame>) -> Picture {
             let tile = match tiles.get(&key) {
                 Some((_, t)) => t.clone(),
                 None => {
-                    let (ox, oy) = tf((0.0, 0.0));
+                    let (ox, oy) = tf(tile.origin);
                     let t = Arc::new(Tile {
                         width: u32::try_from(tile.w).ok()?,
                         height: u32::try_from(tile.h).ok()?,
@@ -291,7 +337,7 @@ fn build(raw: Vec<Raw>, frame: Option<Frame>) -> Picture {
                 segs,
                 even_odd,
                 tile,
-                region: map_region(region, &tf)?,
+                region: map_region(region, &tf, affine)?,
             })
         }
         Raw::Text { mut text, region } => {
@@ -314,7 +360,7 @@ fn build(raw: Vec<Raw>, frame: Option<Frame>) -> Picture {
                     f(p.1.max(q.1))?,
                 ]);
             }
-            text.region = map_region(region, &tf)?;
+            text.region = map_region(region, &tf, affine)?;
             Some(Item::Text(text))
         }
     });
@@ -329,17 +375,21 @@ fn build(raw: Vec<Raw>, frame: Option<Frame>) -> Picture {
 fn map_region(
     region: Option<ClipRegion<f64>>,
     tf: &impl Fn(P) -> P,
+    transform: kurbo::Affine,
 ) -> Option<Option<ClipRegion<f32>>> {
     let rects = match region {
         None => return Some(None),
         Some(ClipRegion::Rectangles(rects)) => rects,
         Some(ClipRegion::Outline(outline)) => {
-            let (x, y) = tf((0.0, 0.0));
-            let (u, v) = tf((1.0, 1.0));
-            let transform = kurbo::Affine::new([u - x, 0.0, 0.0, v - y, x, y]);
             return Some(Some(ClipRegion::Outline(Arc::new(
                 transform * outline.as_ref(),
             ))));
+        }
+        Some(ClipRegion::Intersection(parts)) => {
+            let (left, right) = *parts;
+            let left = map_region(Some(left), tf, transform)??;
+            let right = map_region(Some(right), tf, transform)??;
+            return Some(Some(ClipRegion::Intersection(Box::new((left, right)))));
         }
     };
     let mut out = Vec::with_capacity(rects.len());
@@ -413,6 +463,11 @@ fn bbox(raw: &[Raw]) -> Option<[f64; 4]> {
             Raw::Bitmap { rect, .. } => {
                 grow((rect[0], rect[1]));
                 grow((rect[0] + rect[2], rect[1] + rect[3]));
+            }
+            Raw::AffineBitmap { placement, .. } | Raw::Nested { placement, .. } => {
+                let rect = placement.bounds();
+                grow((rect.x0, rect.y0));
+                grow((rect.x1, rect.y1));
             }
             Raw::Text { text: t, .. } => grow((t.transform[4], t.transform[5])),
         }

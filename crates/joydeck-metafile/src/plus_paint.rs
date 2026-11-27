@@ -166,10 +166,6 @@ pub fn argb(value: u32) -> Color {
     [r, g, b, a]
 }
 
-pub fn blend(start: Color, end: Color, weight: f64) -> Color {
-    mix(start, end, weight, false)
-}
-
 fn mix(start: Color, end: Color, weight: f64, gamma: bool) -> Color {
     std::array::from_fn(|channel| {
         let a = f64::from(start[channel]);

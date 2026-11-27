@@ -2,6 +2,7 @@
 
 use crate::{MAX_PIXELS, bytes::Bytes};
 
+#[derive(Clone)]
 pub(crate) struct Rgba {
     pub w: usize,
     pub h: usize,

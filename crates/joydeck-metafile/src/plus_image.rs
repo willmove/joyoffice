@@ -1,12 +1,16 @@
 //! Image objects carried by EMF+ drawing and texture brush records.
 
-use std::{cell::Cell, io::Cursor};
+use std::{cell::Cell, io::Cursor, sync::Arc};
 
 use crate::{MAX_PIXELS, Picture, bitmap::Rgba, bytes::Bytes};
 
 pub(crate) enum ImageData {
     Bitmap(Rgba),
-    Meta(Picture),
+    Meta {
+        picture: Arc<Picture>,
+        device_size: [f64; 2],
+        bytes: usize,
+    },
 }
 
 thread_local! {
@@ -41,8 +45,18 @@ pub(crate) fn image(record: Bytes<'_>) -> Option<ImageData> {
             let declared = record.u32(12)? as usize;
             let payload = record.tail(16)?.0;
             let _guard = Nesting::enter()?;
-            let picture = crate::parse(&payload[..payload.len().min(declared)]).ok()?;
-            (picture.width > 0.0 && picture.height > 0.0).then_some(ImageData::Meta(picture))
+            let (picture, device, bytes) = crate::parse_picture(payload.get(..declared)?).ok()?;
+            if !picture.has_size() {
+                return None;
+            }
+            let device_size = device
+                .filter(|size| size.iter().all(|value| value.is_finite() && *value > 0.0))
+                .unwrap_or([f64::from(picture.width), f64::from(picture.height)]);
+            Some(ImageData::Meta {
+                picture: Arc::new(picture),
+                device_size,
+                bytes,
+            })
         }
         _ => None,
     }

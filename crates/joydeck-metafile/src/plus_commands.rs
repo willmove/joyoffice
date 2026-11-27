@@ -8,6 +8,7 @@ pub(crate) enum State {
     Transform(Xform),
     Concat(Xform),
     Page(f64),
+    RenderingOrigin(P),
     ClearClip,
     ClipRectangle([f64; 4]),
     ClipPath(usize),
@@ -29,6 +30,7 @@ fn coordinates<const N: usize>(data: Bytes<'_>) -> Option<[f64; N]> {
 pub(crate) fn state(kind: u16, flags: u16, data: Bytes<'_>) -> Option<State> {
     let object = usize::from(flags & 0xff);
     Some(match kind {
+        0x401d => State::RenderingOrigin((f64::from(data.i32(0)?), f64::from(data.i32(4)?))),
         0x4025 | 0x4028 => State::Save(data.u32(0)?),
         0x4027 => State::Save(data.u32(24)?),
         0x4026 | 0x4029 => State::Restore(data.u32(0)?),

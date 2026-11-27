@@ -2492,14 +2492,16 @@ fn pattern_brush_pixels_count_against_the_byte_budget() {
 
 fn item_region(item: &Item) -> Option<&[[f32; 4]]> {
     let region = match item {
-        Item::Path { region, .. } | Item::Bitmap { region, .. } | Item::Pattern { region, .. } => {
-            region.as_ref()
-        }
+        Item::Path { region, .. }
+        | Item::Bitmap { region, .. }
+        | Item::AffineBitmap { region, .. }
+        | Item::Nested { region, .. }
+        | Item::Pattern { region, .. } => region.as_ref(),
         Item::Text(t) => t.region.as_ref(),
     };
     match region? {
         crate::ClipRegion::Rectangles(rectangles) => Some(rectangles),
-        crate::ClipRegion::Outline(_) => None,
+        crate::ClipRegion::Outline(_) | crate::ClipRegion::Intersection(_) => None,
     }
 }
 
@@ -3464,13 +3466,33 @@ fn emfplus_nested_metafile_image_draws_its_items_into_the_destination() {
     ]);
     let p = plus_pic(vec![
         prec(0x4008, 0x0500 | 3, &obj),
-        draw_image(3, [0.0, 0.0, 40.0, 20.0]),
+        prec(
+            0x401A,
+            3,
+            &cat(vec![
+                h32(0),
+                h32(2),
+                f32s(&[0.0, 0.0, 10.0, 10.0, 0.0, 0.0, 40.0, 20.0]),
+            ]),
+        ),
     ]);
     assert_eq!(p.items.len(), 1);
     assert_eq!((p.width, p.height), (40.0, 20.0));
-    let (segs, fill, ..) = path_segs(&p.items[0]);
-    assert_eq!(fill, Some([255, 255, 255, 255]));
-    assert!(segs.contains(&Seg::Line(40.0, 20.0)), "{segs:?}");
+    let Item::Nested {
+        picture, placement, ..
+    } = &p.items[0]
+    else {
+        panic!("missing embedded scene");
+    };
+    let items = picture.project(placement.transform);
+    let [crate::PlacedItem::Path { path, fill, .. }] = items.as_slice() else {
+        panic!("embedded path was lost");
+    };
+    assert_eq!(*fill, Some([255, 255, 255, 255]));
+    assert!(
+        path.elements()
+            .contains(&kurbo::PathEl::LineTo(kurbo::Point::new(40.0, 20.0)))
+    );
 }
 
 /// Curves and a region fill, as an EMF+ only file (also written to `$DECKCRAFT_EMF_OUT` to look at).
