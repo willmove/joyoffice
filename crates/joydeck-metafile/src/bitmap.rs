@@ -2,12 +2,25 @@
 
 use crate::{MAX_PIXELS, bytes::Bytes};
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub(crate) struct Rgba {
     pub w: usize,
     pub h: usize,
     pub bottom_up: bool,
     pub px: Vec<u8>,
+}
+
+pub(crate) fn premultiplied([r, g, b, a]: [u8; 4]) -> [u8; 4] {
+    let scale = |c| ((u16::from(c) * u16::from(a) + 127) / 255) as u8;
+    [scale(r), scale(g), scale(b), a]
+}
+
+pub(crate) fn straight([r, g, b, a]: [u8; 4]) -> [u8; 4] {
+    if a == 0 {
+        return [0; 4];
+    }
+    let scale = |c| ((u32::from(c) * 255 + u32::from(a) / 2) / u32::from(a)).min(255) as u8;
+    [scale(r), scale(g), scale(b), a]
 }
 
 #[derive(Clone, Copy)]

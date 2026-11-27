@@ -154,9 +154,11 @@ fn record(cv: &mut Canvas, func: u16, r: Bytes) {
             cv.add_object(None, brush);
             Some(())
         }
-        // Palettes and regions take a handle slot too, so later
-        // SELECTOBJECT handles count them; selecting one draws nothing.
-        0x00F7 | 0x06FF => {
+        _ if matches!(func as u8, 0xf7 | 0x34..=0x37 | 0x39) => r
+            .tail(6)
+            .and_then(|bytes| crate::wmf_palette::play(cv, func as u8, bytes)),
+        // Unhandled region objects take a slot so later handles still line up.
+        0x06FF => {
             cv.add_object(None, Obj::Other);
             Some(())
         }

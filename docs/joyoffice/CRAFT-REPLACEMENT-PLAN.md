@@ -58,6 +58,8 @@ JoyDeck 阶段 5 已接入 EMF+ 图像属性、序列化效果与位图 SourceCo
 
 JoyDeck 阶段 5 已修正 EMF+ 模糊轴向，切换矢量 ROP2、常见 WMF Bitmap16 和矢量／嵌套 SourceCopy。原生像素、冻结基线及 PowerPoint 16 回存均通过当次范围。剩余精细图元兼容包含旧调色板设备、更多原生滤镜样本及复杂字形和画笔组合。[矢量合成与原生模糊](validation/20261127-craft-stage5-deck-vector-copy/README.md)
 
+JoyDeck 阶段 5 已复核大半径模糊与低 Alpha 取整，补齐 WMF 4／8 位 Bitmap16 和透明画笔字形。冻结回归及 9 份 PowerPoint 16 回存重开通过。待补验旧调色板设备、其余滤镜与字形样本、剩余生产来源与平台实机。[滤镜、调色板与字形验证](validation/20261127-craft-stage5-deck-filter-palette/README.md)
+
 | 剩余范围 | 人周 | 估算依据 |
 | --- | ---: | --- |
 | 阶段 0 其余路径的调用登记与专项基线 | 2–4 | 六个二进制及首批语料已集中冻结。复杂分页、放映与长尾文件需各补调用点、固定输入及预期结果。 |

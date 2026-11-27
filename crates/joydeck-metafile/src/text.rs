@@ -59,6 +59,7 @@ pub struct Text {
     pub dx: Vec<f32>,
     pub font: Font,
     pub color: [u8; 4],
+    pub brush: Option<crate::TextBrush>,
     pub composition: crate::ImageComposition,
     /// Colour filled behind the character cells (OPAQUE background mode); None when transparent.
     pub background: Option<[u8; 4]>,

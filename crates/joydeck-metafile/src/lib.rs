@@ -48,16 +48,19 @@ mod plus_pen;
 mod plus_region;
 mod plus_shapes;
 mod plus_text;
+mod plus_wide_blur;
 mod projection;
 mod raster_transfer;
 mod records;
 mod text;
+mod text_brush;
 mod text_encoding;
 mod text_records;
 mod vector_mix;
 mod vector_records;
 mod wmf;
 mod wmf_bitmap;
+mod wmf_palette;
 
 #[cfg(test)]
 #[allow(
@@ -79,6 +82,7 @@ pub use image_placement::ImagePlacement;
 pub use projection::{MAX_BITMAP_SIDE, PlacedItem};
 pub use raster_transfer::{Logic, RasterTransfer};
 pub use text::{Font, GlyphPlacement, HAlign, IndexedGlyphs, SYMBOL_CHARSET, Text, VAlign};
+pub use text_brush::TextBrush;
 pub use vector_mix::{Rop2, VectorMix};
 
 /// Clip geometry in the same space as the drawing item. Outlines use nonzero winding.
@@ -379,6 +383,9 @@ fn build(raw: Vec<Raw>, frame: Option<Frame>) -> Picture {
             })
         }
         Raw::Text { mut text, region } => {
+            if let Some(brush) = &mut text.brush {
+                brush.map(affine);
+            }
             // Device to picture: scale by (sx, sy) after moving the frame's corner to the origin.
             let [a, b, c, d, e, g] = text.transform;
             let (e, g) = tf((e, g));

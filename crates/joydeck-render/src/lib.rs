@@ -28,6 +28,7 @@ mod images;
 mod metafile;
 mod metafile_glyphs;
 mod metafile_scene;
+mod metafile_text_paint;
 mod morph_path;
 mod morph_text;
 mod paint;

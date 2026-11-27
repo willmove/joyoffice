@@ -123,12 +123,7 @@ impl Pixels {
                 let &[b, g, r, a] = row.get(4 * x..)?.first_chunk()?;
                 match self {
                     Self::Bgrx => [r, g, b, 255],
-                    Self::Premultiplied if a != 0 => {
-                        let straighten = |c| {
-                            ((u32::from(c) * 255 + u32::from(a) / 2) / u32::from(a)).min(255) as u8
-                        };
-                        [straighten(r), straighten(g), straighten(b), a]
-                    }
+                    Self::Premultiplied => crate::bitmap::straight([r, g, b, a]),
                     _ => [r, g, b, a],
                 }
             }
