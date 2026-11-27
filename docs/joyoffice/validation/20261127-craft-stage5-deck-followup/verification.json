@@ -1,0 +1,249 @@
+{
+  "date": "2026-11-27",
+  "sourceBase": "8f3d8002",
+  "binaries": {
+    "frozen": "f8fd32a31570e241f17ced00dbce66f7e2ae53739b18e3c70bea03c2e78794f7",
+    "candidate": "d69e1c45ac45427095aae9fbf6b654b7060b6ef89f3da5c35ed8543116382a30"
+  },
+  "printDialog": {
+    "driver": "Microsoft: Print To PDF",
+    "pages": 3,
+    "pageSizePoints": [
+      841.92004,
+      595.32001
+    ],
+    "bytes": 151293,
+    "sha256": "94d42570eae6e43072bda609bd9b8aad7dd222cbd333efdfa85118f0a3e12107",
+    "manualInputConfirmed": true,
+    "submitted": true,
+    "matchingPageOrder": [
+      1,
+      2,
+      3
+    ],
+    "pageRasterMeanAbsoluteDifferences": [
+      [
+        0.0,
+        10.745326,
+        13.668398
+      ],
+      [
+        10.745326,
+        0.0,
+        11.926508
+      ],
+      [
+        13.668398,
+        11.926508,
+        0.0
+      ]
+    ]
+  },
+  "tests": {
+    "rustPassed": 1076,
+    "rustFailed": 0,
+    "rustIgnored": 0,
+    "cliChecks": 126,
+    "joySheetPackagingPassed": 10
+  },
+  "fileExchange": {
+    "samples": 17,
+    "reads": 234,
+    "outputs": 100,
+    "rejectedWritebackKinds": [
+      "signed",
+      "macro-enabled"
+    ],
+    "refusedInputCases": 7,
+    "knownChartComparisons": 12
+  },
+  "pdfAndMetafiles": {
+    "pdfCases": 7,
+    "pages": 14,
+    "exactMetafileScenes": 2,
+    "existingFooterFixes": {
+      "handouts-3": {
+        "firstPageBefore": 2,
+        "firstPageAfter": 1,
+        "changedPixelsWithin": [
+          540,
+          749,
+          545,
+          756
+        ]
+      },
+      "handouts-6": {
+        "firstPageBefore": 2,
+        "firstPageAfter": 1,
+        "changedPixelsWithin": [
+          540,
+          749,
+          545,
+          756
+        ]
+      }
+    }
+  },
+  "sourceAudit": {
+    "desktopCompiledMappedFiles": 118,
+    "cliCompiledMappedFiles": 117,
+    "retiredDeckCraftTargets": 9
+  },
+  "rollback3d": {
+    "sourceSha256": "e55f7ad3ed10f831b985371d9dca8ba338cb6dbe5a4b4873b06b38c21a70ce6b",
+    "frozenCliSha256": "f8fd32a31570e241f17ced00dbce66f7e2ae53739b18e3c70bea03c2e78794f7",
+    "candidateCliSha256": "d69e1c45ac45427095aae9fbf6b654b7060b6ef89f3da5c35ed8543116382a30",
+    "glbPart": "ppt/media/model3d1.glb",
+    "glbSha256": "0857eb41a65c12f29c8046b1914dbd424466dedab72d4e2fbc99dbb2487f1d79",
+    "unchangedPreservedMembers": 44,
+    "regeneratedFrozenModel": "picture",
+    "regeneratedContainsGlb": false,
+    "duplicateRejectedWithoutOutput": true,
+    "powerPointVersion": "16.0.20625.20108",
+    "powerPointSaveCopyReopened": [
+      {
+        "inputSha256": "322b9e3e2c84e7c2ccd5cff05359f62bdfa76b090e695eb9285487d66b9f0ba5",
+        "outputSha256": "0b787d8974301350fde335301b7f66dc5d3af8c7e4b7fb4debe3e059e99b749f",
+        "slides": [
+          {
+            "id": 256,
+            "shapeTypes": [
+              30
+            ],
+            "effects": 0,
+            "notes": 3,
+            "drawingObjects": [
+              {
+                "id": 2,
+                "angles": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "camera": [
+                  0.0,
+                  0.0,
+                  2.0915213
+                ],
+                "fieldOfView": 45.0
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "inputSha256": "322b9e3e2c84e7c2ccd5cff05359f62bdfa76b090e695eb9285487d66b9f0ba5",
+        "outputSha256": "397c42fa13b68ce1fecad7a74e28e8354f17dc0da38c865e90f9210f067f00ee",
+        "slides": [
+          {
+            "id": 256,
+            "shapeTypes": [
+              30
+            ],
+            "effects": 0,
+            "notes": 3,
+            "drawingObjects": [
+              {
+                "id": 2,
+                "angles": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "camera": [
+                  0.0,
+                  0.0,
+                  2.0915213
+                ],
+                "fieldOfView": 45.0
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "licenses": {
+    "lockedArchives": [
+      {
+        "package": "mac@0.1.1",
+        "sha256": "c41e0c4fef86961ac6d6f8a82609f55f31b05e4fce149ac5710e439df7619ba4",
+        "vcs": null,
+        "topLevelMembers": [
+          ".gitignore",
+          ".travis.yml",
+          "Cargo.toml",
+          "README.md"
+        ]
+      },
+      {
+        "package": "seahash@4.1.0",
+        "sha256": "1c107b6f4780854c8b126e228ea8869f4d7b71260f962fefb57b996b8959ba6b",
+        "vcs": {
+          "git": {
+            "sha1": "94b632aeac099031c373599313d5b5f0acbbaec0"
+          }
+        },
+        "topLevelMembers": [
+          ".cargo_vcs_info.json",
+          ".gitignore",
+          ".gitlab-ci.yml",
+          "Cargo.toml",
+          "Cargo.toml.orig",
+          "README.md",
+          "logo.png"
+        ]
+      },
+      {
+        "package": "pathfinder_geometry@0.5.1",
+        "sha256": "0b7b7e7b4ea703700ce73ebf128e1450eb69c3a8329199ffbfb9b2a0418e5ad3",
+        "vcs": {
+          "git": {
+            "sha1": "a5e98fac00f433fe2ff4b2135383d82491b8bfc5"
+          }
+        },
+        "topLevelMembers": [
+          "Cargo.toml.orig",
+          "Cargo.toml",
+          ".cargo_vcs_info.json"
+        ]
+      }
+    ],
+    "pathfinder": {
+      "publishedSourceBlobs": 10,
+      "geometryHistoryCommits": 196,
+      "matchedCommits": [
+        "1cd5966d3d7c3d395b6886d1ed63eb7b306f9be3 2020-04-17T13:10:39-07:00"
+      ]
+    },
+    "seahash": {
+      "commit": "94b632aeac099031c373599313d5b5f0acbbaec0",
+      "tree": "0903f041ae9759df8be982b638be18bd3790df63",
+      "matched": [
+        "Cargo.toml.orig",
+        "README.md"
+      ],
+      "standaloneNotice": false
+    },
+    "mac": {
+      "commit": "66afc663b68a65633ea165c742b5a9c6734581c2",
+      "standaloneNotice": false
+    },
+    "spdx": [
+      {
+        "target": "x86_64-pc-windows-msvc",
+        "profile": "debug",
+        "packages": 491,
+        "lockSha256": "ce69e6ae10223a0c52f73908cd3846cfffeaa915857378fdb1d39307339a88d4",
+        "missingLicenseTexts": []
+      },
+      {
+        "target": "x86_64-unknown-linux-gnu",
+        "profile": "debug",
+        "packages": 575,
+        "lockSha256": "ce69e6ae10223a0c52f73908cd3846cfffeaa915857378fdb1d39307339a88d4",
+        "missingLicenseTexts": []
+      }
+    ]
+  }
+}

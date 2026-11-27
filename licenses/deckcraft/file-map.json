@@ -487,13 +487,14 @@
       "source_path": "crates/metafile/src/canvas.rs",
       "source_sha256": "782c90dd2b0b64f738f3a24cad125abe97d3315f0642bb62169a1fff5370b855",
       "target_path": "crates/joydeck-metafile/src/canvas.rs",
-      "adapted_sha256": "3718a8c053c4e83cf2a5ea30704bddc56c81c8bf6b4f75809af74e1e7cecbaf5",
+      "adapted_sha256": "a29b830b5dae9a0f9006f0bd9e6c65759fa64cf677ab36059f31aa2ae587c0ff",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
-        "Restore device snapshots by ownership and transform clip regions once before applying the new clipping state."
+        "Restore device snapshots by ownership and transform clip regions once before applying the new clipping state.",
+        "Use the independent bitmap mirror path for GDI placement."
       ]
     },
     {
@@ -512,12 +513,13 @@
       "source_path": "crates/metafile/src/cliprect.rs",
       "source_sha256": "f815bcf5109caab9700eb37f7e33592440b5ee7cc66bbe2a1da8d3cfcebea23d",
       "target_path": "crates/joydeck-metafile/src/cliprect.rs",
-      "adapted_sha256": "4af6ab43c6705f5e00cba5584f919292541a56f4c1112a1e466bc8f9315e009b",
+      "adapted_sha256": "3e3213f92942b7d358d294ce83240ee0a75d24918c036f7f2e1142a3aef0ce98",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "Connect region bitmap clipping to the independently implemented GDI bitmap representation."
       ]
     },
     {
@@ -529,33 +531,38 @@
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
-      ]
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "Retired from production. MS-WMF, MS-EMF and MS-EMFPLUS now use the independent bitmap.rs implementation."
+      ],
+      "retired": true,
+      "last_verified_in": "8f3d8002"
     },
     {
       "source_path": "crates/metafile/src/emf.rs",
       "source_sha256": "ecfde13c6cea9cb5603a8961d0cb85231a645e6541e458a243c2facbbe0bc91c",
       "target_path": "crates/joydeck-metafile/src/emf.rs",
-      "adapted_sha256": "40b27aa028740c00f8aed5a225a33ea03efc5f22b04edac3742bc2308a782ef0",
+      "adapted_sha256": "9f3d36759536d2faad4e88dab0e52c33d03814bef5190a808f64232d7cf5a710",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
-        "Interpret complete EMF records from the bounded stream and route embedded EMF+ comments."
+        "Interpret complete EMF records from the bounded stream and route embedded EMF+ comments.",
+        "Route EMF DIB input and raster/alpha preparation through the independent bitmap implementation."
       ]
     },
     {
       "source_path": "crates/metafile/src/emfplus.rs",
       "source_sha256": "183b0be47ee2467ef8824b768709a57a83dc243f15195c066ccef601a933d15e",
       "target_path": "crates/joydeck-metafile/src/emfplus.rs",
-      "adapted_sha256": "e3de7442d2b79bbf199540a3570511005a667d5abbdd5935afe517f790f9f0ee",
+      "adapted_sha256": "de344e96efcaf76c3d82ccedec74fbf89708accbd8e13061ae39dcf97a3fbca8",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
-        "Replay EMF+ comments with validated payload sizes and alignment."
+        "Replay EMF+ comments with validated payload sizes and alignment.",
+        "Use the independent bitmap cropping and mirroring path for EMF+."
       ]
     },
     {
@@ -574,13 +581,14 @@
       "source_path": "crates/metafile/src/lib.rs",
       "source_sha256": "3adccd030b589e5f091cbc791f814929f62221850853b6932cca5d9a22014a1d",
       "target_path": "crates/joydeck-metafile/src/lib.rs",
-      "adapted_sha256": "1e20529348100060e8fdb19eef91a267e329dbe66060c8e57dd4c08945b465a4",
+      "adapted_sha256": "db8b97c478629ed6c593f686dd0725a7a131c7a1aa826ce9ca4104656f0f50a2",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
-        "Register the bounded metafile record stream."
+        "Register the bounded metafile record stream.",
+        "Replace the original DIB decoder and pixel preparation with the independent bitmap module."
       ]
     },
     {
@@ -599,12 +607,13 @@
       "source_path": "crates/metafile/src/tests.rs",
       "source_sha256": "2eb389346a6d6e3590aeee7c47a111c7c6dda6e00237e6b2ea9a6ff2bce1e3c6",
       "target_path": "crates/joydeck-metafile/src/tests.rs",
-      "adapted_sha256": "2e98ff7a45c6f531ba987ca0bc56a8f1e3782907d0a586ee0e3457b4e85d56a9",
+      "adapted_sha256": "7278fa4bf3cecff99e5d84c54e07746e05205c4f08fc34e0603a0c79f1b83a4d",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "Exercise the independent bitmap backend, including top-down RGB565 channel masks and padding."
       ]
     },
     {
@@ -623,13 +632,14 @@
       "source_path": "crates/metafile/src/wmf.rs",
       "source_sha256": "d2d13b7ecda9f62c3ee15e715d7cbda75417aabbc225efd9e75d9bd981ba78b5",
       "target_path": "crates/joydeck-metafile/src/wmf.rs",
-      "adapted_sha256": "49f96eab3cb14e76a1c01fb8db84c2768954128aae984156a5dbe7b8a2bd35df",
+      "adapted_sha256": "a776b9f6c092ca3f5bae974b014866a66b169775d21efa81d02755b60e61b166",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
-        "Interpret whole WMF records from checked word framing in playback order."
+        "Interpret whole WMF records from checked word framing in playback order.",
+        "Route WMF DIB layout, decoding and raster preparation through the independent bitmap implementation."
       ]
     },
     {
@@ -1772,7 +1782,7 @@
       "source_path": "crates/pptx/src/lib.rs",
       "source_sha256": "7886430c0095c036472d8a84d8b4d2eccf001b0c8660e5c2b43572f6a0f79c1f",
       "target_path": "crates/joydeck-pptx/src/lib.rs",
-      "adapted_sha256": "e5c9de3e4c60d1783b512a35343bfde7f2038b66c76bfede330b17d026af8738",
+      "adapted_sha256": "7c6fe0fb683afa1c93fbe1600e0ddfc99cfb2e4f1a7ba50e1931e77b3add9a0b",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -1784,7 +1794,8 @@
         "Use the JoyOffice ChartEx reader on the import and source comparison paths.",
         "Wire the independent series, axis, style-part and embedded SpreadsheetML codecs into PPTX exchange.",
         "Route shape geometry, rich text, diagrams and Office 3-D payloads through the DrawingML exchange codecs.",
-        "Route object effects and their timing nodes through the PresentationML sequence codec."
+        "Route object effects and their timing nodes through the PresentationML sequence codec.",
+        "Add a standalone OPC relationship codec used by the reader and preserving writeback."
       ],
       "safety_integration": "Register footer import and preservation regression tests (d28049dc)."
     },
@@ -1804,7 +1815,7 @@
       "source_path": "crates/pptx/src/opc.rs",
       "source_sha256": "f7905174cd984e290e231dbed1c05dcece3379233feef91ee06f6975e4267ef9",
       "target_path": "crates/joydeck-pptx/src/opc.rs",
-      "adapted_sha256": "2c8283fcc07dec1da28063f13a1ca58dc380a4449a748f3b7628980061a4bb82",
+      "adapted_sha256": "1e77da2160863b6be4be541ea232a2383589dfcbc9926dc480a7b10d0b3bc250",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -1812,7 +1823,8 @@
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
         "R9: resolve root officeDocument relationship for custom part paths; retain minimal packages without requiring unchanged masters",
         "Reuse verified OPC buffers while preserving format reader budgets and ZIP name decoding.",
-        "Share the checked member inventory and ZIP writer between regenerated and preserved packages."
+        "Share the checked member inventory and ZIP writer between regenerated and preserved packages.",
+        "Replace inherited relationship parsing and target resolution with independent URI resolution, encoding and rebasing."
       ]
     },
     {

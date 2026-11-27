@@ -12,16 +12,23 @@
       "sha1": "a5e98fac00f433fe2ff4b2135383d82491b8bfc5"
     }
   },
+  "matchingUpstreamTree": {
+    "commit": "1cd5966d3d7c3d395b6886d1ed63eb7b306f9be3",
+    "directory": "geometry",
+    "tree": "ecb41516e8b0cbfa293dd629c506ca94784ff529",
+    "matchingPublishedFiles": 10,
+    "comparison": "Git blob identities match the locked crate's original Cargo manifest and every shipped geometry source file. The root MIT and Apache license blobs match the previously collected project texts. The commit in the published VCS metadata remains unavailable."
+  },
   "files": [
     {
-      "url": "https://github.com/servo/pathfinder/blob/6c3c0466f451c5bd2007087728cd168798cd64e8/LICENSE-MIT",
+      "url": "https://github.com/servo/pathfinder/blob/1cd5966d3d7c3d395b6886d1ed63eb7b306f9be3/LICENSE-MIT",
       "gitBlobSha": "25597d5838fa4cd7ff5c3c2bb1d1b4c3731eda7f",
       "file": "LICENSE-PATHFINDER-MIT.txt",
       "sha256": "0621878e61f0d0fda054bcbe02df75192c28bde1ecc8289cbd86aeba2dd72720",
       "kind": "verbatim upstream file"
     },
     {
-      "url": "https://github.com/servo/pathfinder/blob/6c3c0466f451c5bd2007087728cd168798cd64e8/LICENSE-APACHE",
+      "url": "https://github.com/servo/pathfinder/blob/1cd5966d3d7c3d395b6886d1ed63eb7b306f9be3/LICENSE-APACHE",
       "gitBlobSha": "16fe87b06e802f094b3fbb0894b137bca2b16ef1",
       "file": "LICENSE-PATHFINDER-APACHE.txt",
       "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",

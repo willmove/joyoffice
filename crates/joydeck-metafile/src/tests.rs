@@ -4,8 +4,38 @@
 )]
 //! Hand-built WMF and EMF buffers: each test writes the records it needs and checks the parsed model.
 
+use crate::bitmap::Rgba;
+
+#[test]
+fn dib_top_down_bitfields_ignores_padding_and_keeps_row_order() {
+    let mut info = info_header(3, -2, 16, 16);
+    info[16..20].copy_from_slice(&3u32.to_le_bytes());
+    for mask in [0xf800u32, 0x07e0, 0x001f] {
+        info.extend(mask.to_le_bytes());
+    }
+    let bits: Vec<_> = [
+        0xf800u16, 0x07e0, 0x001f, 0xffff, 0x001f, 0x07e0, 0xf800, 0xffff,
+    ]
+    .into_iter()
+    .flat_map(u16::to_le_bytes)
+    .collect();
+    let image = crate::bitmap::decode(
+        crate::bytes::Bytes(&info),
+        crate::bytes::Bytes(&bits),
+        false,
+    )
+    .expect("uncompressed RGB565 bitmap");
+    assert!(!image.bottom_up);
+    assert_eq!((image.w, image.h), (3, 2));
+    assert_eq!(
+        image.px,
+        [
+            255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255, 0, 0, 255, 255, 0, 255, 0, 255, 255, 0,
+            0, 255,
+        ]
+    );
+}
 use crate::canvas::Canvas;
-use crate::dib::Rgba;
 use crate::{Error, Item, MAX_BYTES, MAX_ITEMS, Seg, is_metafile, parse};
 
 fn h16(v: i32) -> Vec<u8> {
@@ -1429,7 +1459,7 @@ fn flip_tolerates_a_short_pixel_buffer() {
         bottom_up: false,
         px: vec![1u8; 7],
     };
-    crate::dib::flip(&mut img, true, true);
+    crate::bitmap::flip(&mut img, true, true);
     assert_eq!(img.px.len(), 7);
     // Three rows held of four: only the rows present swap (0 with 2).
     let mut img = Rgba {
@@ -1438,7 +1468,7 @@ fn flip_tolerates_a_short_pixel_buffer() {
         bottom_up: false,
         px: (0u8..12).collect(),
     };
-    crate::dib::flip(&mut img, false, true);
+    crate::bitmap::flip(&mut img, false, true);
     assert_eq!(img.px, [8, 9, 10, 11, 4, 5, 6, 7, 0, 1, 2, 3]);
 }
 

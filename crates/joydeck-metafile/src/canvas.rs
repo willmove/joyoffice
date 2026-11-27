@@ -4,8 +4,8 @@
 
 use std::sync::{Arc, OnceLock};
 
+use crate::bitmap::Rgba;
 use crate::clip::{self, MAX_CLIP_RECTS};
-use crate::dib::Rgba;
 use crate::geom::{Op, P};
 use crate::text::{ETO_CLIPPED, ETO_OPAQUE, Font, TA_UPDATECP, Text, align};
 use crate::{MAX_BYTES, MAX_ITEMS, MAX_OBJECTS, MAX_PATH_OPS, MAX_STACK};
@@ -1231,7 +1231,7 @@ impl Canvas {
         let [x, y, w, h] = rect;
         let a = self.map.device((x, y));
         let b = self.map.device((x + w, y + h));
-        crate::dib::flip(&mut img, a.0 > b.0, a.1 > b.1);
+        crate::bitmap::flip(&mut img, a.0 > b.0, a.1 > b.1);
         let dev = [
             a.0.min(b.0),
             a.1.min(b.1),
