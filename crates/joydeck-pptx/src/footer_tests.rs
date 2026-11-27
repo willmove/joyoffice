@@ -206,6 +206,93 @@ fn rewrite_xml(
 }
 
 #[test]
+fn preserve_rebind_uses_undeclared_layout_relationships_and_keeps_placeholder_inheritance()
+-> Result<(), Box<dyn std::error::Error>> {
+    let mut doc = Presentation::default();
+    let original = Arc::make_mut(&mut doc.slides[0])
+        .shapes
+        .iter_mut()
+        .find(|shape| shape.ph.is_some())
+        .ok_or("first placeholder missing")?;
+    let id = original.id;
+    let transform = joydeck_model::Xfrm::new(12.0, 13.0, 150.0, 80.0);
+    original.xfrm = Some(transform);
+    let source = rewrite_xml(&export(&doc)?, "ppt/slideMasters/slideMaster", |xml| {
+        if let (Some(start), Some(end)) = (
+            xml.find("<p:sldLayoutIdLst>"),
+            xml.find("</p:sldLayoutIdLst>"),
+        ) {
+            format!(
+                "{}{}",
+                &xml[..start],
+                &xml[end + "</p:sldLayoutIdLst>".len()..]
+            )
+        } else {
+            xml
+        }
+    })?;
+    let base = import(&source)?;
+    let layout = base.masters[0]
+        .layouts
+        .iter()
+        .find(|item| {
+            item.id != base.slides[0].layout
+                && item
+                    .shapes
+                    .iter()
+                    .any(|shape| shape.ph.is_some() && shape.xfrm.is_some())
+        })
+        .ok_or("alternate layout missing")?;
+    let mut edited = base.clone();
+    let slide = Arc::make_mut(&mut edited.slides[0]);
+    slide.layout = layout.id;
+    slide
+        .shapes
+        .iter_mut()
+        .find(|shape| shape.id == id)
+        .ok_or("source placeholder missing")?
+        .xfrm = None;
+    let bindings = [SlideBinding {
+        slide: slide.id,
+        source: slide.id,
+        shapes: slide
+            .shapes
+            .iter()
+            .map(|shape| (shape.id, shape.id))
+            .collect(),
+    }];
+    let output = export_preserving(&source, &base, &edited, &bindings)?;
+    let reopened = import(&output)?;
+    assert_eq!(
+        reopened
+            .layout(reopened.slides[0].layout)
+            .map(|(_, layout)| &layout.name),
+        Some(&layout.name)
+    );
+    assert_eq!(reopened.slides[0].shapes.len(), base.slides[0].shapes.len());
+    for (original, shape) in base.slides[0].shapes.iter().zip(&reopened.slides[0].shapes) {
+        assert_eq!(original.ph, shape.ph);
+        if original.id == id {
+            assert_eq!(shape.xfrm, None);
+            let ctx = joydeck_model::resolve::Ctx::for_slide(&reopened, &reopened.slides[0])
+                .ok_or("placeholder resolution context missing")?;
+            let (layout, master) = joydeck_model::resolve::parents(&ctx, shape);
+            assert_eq!(
+                joydeck_model::resolve::xfrm(&ctx, shape),
+                layout
+                    .and_then(|layer| layer.xfrm)
+                    .or_else(|| master.and_then(|layer| layer.xfrm))
+                    .ok_or("placeholder has no inherited transform")?
+            );
+            assert_ne!(joydeck_model::resolve::xfrm(&ctx, shape), transform);
+        } else {
+            assert_eq!(original.xfrm, shape.xfrm);
+        }
+    }
+    Ok(())
+}
+
+#[test]
 fn layout_footer_visibility_is_retained_during_unrelated_slide_edit()
 -> Result<(), Box<dyn std::error::Error>> {
     let mut p = Presentation::default();

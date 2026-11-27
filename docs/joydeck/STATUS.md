@@ -40,6 +40,8 @@
 
 2026-11-27 PPTX 通用 XML 与生成关系写出切换到独立实现。WMF／EMF 的向量记录、设备坐标、矩形裁剪与文字记录已切换并完成冻结渲染对照。阶段 5 剩余 PPTX 专用保留分支、EMF+ 及其他生产来源继续跟踪。[XML、关系与图元验证](../joyoffice/validation/20261127-craft-stage5-deck-xml-vector/README.md)
 
+2026-11-27 图表保留编辑沿原图表和嵌入工作簿的绑定更新，共用原部件继续保留。占位符换版使用与导入相同的母版、版式关系映射。EMF+ 对象、设备状态、路径几何、凸裁剪和 Windows 码页通过冻结对照。阶段 5 剩余来源与平台实机验证继续跟踪。[保留编辑与 EMF+](../joyoffice/validation/20261127-craft-stage5-deck-preserve-emfplus/README.md)
+
 2026-11-06 推进 JD-807/808。SBOM 生成现在核对补充许可来源清单的文件哈希及复制结果，拒绝被改动、缺失、越界或未登记文件。后续已按精确提交补入 6 项上游正文：Linux 559 包剩 3 项缺口，Windows 452 包剩 2 项，严格许可门禁均拒绝；macOS 跨目标 SBOM 的 host 构建依赖身份缺失已修复，Linux 主机盘点 463 包剩 5 项正文缺口。未作合规结论。[核查与回归](evidence/R9-LICENSE-INTEGRITY/README.md)
 
 2026-11-06 本地整合五个 R3 切片：剪贴板隐藏内容、字符输入优先、清除格式保留语义、页脚摘要与批量已有页脚命令。首轮组合核心 203 项、Linux 适配器 5 项及按键分流 3 项通过；随后合入最新 main `aac15f2f`，三产品定向回归 852 项通过，严格 Clippy 与工程门禁通过。新增缺失页脚与完整 UI 仍开放，尚未进行本批真实桌面验收；未发布 PR。[整合证据与接入边界](evidence/R3-LOCAL-INTEGRATION/README.md)

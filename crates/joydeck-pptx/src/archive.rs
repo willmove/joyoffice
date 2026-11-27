@@ -16,8 +16,15 @@ pub(super) fn read_for_writeback(bytes: &[u8]) -> Result<Package, PptxError> {
         max_total_bytes: 1000 << 20,
         ..Default::default()
     };
+    read_editable(bytes, &budget)
+}
+
+pub(super) fn read_editable(
+    bytes: &[u8],
+    budget: &joyoffice_opc::Budget,
+) -> Result<Package, PptxError> {
     let error = |error| PptxError::Write(format!("invalid original package: {error:?}"));
-    let archive = joyoffice_opc::ZipArchive::new(bytes, &budget).map_err(error)?;
+    let archive = joyoffice_opc::ZipArchive::new(bytes, budget).map_err(error)?;
     let mut names = BTreeSet::new();
     let mut parts = BTreeMap::new();
     for (index, entry) in archive.entries().iter().enumerate() {

@@ -14,9 +14,13 @@ pub(super) struct Relationships<'a> {
 }
 
 impl Relationships<'_> {
-    fn add(&mut self, kind: &str, absolute: &str, external: bool) -> String {
+    pub(super) fn add(&mut self, kind: &str, absolute: &str, external: bool) -> String {
+        self.add_typed(&format!("{}{kind}", opc::RT_BASE), absolute, external)
+    }
+
+    pub(super) fn add_typed(&mut self, ty: &str, absolute: &str, external: bool) -> String {
         if let Some(existing) = self.source.items.iter().find(|r| {
-            r.kind == kind
+            r.ty == ty
                 && r.external == external
                 && if external {
                     r.target == absolute
@@ -31,12 +35,11 @@ impl Relationships<'_> {
         } else {
             opc::relative(self.part, absolute)
         };
-        let ty = format!("{}{kind}", opc::RT_BASE);
         if let Some(existing) = self
             .added
             .iter()
             .find(|r| {
-                r.attr("Type") == Some(&ty)
+                r.attr("Type") == Some(ty)
                     && r.attr("Target") == Some(&target)
                     && (r.attr("TargetMode") == Some("External")) == external
             })
@@ -48,7 +51,8 @@ impl Relationships<'_> {
         while self.occupied.contains(&id) || self.added.iter().any(|r| r.attr("Id") == Some(&id)) {
             id.push('x');
         }
-        let mut relationship = rel_element(&id, kind, &target);
+        let mut relationship = rel_element(&id, "", &target);
+        relationship.set_attr("Type", ty);
         if external {
             relationship.set_attr("TargetMode", "External");
         }

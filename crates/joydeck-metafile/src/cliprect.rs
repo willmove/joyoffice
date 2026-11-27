@@ -6,6 +6,8 @@
 
 use crate::bitmap::Rgba;
 use crate::canvas::Raw;
+pub(crate) use crate::convex_clip::{clip_polygon, convex};
+use crate::convex_clip::{clip_segment, contains};
 use crate::geom::{Op, P};
 
 /// Line segments per Bézier when a crossing shape is flattened.
@@ -60,54 +62,6 @@ pub(crate) fn pts_bbox(pts: &[P]) -> Option<[f64; 4]> {
     }))
 }
 
-fn cross(a: P, b: P, p: P) -> f64 {
-    (b.0 - a.0) * (p.1 - a.1) - (b.1 - a.1) * (p.0 - a.0)
-}
-
-/// A convex clip polygon with positive orientation, or None when `pts` is not convex (or
-/// degenerate); duplicate and collinear points are dropped.
-pub(crate) fn convex(pts: &[P]) -> Option<Vec<P>> {
-    let mut v: Vec<P> = Vec::with_capacity(pts.len());
-    for &p in pts {
-        if !(p.0.is_finite() && p.1.is_finite()) {
-            return None;
-        }
-        if v.last()
-            .is_none_or(|q: &P| (q.0 - p.0).abs() > 1e-9 || (q.1 - p.1).abs() > 1e-9)
-        {
-            v.push(p);
-        }
-    }
-    while v.len() > 1 && v.first() == v.last() {
-        v.pop();
-    }
-    let area: f64 = (0..v.len())
-        .map(|i| cross((0.0, 0.0), v[i], v[(i + 1) % v.len()]))
-        .sum();
-    if v.len() < 3 || area.abs() < 1e-12 {
-        return None;
-    }
-    if area < 0.0 {
-        v.reverse();
-    }
-    let n = v.len();
-    let mut out = Vec::with_capacity(n);
-    for i in 0..n {
-        let c = cross(v[(i + n - 1) % n], v[i], v[(i + 1) % n]);
-        if c < -1e-9 * (1.0 + area.abs()) {
-            return None;
-        }
-        if c.abs() > 1e-12 {
-            out.push(v[i]);
-        }
-    }
-    (out.len() >= 3).then_some(out)
-}
-
-fn inside_poly(clip: &[P], p: P) -> bool {
-    (0..clip.len()).all(|i| cross(clip[i], clip[(i + 1) % clip.len()], p) >= -1e-9)
-}
-
 /// Whether the clip polygon is an axis-aligned rectangle.
 fn is_rect(clip: &[P]) -> bool {
     pts_bbox(clip).is_some_and(|b| {
@@ -118,50 +72,12 @@ fn is_rect(clip: &[P]) -> bool {
     })
 }
 
-/// Sutherland–Hodgman: `poly` cut by convex `clip`.
-pub(crate) fn clip_polygon(poly: &[P], clip: &[P]) -> Vec<P> {
-    if poly.len().saturating_mul(clip.len()) > 1_000_000 {
-        return Vec::new();
-    }
-    let mut poly = poly.to_vec();
-    for i in 0..clip.len() {
-        if poly.len().saturating_mul(clip.len() - i) > 1_000_000 {
-            return Vec::new();
-        }
-        let (a, b) = (clip[i], clip[(i + 1) % clip.len()]);
-        let keep = |p: P| cross(a, b, p) >= 0.0;
-        let cut = |p: P, q: P| {
-            let (cp, cq) = (cross(a, b, p), cross(a, b, q));
-            let t = cp / (cp - cq);
-            (p.0 + (q.0 - p.0) * t, p.1 + (q.1 - p.1) * t)
-        };
-        let mut next = Vec::with_capacity(poly.len() + 4);
-        for j in 0..poly.len() {
-            let (p, q) = (poly[(j + poly.len() - 1) % poly.len()], poly[j]);
-            match (keep(p), keep(q)) {
-                (true, true) => next.push(q),
-                (true, false) => next.push(cut(p, q)),
-                (false, true) => {
-                    next.push(cut(p, q));
-                    next.push(q);
-                }
-                (false, false) => {}
-            }
-        }
-        poly = next;
-        if poly.is_empty() {
-            break;
-        }
-    }
-    poly
-}
-
 fn disjoint(b: [f64; 4], c: [f64; 4]) -> bool {
     b[2] < c[0] || b[0] > c[2] || b[3] < c[1] || b[1] > c[3] || c[2] <= c[0] || c[3] <= c[1]
 }
 
 fn bbox_inside(b: [f64; 4], clip: &[P]) -> bool {
-    rect_poly(b).into_iter().all(|p| inside_poly(clip, p))
+    rect_poly(b).into_iter().all(|p| contains(clip, p))
 }
 
 /// Clips one drawn item to a convex device polygon; a shape that is both filled and stroked comes
@@ -331,7 +247,7 @@ fn clip_stroke(subs: &[(Vec<P>, bool)], clip: &[P]) -> Vec<Op> {
         }
         let mut last: Option<P> = None;
         for w in pts.windows(2) {
-            let Some((a, b)) = segment(w[0], w[1], clip) else {
+            let Some((a, b)) = clip_segment(w[0], w[1], clip) else {
                 last = None;
                 continue;
             };
@@ -343,34 +259,6 @@ fn clip_stroke(subs: &[(Vec<P>, bool)], clip: &[P]) -> Vec<Op> {
         }
     }
     ops
-}
-
-/// Cyrus–Beck: the part of segment `a`–`b` inside convex `clip`.
-fn segment(a: P, b: P, clip: &[P]) -> Option<(P, P)> {
-    let d = (b.0 - a.0, b.1 - a.1);
-    let (mut t0, mut t1) = (0.0f64, 1.0f64);
-    for i in 0..clip.len() {
-        let (e0, e1) = (clip[i], clip[(i + 1) % clip.len()]);
-        // Inside is cross(e0, e1, p) >= 0, linear in t along the segment.
-        let f0 = cross(e0, e1, a);
-        let df = (e1.0 - e0.0) * d.1 - (e1.1 - e0.1) * d.0;
-        if df == 0.0 {
-            if f0 < 0.0 {
-                return None;
-            }
-        } else {
-            let t = -f0 / df;
-            if df > 0.0 {
-                t0 = t0.max(t);
-            } else {
-                t1 = t1.min(t);
-            }
-        }
-    }
-    (t0 <= t1).then_some((
-        (a.0 + d.0 * t0, a.1 + d.1 * t0),
-        (a.0 + d.0 * t1, a.1 + d.1 * t1),
-    ))
 }
 
 /// Crops a bitmap drawn into `rect` = `[x, y, w, h]` (device, positive extents) to the clip
@@ -410,7 +298,7 @@ fn crop(rect: [f64; 4], img: Rgba, clip: &[P]) -> Option<([f64; 4], Rgba)> {
             let cy = y + (row as f64 + 0.5) / ky;
             for (k, p) in px[start..].as_chunks_mut::<4>().0.iter_mut().enumerate() {
                 let cx = x + ((x0 + k) as f64 + 0.5) / kx;
-                if !inside_poly(clip, (cx, cy)) {
+                if !contains(clip, (cx, cy)) {
                     p[3] = 0;
                 }
             }
