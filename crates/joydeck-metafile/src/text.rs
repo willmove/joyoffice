@@ -68,8 +68,6 @@ pub struct Text {
     pub region: Option<Vec<[f32; 4]>>,
 }
 
-/// TA_UPDATECP: the string starts at the current position, which moves past it.
-pub(crate) const TA_UPDATECP: u32 = 0x0001;
 /// ETO_OPAQUE fills the rectangle with the background colour; ETO_CLIPPED clips the text to it.
 pub(crate) const ETO_OPAQUE: u32 = 0x0002;
 pub(crate) const ETO_CLIPPED: u32 = 0x0004;
@@ -79,22 +77,6 @@ pub(crate) const ETO_GLYPH_INDEX: u32 = 0x0010;
 pub(crate) const ETO_PDY: u32 = 0x2000;
 /// Longest string kept from one record.
 pub(crate) const MAX_CHARS: usize = 16_384;
-
-/// Horizontal and vertical alignment from a TA_* word (the vertical bits are 0 top, 8 bottom,
-/// 24 baseline; the horizontal ones 0 left, 2 right, 6 center).
-pub(crate) fn align(ta: u32) -> (HAlign, VAlign) {
-    let h = match ta & 0x06 {
-        6 => HAlign::Center,
-        2 => HAlign::Right,
-        _ => HAlign::Left,
-    };
-    let v = match ta & 0x18 {
-        0x18 => VAlign::Baseline,
-        0x08 => VAlign::Bottom,
-        _ => VAlign::Top,
-    };
-    (h, v)
-}
 
 /// Decodes 8-bit text in `charset` to one character per byte, and merges `dx` to match: a
 /// double-byte character set's lead and trail bytes become one blank (its glyphs are not

@@ -48,8 +48,10 @@ mod tables;
 mod theme_part;
 mod transition_part;
 mod write;
+#[path = "xml_tree.rs"]
 mod xml;
 mod xml_read;
+mod xml_write;
 
 /// The bounded XML reader the importer uses, for callers that read kept fragments (a shape's
 /// 3-D settings) instead of scanning strings.

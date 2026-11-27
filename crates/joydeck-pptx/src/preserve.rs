@@ -680,13 +680,13 @@ pub fn export_preserving(
         if existing && same_slide_part(slide, source_slide) {
             continue;
         }
-        let mut root = pkg
+        let mut document = pkg
             .xml(source_part)
-            .ok_or_else(|| error("invalid source slide XML"))?
-            .root;
-        namespaces(&mut root)?;
+            .ok_or_else(|| error("invalid source slide XML"))?;
+        let root = &mut document.root;
+        namespaces(root)?;
         if !existing {
-            replace(&mut root, "timing", None);
+            replace(root, "timing", None);
         }
         let deleted: Vec<_> = source_slide
             .shapes
@@ -710,10 +710,10 @@ pub fn export_preserving(
                 "deleting animated/connected objects needs .joydeck Save As in R2",
             ));
         }
-        if let Some(common) = child_mut(&mut root, "cSld") {
+        if let Some(common) = child_mut(root, "cSld") {
             set(common, "name", slide.name.clone());
         }
-        let old_tree = tree(&root)
+        let old_tree = tree(root)
             .ok_or_else(|| error("missing source shape tree"))?
             .clone();
         let generated_part = format!("ppt/slides/slide{}.xml", index + 1);
@@ -724,7 +724,7 @@ pub fn export_preserving(
         let gen_tree =
             tree(&generated_root).ok_or_else(|| error("missing generated shape tree"))?;
         if slide.background != source_slide.background {
-            let common = child_mut(&mut root, "cSld").ok_or_else(|| error("missing slide cSld"))?;
+            let common = child_mut(root, "cSld").ok_or_else(|| error("missing slide cSld"))?;
             replace(
                 common,
                 "bg",
@@ -744,7 +744,7 @@ pub fn export_preserving(
         }
         if slide.show_master_shapes != source_slide.show_master_shapes {
             set(
-                &mut root,
+                root,
                 "showMasterSp",
                 if slide.show_master_shapes { "1" } else { "0" }.into(),
             );
@@ -778,7 +778,7 @@ pub fn export_preserving(
             }
         }
         let mut added_rels = vec![];
-        let mut field_ids = fields::Ids::new(&root, part);
+        let mut field_ids = fields::Ids::new(root, part);
         let source_relationships = pkg.rels(source_part);
         let generated_relationships = gen_pkg.rels(&generated_part);
         let occupied = pkg
@@ -800,12 +800,7 @@ pub fn export_preserving(
                 ));
             }
         }
-        let mut nodes: Vec<Node> = old_tree
-            .children
-            .iter()
-            .filter(|n| !matches!(n,Node::El(e) if e.is("extLst") || node_id(e).is_some()))
-            .cloned()
-            .collect();
+        let mut drawings = Vec::with_capacity(slide.shapes.len());
         for shape in &slide.shapes {
             let mut link_relationships = links::Relationships {
                 source: &source_relationships,
@@ -1057,26 +1052,32 @@ pub fn export_preserving(
             if let Some(nv) = find_mut(&mut e, "cNvPr") {
                 set(nv, "id", shape.id.0.to_string());
             }
-            nodes.push(Node::El(e));
+            drawings.push(Node::El(e));
         }
-        // The shape tree starts with its group properties and ends with optional extensions.
-        nodes.extend(
-            old_tree
-                .elements()
-                .filter(|e| e.is("extLst"))
-                .cloned()
-                .map(Node::El),
-        );
+        // Fill the drawing slots in model order while leaving mixed content around them intact.
+        let mut drawings = drawings.into_iter();
+        let mut nodes = Vec::with_capacity(old_tree.children.len());
+        for node in old_tree.children {
+            match &node {
+                Node::El(element) if node_id(element).is_some() => nodes.extend(drawings.next()),
+                Node::El(element) if element.is("extLst") => {
+                    nodes.extend(drawings.by_ref());
+                    nodes.push(node);
+                }
+                _ => nodes.push(node),
+            }
+        }
+        nodes.extend(drawings);
         let target = child_mut(
-            child_mut(&mut root, "cSld").ok_or_else(|| error("missing cSld"))?,
+            child_mut(root, "cSld").ok_or_else(|| error("missing cSld"))?,
             "spTree",
         )
         .ok_or_else(|| error("missing shape tree"))?;
         target.children = nodes;
         if !existing {
-            field_ids.reassign_tree(&mut root);
+            field_ids.reassign_tree(root);
         }
-        parts.insert(part.clone(), root.to_xml().into_bytes());
+        parts.insert(part.clone(), document.into_xml());
         if !existing {
             let mut slide_rels = relationship_root(&pkg, source_part)?;
             // Cloning a slide can move it out of a custom directory. Rebase internal targets.

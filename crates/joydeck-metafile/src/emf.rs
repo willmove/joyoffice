@@ -8,15 +8,11 @@ use crate::bytes::Bytes;
 use crate::canvas::{
     BS_HATCHED, BS_NULL, Brush, Canvas, LogFont, Obj, PS_NULL, PS_STYLE_MASK, Pen, Xform, colorref,
 };
-use crate::geom::{self, ArcKind, P};
 use crate::records::{self, Format};
-use crate::text::{ETO_GLYPH_INDEX, ETO_PDY, Font, MAX_CHARS, decode_bytes, decode_utf16};
-use crate::{Error, Frame, MAX_PATH_OPS};
-
-/// ExtTextOut options: no rectangle in the record (EMR_SMALLTEXTOUT, EmrText), and 8-bit
-/// characters (EMR_SMALLTEXTOUT).
-const ETO_NO_RECT: u32 = 0x0100;
-const ETO_SMALL_CHARS: u32 = 0x0200;
+use crate::text::{Font, decode_utf16};
+use crate::text_records;
+use crate::vector_records::{emf_point as xy32, emf_rect as rect32, play_emf};
+use crate::{Error, Frame};
 
 const EMF_SIGNATURE: u32 = 0x464D_4520;
 /// Hundredths of a millimetre to points.
@@ -130,133 +126,17 @@ fn record(cv: &mut Canvas, typ: u32, r: Bytes) {
         22 => r.u32(8).map(|a| cv.set_text_align(a)),
         24 => r.u32(8).map(|c| cv.set_text_color(c)),
         25 => r.u32(8).map(|c| cv.set_bk_color(c)),
-        83 | 84 => ext_text_out(cv, r, typ == 84),
-        108 => small_text_out(cv, r),
+        83 | 84 | 108 => text_records::play_emf(cv, typ, r),
         40 => r.u32(8).map(|i| cv.delete_object(i)),
         29 => rect32(r, 8).map(|rect| cv.exclude_clip_rect(rect)),
         30 => rect32(r, 8).map(|rect| cv.intersect_clip_rect(rect)),
-        75 => ext_select_clip(cv, r),
-        27 => xy32(r, 8).map(|p| cv.move_to(p)),
-        54 => xy32(r, 8).map(|p| cv.line_to(p)),
-        42 => rect32(r, 8).map(|[l, t, rr, b]| cv.shape(&geom::ellipse(l, t, rr, b), true, true)),
-        43 => rect32(r, 8).map(|[l, t, rr, b]| cv.shape(&geom::rect(l, t, rr, b), true, true)),
-        44 => {
-            let (cw, ch) = (r.i32(24), r.i32(28));
-            let (Some(cw), Some(ch)) = (cw, ch) else {
-                return;
-            };
-            rect32(r, 8).map(|[l, t, rr, b]| {
-                cv.shape(
-                    &geom::round_rect(l, t, rr, b, f64::from(cw), f64::from(ch)),
-                    true,
-                    true,
-                );
-            })
-        }
-        45..=47 => arc32(r).map(|(bounds, s, e)| {
-            let kind = match typ {
-                45 => ArcKind::Arc,
-                46 => ArcKind::Chord,
-                _ => ArcKind::Pie,
-            };
-            let [l, t, rr, b] = bounds;
-            cv.shape(
-                &geom::arc_shape(l, t, rr, b, s, e, kind),
-                kind != ArcKind::Arc,
-                true,
-            );
-        }),
-        4 | 87 => counted(r, typ == 4).map(|pts| cv.poly(&pts, false, false, true)),
-        3 | 86 => counted(r, typ == 3).map(|pts| cv.poly(&pts, true, true, true)),
-        6 | 89 => counted(r, typ == 6).map(|pts| cv.line_chain(&pts, false, true)),
-        // POLYBEZIER starts its own figure at the first point and leaves the current point alone;
-        // POLYBEZIERTO continues from the current point.
-        2 | 85 => counted(r, typ == 2).and_then(|pts| {
-            let from = *pts.first()?;
-            cv.bezier(from, pts.get(1..)?);
-            Some(())
-        }),
-        5 | 88 => counted(r, typ == 5).map(|pts| cv.bezier_to(&pts)),
-        7 | 90 => poly_groups(r, typ == 7)
-            .map(|(counts, pts)| cv.shape(&geom::subpaths(&pts, &counts, false), false, true)),
-        8 | 91 => poly_groups(r, typ == 8)
-            .map(|(counts, pts)| cv.shape(&geom::subpaths(&pts, &counts, true), true, true)),
-        59 => {
-            cv.begin_path();
-            Some(())
-        }
-        60 => {
-            cv.end_path();
-            Some(())
-        }
-        61 => {
-            cv.close_figure();
-            Some(())
-        }
-        62 => {
-            cv.paint_path(true, false);
-            Some(())
-        }
-        63 => {
-            cv.paint_path(true, true);
-            Some(())
-        }
-        64 => {
-            cv.paint_path(false, true);
-            Some(())
-        }
+        75 => crate::clip::play_emf(cv, r),
         76 | 77 => bitblt(cv, r, typ == 77),
         80 => set_dibits(cv, r),
         81 => stretch_dibits(cv, r),
         114 => alphablend(cv, r),
-        _ => Some(()),
+        _ => play_emf(cv, typ, r),
     };
-}
-
-/// EMR_EXTSELECTCLIPRGN: `cbRgnData` bytes of `RGNDATA` (rectangles in logical units) and a region
-/// mode. No region data selects the default clip.
-fn ext_select_clip(cv: &mut Canvas, r: Bytes) -> Option<()> {
-    let cb = r.u32(8)? as usize;
-    let mode = r.u32(12)?;
-    if cb == 0 {
-        cv.reset_clip();
-        return Some(());
-    }
-    let header = 16;
-    if cb < 32 {
-        return Some(());
-    }
-    // RDH_RECTANGLES is the only region type GDI writes.
-    if r.u32(header + 4)? != 1 {
-        return Some(());
-    }
-    let n = (r.u32(header + 8)? as usize).min(crate::clip::MAX_CLIP_RECTS);
-    let end = header.checked_add(cb)?;
-    let mut rects = Vec::new();
-    for i in 0..n {
-        let o = header + 32 + i * 16;
-        if o + 16 > end {
-            break;
-        }
-        rects.push(rect32(r, o)?);
-    }
-    cv.select_clip_rects(&rects, mode);
-    Some(())
-}
-
-/// Two little-endian i32 values at `off`, as a point.
-fn xy32(r: Bytes, off: usize) -> Option<P> {
-    Some((f64::from(r.i32(off)?), f64::from(r.i32(off + 4)?)))
-}
-
-/// RECTL (left, top, right, bottom) as i32 values widened to f64.
-fn rect32(r: Bytes, off: usize) -> Option<[f64; 4]> {
-    Some([
-        f64::from(r.i32(off)?),
-        f64::from(r.i32(off + 4)?),
-        f64::from(r.i32(off + 8)?),
-        f64::from(r.i32(off + 12)?),
-    ])
 }
 
 /// An i32 field as f64; 0 past the end.
@@ -273,43 +153,6 @@ fn xform(r: Bytes, off: usize) -> Option<Xform> {
     Some(x)
 }
 
-/// ARC, CHORD, PIE: bounds at 8, start point at 24, end point at 32.
-fn arc32(r: Bytes) -> Option<([f64; 4], P, P)> {
-    Some((rect32(r, 8)?, xy32(r, 24)?, xy32(r, 32)?))
-}
-
-/// A point count from a record, rejected when it exceeds the path budget (before any allocation).
-fn budget(n: u32) -> Option<usize> {
-    let n = n as usize;
-    (n <= MAX_PATH_OPS).then_some(n)
-}
-
-/// Point count at 24, then the points (32-bit or 16-bit) at 28.
-fn counted(r: Bytes, wide: bool) -> Option<Vec<P>> {
-    let n = budget(r.u32(24)?)?;
-    r.tail(28)?.points(0, n, wide)
-}
-
-/// Subpath count at 24, total point count at 28, per-subpath counts at 32, then the points.
-fn poly_groups(r: Bytes, wide: bool) -> Option<(Vec<usize>, Vec<P>)> {
-    let n = budget(r.u32(24)?)?;
-    // The record must hold the n counts before anything is allocated for them.
-    let raw = r.slice(32, n.checked_mul(4)?)?;
-    let counts: Vec<usize> = raw
-        .as_chunks::<4>()
-        .0
-        .iter()
-        .map(|c| u32::from_le_bytes(*c) as usize)
-        .collect();
-    let total = counts.iter().try_fold(0usize, |a, c| a.checked_add(*c))?;
-    let total = budget(u32::try_from(total).ok()?)?;
-    let pts = r
-        .tail(n.checked_mul(4)?.checked_add(32)?)?
-        .points(0, total, wide)?;
-    Some((counts, pts))
-}
-
-/// EMR_CREATEPEN: handle, LogPen (style, width x/y, colour).
 fn create_pen(cv: &mut Canvas, r: Bytes) -> Option<()> {
     let slot = r.u32(8)? as usize;
     let style = r.u32(12)?;
@@ -418,82 +261,6 @@ fn create_font(cv: &mut Canvas, r: Bytes) -> Option<()> {
 
 /// The dx array at `off` for `n` characters: i32 advances, or (dx, dy) pairs under ETO_PDY (only
 /// dx is used). Empty when absent or short.
-fn dx_array(r: Bytes, off: usize, n: usize, opts: u32) -> Vec<f32> {
-    let step = if opts & ETO_PDY != 0 { 8 } else { 4 };
-    if off == 0 {
-        return Vec::new();
-    }
-    let dx: Vec<f32> = (0..n)
-        .map_while(|i| r.i32(off.checked_add(i.checked_mul(step)?)?))
-        .map(|v| v as f32)
-        .collect();
-    if dx.len() == n { dx } else { Vec::new() }
-}
-
-/// EMR_EXTTEXTOUTA (83) and EMR_EXTTEXTOUTW (84): bounds, graphics mode and scales, then an EmrText
-/// at 36: reference point, character count, string offset, options, the rectangle (absent under
-/// ETO_NO_RECT) and the dx offset. Offsets count from the record start. Glyph-index strings name
-/// glyphs of a font the reader cannot match, so they are left out.
-fn ext_text_out(cv: &mut Canvas, r: Bytes, wide: bool) -> Option<()> {
-    let at = xy32(r, 36)?;
-    let n = (r.u32(44)? as usize).min(MAX_CHARS);
-    let off = r.u32(48)? as usize;
-    let opts = r.u32(52)?;
-    let (rect, dx_off) = if opts & ETO_NO_RECT != 0 {
-        (None, r.u32(56)?)
-    } else {
-        (rect32(r, 56), r.u32(72)?)
-    };
-    if opts & ETO_GLYPH_INDEX != 0 {
-        return None;
-    }
-    let dx = dx_array(r, dx_off as usize, n, opts);
-    let (text, dx) = if wide {
-        let raw = r.slice(off, n.checked_mul(2)?)?;
-        let units: Vec<u16> = raw
-            .as_chunks::<2>()
-            .0
-            .iter()
-            .map(|c| u16::from_le_bytes(*c))
-            .collect();
-        decode_utf16(&units, &dx)
-    } else {
-        decode_bytes(r.slice(off, n)?, cv.font_charset(), &dx)
-    };
-    cv.text(at, text, dx, opts, rect);
-    Some(())
-}
-
-/// EMR_SMALLTEXTOUT (MS-EMF 2.3.5.37): x, y, character count, options, graphics mode, scales, the
-/// bounds (absent under ETO_NO_RECT), then the characters: 8-bit under ETO_SMALL_CHARS, else UTF-16.
-fn small_text_out(cv: &mut Canvas, r: Bytes) -> Option<()> {
-    let at = xy32(r, 8)?;
-    let n = (r.u32(16)? as usize).min(MAX_CHARS);
-    let opts = r.u32(20)?;
-    if opts & ETO_GLYPH_INDEX != 0 {
-        return None;
-    }
-    let (rect, off) = if opts & ETO_NO_RECT != 0 {
-        (None, 36)
-    } else {
-        (rect32(r, 36), 52)
-    };
-    let (text, _) = if opts & ETO_SMALL_CHARS != 0 {
-        decode_bytes(r.slice(off, n)?, cv.font_charset(), &[])
-    } else {
-        let raw = r.slice(off, n.checked_mul(2)?)?;
-        let units: Vec<u16> = raw
-            .as_chunks::<2>()
-            .0
-            .iter()
-            .map(|c| u16::from_le_bytes(*c))
-            .collect();
-        decode_utf16(&units, &[])
-    };
-    cv.text(at, text, Vec::new(), opts, rect);
-    Some(())
-}
-
 /// BITBLT (76) and STRETCHBLT (77): dest at 24..40, rop at 40, source x/y at 44, bmi at 84, bits at
 /// 92; STRETCHBLT adds the source w/h at 100. A source-less rop fills the destination instead.
 fn bitblt(cv: &mut Canvas, r: Bytes, stretch: bool) -> Option<()> {

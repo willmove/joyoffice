@@ -6,10 +6,11 @@ use std::sync::Arc;
 use crate::bitmap;
 use crate::bytes::Bytes;
 use crate::canvas::{BS_HATCHED, Brush, Canvas, LogFont, Obj, Pen, colorref};
-use crate::geom::{self, ArcKind, P};
 use crate::records::{self, Format};
-use crate::text::{ETO_CLIPPED, ETO_OPAQUE, Font, MAX_CHARS, decode_bytes};
-use crate::{Error, Frame, MAX_PATH_OPS};
+use crate::text::{Font, decode_bytes};
+use crate::text_records;
+use crate::vector_records::{play_wmf, wmf_point as xy16, wmf_rect as rect16};
+use crate::{Error, Frame};
 
 const PLACEABLE_KEY: u32 = 0x9AC6_CDD7;
 const DEFAULT_INCH: f64 = 1440.0;
@@ -69,7 +70,7 @@ pub(crate) fn parse(input: Bytes) -> Result<(Canvas, Option<Frame>), Error> {
         }
         record(&mut cv, entry.kind as u16, entry.data);
         if entry.kind == 0x020C && cv.window_set && !player_viewport && !cv.viewport_set {
-            let we = cv.map.window_ext();
+            let we = cv.map.window_size;
             cv.play_into(None, (we.0.abs(), we.1.abs()));
             player_viewport = true;
         }
@@ -100,7 +101,7 @@ pub(crate) fn parse(input: Bytes) -> Result<(Canvas, Option<Frame>), Error> {
             })
         }
         None if player_viewport && !cv.viewport_set && cv.map.uses_extents() => {
-            let ve = cv.map.viewport_ext();
+            let ve = cv.map.viewport_size;
             Some(Frame {
                 rect: [0.0, 0.0, ve.0, ve.1],
                 size: None,
@@ -133,43 +134,8 @@ fn record(cv: &mut Canvas, func: u16, r: Bytes) {
             Some(())
         }
         0x0127 => r.i16(6).map(|n| cv.restore_dc(i32::from(n))),
-        0x0214 => xy16(r, 6).map(|p| cv.move_to(p)),
-        0x0213 => xy16(r, 6).map(|p| cv.line_to(p)),
-        0x0325 => counted_points(r).map(|pts| cv.poly(&pts, false, false, true)),
-        0x0324 => counted_points(r).map(|pts| cv.poly(&pts, true, true, true)),
-        0x0538 => polypolygon(r).map(|ops| cv.shape(&ops, true, true)),
-        0x041B => rect16(r, 6).map(|[l, t, rr, b]| cv.shape(&geom::rect(l, t, rr, b), true, true)),
-        0x061C => {
-            let [ew, eh] = [r.i16(8), r.i16(6)];
-            let (Some(ew), Some(eh)) = (ew, eh) else {
-                return;
-            };
-            rect16(r, 10).map(|[l, t, rr, b]| {
-                cv.shape(
-                    &geom::round_rect(l, t, rr, b, f64::from(ew), f64::from(eh)),
-                    true,
-                    true,
-                );
-            })
-        }
         0x0415 => rect16(r, 6).map(|rect| cv.exclude_clip_rect(rect)),
         0x0416 => rect16(r, 6).map(|rect| cv.intersect_clip_rect(rect)),
-        0x0418 => {
-            rect16(r, 6).map(|[l, t, rr, b]| cv.shape(&geom::ellipse(l, t, rr, b), true, true))
-        }
-        0x0817 | 0x081A | 0x0830 => arc16(r).map(|(bounds, s, e)| {
-            let kind = match func {
-                0x0817 => ArcKind::Arc,
-                0x081A => ArcKind::Pie,
-                _ => ArcKind::Chord,
-            };
-            let [l, t, rr, b] = bounds;
-            cv.shape(
-                &geom::arc_shape(l, t, rr, b, s, e, kind),
-                kind != ArcKind::Arc,
-                true,
-            );
-        }),
         0x02FA => create_pen(cv, r),
         0x02FC => create_brush(cv, r),
         0x02FB => {
@@ -193,8 +159,7 @@ fn record(cv: &mut Canvas, func: u16, r: Bytes) {
         0x0201 => r.u32(6).map(|c| cv.set_bk_color(c)),
         0x0102 => r.u16(6).map(|m| cv.set_bk_mode(u32::from(m))),
         0x012E => r.u16(6).map(|a| cv.set_text_align(u32::from(a))),
-        0x0A32 => ext_text_out(cv, r),
-        0x0521 => text_out(cv, r),
+        0x0A32 | 0x0521 => text_records::play_wmf(cv, r, func == 0x0A32),
         // PATBLT: rop(4), height, width, y, x.
         0x061D => r
             .u32(6)
@@ -215,7 +180,7 @@ fn record(cv: &mut Canvas, func: u16, r: Bytes) {
         }
         0x0B41 => dib_stretchblt(cv, r),
         0x0940 => dib_bitblt(cv, r),
-        _ => Some(()),
+        _ => play_wmf(cv, func, r),
     };
 }
 
@@ -302,101 +267,6 @@ fn font(r: Bytes) -> Option<LogFont> {
         },
         escapement: f64::from(escapement),
     })
-}
-
-/// The charset of the selected font, for decoding 8-bit text.
-fn charset(cv: &Canvas) -> u8 {
-    cv.font_charset()
-}
-
-/// EXTTEXTOUT (MS-WMF 2.3.3.5): y, x, string length, options, the rectangle (left, top, right,
-/// bottom) when ETO_OPAQUE or ETO_CLIPPED is set, the string padded to a word, then an optional dx
-/// array of i16 advances.
-fn ext_text_out(cv: &mut Canvas, r: Bytes) -> Option<()> {
-    let (y, x) = (r.i16(6)?, r.i16(8)?);
-    let n = usize::from(r.u16(10)?).min(MAX_CHARS);
-    let opts = u32::from(r.u16(12)?);
-    let has_rect = opts & (ETO_OPAQUE | ETO_CLIPPED) != 0;
-    let rect = if has_rect {
-        Some([i16s(r, 14), i16s(r, 16), i16s(r, 18), i16s(r, 20)])
-    } else {
-        None
-    };
-    let at = if has_rect { 22 } else { 14 };
-    // A string running past the record is cut to what the record holds.
-    let avail = r.0.len().saturating_sub(at);
-    let n = n.min(avail);
-    let bytes = r.slice(at, n)?;
-    let dx_at = at + n.next_multiple_of(2);
-    let dx: Vec<f32> = if r.0.len() >= dx_at + 2 * n {
-        (0..n)
-            .filter_map(|i| r.i16(dx_at + 2 * i))
-            .map(f32::from)
-            .collect()
-    } else {
-        Vec::new()
-    };
-    let (text, dx) = decode_bytes(bytes, charset(cv), &dx);
-    cv.text((f64::from(x), f64::from(y)), text, dx, opts, rect);
-    Some(())
-}
-
-/// TEXTOUT (MS-WMF 2.3.3.20): string length, the string padded to a word, then y and x.
-fn text_out(cv: &mut Canvas, r: Bytes) -> Option<()> {
-    let n = usize::from(r.u16(6)?).min(MAX_CHARS);
-    let bytes = r.slice(8, n)?;
-    let at = 8 + n.next_multiple_of(2);
-    let (y, x) = (r.i16(at)?, r.i16(at + 2)?);
-    let (text, _) = decode_bytes(bytes, charset(cv), &[]);
-    cv.text((f64::from(x), f64::from(y)), text, Vec::new(), 0, None);
-    Some(())
-}
-
-/// (x, y) from a Y-then-X pair stored at `off`.
-fn xy16(r: Bytes, off: usize) -> Option<P> {
-    Some((f64::from(r.i16(off + 2)?), f64::from(r.i16(off)?)))
-}
-
-/// Rectangle stored as bottom, right, top, left (the order MS-WMF uses for RECTANGLE and ELLIPSE).
-fn rect16(r: Bytes, off: usize) -> Option<[f64; 4]> {
-    let (b, rr, t, l) = (
-        r.i16(off)?,
-        r.i16(off + 2)?,
-        r.i16(off + 4)?,
-        r.i16(off + 6)?,
-    );
-    Some([f64::from(l), f64::from(t), f64::from(rr), f64::from(b)])
-}
-
-/// ARC, PIE and CHORD: end Y, end X, start Y, start X, then the bounding rectangle (bottom, right, top, left).
-fn arc16(r: Bytes) -> Option<([f64; 4], P, P)> {
-    let end = xy16(r, 6)?;
-    let start = xy16(r, 10)?;
-    let bounds = rect16(r, 14)?;
-    Some((bounds, start, end))
-}
-
-/// A count of 16-bit points, then the points (POLYLINE, POLYGON).
-fn counted_points(r: Bytes) -> Option<Vec<P>> {
-    let n = r.u16(6)? as usize;
-    r.tail(8)?.points(0, n, false)
-}
-
-/// POLYPOLYGON: polygon count, one 16-bit point count per polygon, then all points.
-fn polypolygon(r: Bytes) -> Option<Vec<geom::Op>> {
-    let n = r.u16(6)? as usize;
-    let mut counts = Vec::with_capacity(n);
-    for i in 0..n {
-        counts.push(r.u16(i.checked_mul(2)?.checked_add(8)?)? as usize);
-    }
-    let total = counts.iter().try_fold(0usize, |a, c| a.checked_add(*c))?;
-    if total > MAX_PATH_OPS {
-        return None;
-    }
-    let pts = r
-        .tail(n.checked_mul(2)?.checked_add(8)?)?
-        .points(0, total, false)?;
-    Some(geom::subpaths(&pts, &counts, true))
 }
 
 /// Whether a DIBBITBLT or DIBSTRETCHBLT record carries a bitmap: without one it is exactly

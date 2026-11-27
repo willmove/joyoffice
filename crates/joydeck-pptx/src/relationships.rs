@@ -1,8 +1,98 @@
 //! OPC relationship targets used by both the reader and preserving writeback.
 
-use std::fmt::Write as _;
+use std::{collections::HashSet, fmt::Write as _};
 
-use crate::xml::El;
+use crate::xml::{A, El, W};
+
+#[derive(Default)]
+pub struct RelsOut {
+    edges: Vec<OutputEdge>,
+    used: HashSet<String>,
+}
+
+struct OutputEdge {
+    id: String,
+    ty: String,
+    target: String,
+    external: bool,
+}
+
+impl RelsOut {
+    pub fn is_empty(&self) -> bool {
+        self.edges.is_empty()
+    }
+
+    pub fn retain_internal_kind(&mut self, kind: &str) -> bool {
+        let previous_count = self.edges.len();
+        self.edges.retain(|edge| edge.ty != kind || !edge.external);
+        if self.edges.len() != previous_count {
+            self.used = self.edges.iter().map(|edge| edge.id.clone()).collect();
+        }
+        self.edges.iter().any(|edge| edge.ty == kind)
+    }
+
+    pub fn carry(&mut self, id: String, ty: String, target: String, external: bool) {
+        self.used.insert(id.clone());
+        self.edges.push(OutputEdge {
+            id,
+            ty,
+            target,
+            external,
+        });
+    }
+
+    pub fn add(&mut self, kind: &str, target: &str, external: bool) -> String {
+        let ty = relationship_type(kind);
+        for edge in &self.edges {
+            if edge.ty == ty && edge.target == target && edge.external == external {
+                return edge.id.clone();
+            }
+        }
+        self.allocate(ty, target, external)
+    }
+
+    pub fn add_new(&mut self, kind: &str, target: &str, external: bool) -> String {
+        self.allocate(relationship_type(kind), target, external)
+    }
+
+    fn allocate(&mut self, ty: String, target: &str, external: bool) -> String {
+        // Carried chart relationships retain the IDs referenced by the original chart XML.
+        let mut id = format!("rId{}", self.edges.len() + 1);
+        while self.used.contains(&id) {
+            id.push('x');
+        }
+        self.carry(id.clone(), ty, target.into(), external);
+        id
+    }
+
+    pub fn to_xml(&self) -> Vec<u8> {
+        let mut output = W::new();
+        output.open(
+            "Relationships",
+            A::new().a("xmlns", joyoffice_opc::RELATIONSHIPS_NAMESPACE),
+        );
+        for edge in &self.edges {
+            output.empty(
+                "Relationship",
+                A::new()
+                    .a("Id", &edge.id)
+                    .a("Type", &edge.ty)
+                    .a("Target", &edge.target)
+                    .o("TargetMode", edge.external.then_some("External")),
+            );
+        }
+        output.close("Relationships");
+        output.finish()
+    }
+}
+
+fn relationship_type(kind: &str) -> String {
+    if kind.starts_with("http") || kind.contains(':') {
+        kind.into()
+    } else {
+        format!("{}{kind}", crate::opc::RT_BASE)
+    }
+}
 
 #[derive(Clone, Debug, Default)]
 pub struct Rel {
@@ -179,6 +269,34 @@ pub(super) fn rebase(owner: &str, destination: &str, original: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn generated_edges_reuse_only_equal_relationships_and_keep_carried_ids()
+    -> Result<(), crate::PptxError> {
+        let target = "https://example.invalid/中文?a=1&b=2#view";
+        let mut output = RelsOut::default();
+        output.carry(
+            "rId2".into(),
+            "urn:vendor:sidecar".into(),
+            "../vendor.xml".into(),
+            false,
+        );
+        assert_eq!(output.add("hyperlink", target, true), "rId2x");
+        assert_eq!(output.add("hyperlink", target, true), "rId2x");
+        assert_eq!(output.add_new("hyperlink", target, true), "rId3");
+        assert_eq!(output.add("hyperlink", target, false), "rId4");
+        let parsed = crate::xml::parse(&output.to_xml())?;
+        let edges = read(&parsed.root, "ppt/slides/slide1.xml").items;
+        assert_eq!(edges.len(), 4);
+        assert_eq!(edges[0].id, "rId2");
+        assert_eq!(edges[0].ty, "urn:vendor:sidecar");
+        assert_eq!(edges[0].target, "ppt/vendor.xml");
+        assert_eq!(edges[1].target_raw, target);
+        assert_eq!(edges[1].target, target);
+        assert!(edges[1].external);
+        assert!(!edges[3].external);
+        Ok(())
+    }
 
     #[test]
     fn a_relocated_member_keeps_literal_delimiters_and_a_fragment() {

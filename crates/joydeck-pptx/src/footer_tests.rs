@@ -72,8 +72,11 @@ fn changing_one_footer_preserves_other_slide_and_automatic_date()
         &fixture(),
         "ppt/slides/slide",
         "p:spTree",
-        r#"<p:extLst><p:ext uri="urn:joydeck:test"><test:data xmlns:test="urn:joydeck:test"/></p:ext></p:extLst>"#,
+        r#"<!--shape tree marker--><p:extLst><p:ext uri="urn:joydeck:test"><test:data xmlns:test="urn:joydeck:test" test:space="a&#9;b&#13;c">before<![CDATA[<&]]><?joydeck-test keep?><!--opaque--><test:child/>after</test:data></p:ext></p:extLst>"#,
     )?;
+    let source = rewrite_xml(&source, "ppt/slides/slide1.xml", |xml| {
+        xml.replace("<p:sld ", "<?vendor before?><!--outer--><p:sld ") + "<?vendor after?>"
+    })?;
     let base = import(&source).unwrap();
     let bindings: Vec<_> = base
         .slides
@@ -105,6 +108,10 @@ fn changing_one_footer_preserves_other_slide_and_automatic_date()
     let after = saved_pkg
         .xml("ppt/slides/slide1.xml")
         .ok_or("missing output slide")?;
+    assert_eq!(before.before_root, ["<?vendor before?>", "<!--outer-->"]);
+    assert_eq!(before.after_root, ["<?vendor after?>"]);
+    assert_eq!(before.before_root, after.before_root);
+    assert_eq!(before.after_root, after.after_root);
     let before = before
         .root
         .path(&["cSld", "spTree"])
@@ -122,6 +129,13 @@ fn changing_one_footer_preserves_other_slide_and_automatic_date()
     for tag in ["nvGrpSpPr", "grpSpPr", "extLst"] {
         assert_eq!(after.child(tag), before.child(tag));
     }
+    assert_eq!(
+        after.children.iter().rev().nth(1),
+        before.children.iter().rev().nth(1)
+    );
+    assert!(
+        matches!(after.children.iter().rev().nth(1), Some(crate::xml::Node::Markup(markup)) if markup == "<!--shape tree marker-->")
+    );
     assert_eq!(
         original_pkg.get("ppt/slides/slide2.xml"),
         saved_pkg.get("ppt/slides/slide2.xml")
@@ -163,6 +177,17 @@ fn with_visibility_xml(
     tag: &str,
     fragment: &str,
 ) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+    rewrite_xml(source, prefix, |xml| {
+        assert!(!xml.contains("<p:hf"));
+        xml.replace(&format!("</{tag}>"), &format!("{fragment}</{tag}>"))
+    })
+}
+
+fn rewrite_xml(
+    source: &[u8],
+    prefix: &str,
+    change: impl Fn(String) -> String,
+) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     use std::io::{Cursor, Read, Write};
     let mut input = zip::ZipArchive::new(Cursor::new(source))?;
     let mut output = zip::ZipWriter::new(Cursor::new(Vec::new()));
@@ -172,11 +197,7 @@ fn with_visibility_xml(
         let mut bytes = Vec::new();
         entry.read_to_end(&mut bytes)?;
         if name.starts_with(prefix) && name.ends_with(".xml") {
-            let xml = String::from_utf8(bytes)?;
-            assert!(!xml.contains("<p:hf"));
-            bytes = xml
-                .replace(&format!("</{tag}>"), &format!("{fragment}</{tag}>"))
-                .into_bytes();
+            bytes = change(String::from_utf8(bytes)?).into_bytes();
         }
         output.start_file(name, zip::write::SimpleFileOptions::default())?;
         output.write_all(&bytes)?;

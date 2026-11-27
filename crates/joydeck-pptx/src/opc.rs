@@ -7,6 +7,7 @@ use std::io::{Cursor, Read};
 use std::sync::Arc;
 
 use crate::PptxError;
+pub use crate::relationships::RelsOut;
 pub use crate::relationships::{Rel, Rels, dir_of, file_of, relative, rels_path, resolve};
 use crate::xml::{self, A, W};
 
@@ -315,65 +316,6 @@ pub fn sidecar_part(name: &str) -> bool {
 // ---------------------------------------------------------------------------------------------
 // Writing
 
-/// Relationships being built for one part.
-#[derive(Default)]
-pub struct RelsOut {
-    pub items: Vec<(String, String, String, bool)>,
-}
-
-impl RelsOut {
-    /// Add (or reuse) a relationship; `kind` is a full type URI or a suffix of the standard base.
-    pub fn add(&mut self, kind: &str, target: &str, external: bool) -> String {
-        let ty = if kind.starts_with("http") {
-            kind.to_string()
-        } else {
-            format!("{RT_BASE}{kind}")
-        };
-        if let Some((id, ..)) = self
-            .items
-            .iter()
-            .find(|(_, t, tg, e)| *t == ty && tg == target && *e == external)
-        {
-            return id.clone();
-        }
-        let id = format!("rId{}", self.items.len() + 1);
-        self.items
-            .push((id.clone(), ty, target.to_string(), external));
-        id
-    }
-    /// Always add a new relationship even if an identical one exists.
-    pub fn add_new(&mut self, kind: &str, target: &str, external: bool) -> String {
-        let ty = if kind.starts_with("http") {
-            kind.to_string()
-        } else {
-            format!("{RT_BASE}{kind}")
-        };
-        let id = format!("rId{}", self.items.len() + 1);
-        self.items
-            .push((id.clone(), ty, target.to_string(), external));
-        id
-    }
-    pub fn to_xml(&self) -> Vec<u8> {
-        let mut w = W::new();
-        w.open(
-            "Relationships",
-            A::new().a(
-                "xmlns",
-                "http://schemas.openxmlformats.org/package/2006/relationships",
-            ),
-        );
-        for (id, ty, target, ext) in &self.items {
-            let mut a = A::new().a("Id", id).a("Type", ty).a("Target", target);
-            if *ext {
-                a = a.a("TargetMode", "External");
-            }
-            w.empty("Relationship", a);
-        }
-        w.close("Relationships");
-        w.finish()
-    }
-}
-
 /// A package being written.
 pub struct PackageOut {
     files: Vec<(String, Vec<u8>, bool)>,
@@ -405,7 +347,7 @@ impl PackageOut {
         self.files.push((name.to_string(), data, true));
     }
     pub fn rels(&mut self, part: &str, rels: &RelsOut) {
-        if rels.items.is_empty() {
+        if rels.is_empty() {
             return;
         }
         let path = rels_path(part);

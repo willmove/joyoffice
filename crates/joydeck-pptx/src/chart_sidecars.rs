@@ -219,9 +219,7 @@ pub(super) fn write(
     for rel in direct {
         let target = relocate(chart_path, &renamed, rel.external, &rel.target, &rel.part);
         if let Some(target) = target {
-            chart_rels
-                .items
-                .push((rel.id.clone(), rel.rel_type.clone(), target, rel.external));
+            chart_rels.carry(rel.id.clone(), rel.rel_type.clone(), target, rel.external);
         }
     }
     for (old, new) in moved {
@@ -231,7 +229,7 @@ pub(super) fn write(
                 if let Some(target) =
                     relocate(&new, &renamed, rel.external, &rel.target_raw, &rel.target)
                 {
-                    relations.items.push((rel.id, rel.ty, target, rel.external));
+                    relations.carry(rel.id, rel.ty, target, rel.external);
                 }
             }
             package.rels(&new, &relations);
@@ -263,14 +261,7 @@ fn reachable(roots: &[&ChartRel], parts: &HashMap<String, &ChartPart>) -> HashSe
 }
 
 pub(super) fn add_internal(relationships: &mut RelsOut, kind: &str, target: &str) -> String {
-    let mut id = format!("rId{}", relationships.items.len() + 1);
-    while relationships.items.iter().any(|existing| existing.0 == id) {
-        id.push('x');
-    }
-    relationships
-        .items
-        .push((id.clone(), kind.into(), target.into(), false));
-    id
+    relationships.add_new(kind, target, false)
 }
 
 fn relocate(
