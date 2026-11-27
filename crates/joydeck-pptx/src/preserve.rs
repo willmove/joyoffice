@@ -1090,7 +1090,11 @@ pub fn export_preserving(
                     .elements_mut()
                     .find(|node| node.attr("Id") == Some(&rel.id))
                 {
-                    set(node, "Target", opc::relative(part, &rel.target));
+                    set(
+                        node,
+                        "Target",
+                        crate::relationships::rebase(part, &rel.target, &rel.target_raw),
+                    );
                 }
             }
             let notes = pkg
@@ -1119,13 +1123,25 @@ pub fn export_preserving(
                 {
                     set(r, "Target", opc::relative(part, &new_notes));
                 }
+                let note_relationships = pkg.rels(&notes.target);
                 let mut notes_rels = pkg
                     .xml(&opc::rels_path(&notes.target))
                     .ok_or_else(|| error("missing notes relationships"))?
                     .root;
                 for r in notes_rels.elements_mut() {
-                    if r.attr("Type").is_some_and(|t| t.ends_with("/slide")) {
-                        set(r, "Target", opc::relative(&new_notes, part));
+                    if let Some(old) = r.attr("Id").and_then(|id| note_relationships.get(id))
+                        && !old.external
+                    {
+                        let target = if old.kind == "slide" {
+                            part
+                        } else {
+                            &old.target
+                        };
+                        set(
+                            r,
+                            "Target",
+                            crate::relationships::rebase(&new_notes, target, &old.target_raw),
+                        );
                     }
                 }
                 parts.insert(opc::rels_path(&new_notes), notes_rels.to_xml().into_bytes());

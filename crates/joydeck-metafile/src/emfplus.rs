@@ -25,13 +25,13 @@
 
 use std::sync::Arc;
 
+use crate::bitmap::Rgba;
 use crate::bytes::Bytes;
 use crate::canvas::Raw;
 use crate::canvas::{
     BS_NULL, BS_SOLID, Brush, Canvas, LogFont, PS_NULL, Pen, RawTile, Xform, hatch_tile, mul,
 };
 use crate::cliprect::{clip_polygon, convex, flatten, ops_bbox, pts_bbox, rect_poly};
-use crate::dib::Rgba;
 use crate::geom::{Op, P};
 use crate::text::{ETO_CLIPPED, Font};
 use crate::{Item, Picture, Seg};
@@ -791,7 +791,7 @@ impl Plus {
         } else {
             [0; 4]
         };
-        let (part, dst) = crate::dib::clip_blit(img, src, dst)?;
+        let (part, dst) = crate::bitmap::clip_blit(img, src, dst)?;
         self.painter().image(cv, dst, part);
         Some(())
     }
@@ -1102,7 +1102,7 @@ impl Painter {
                         bottom_up: false,
                         px: rgba.clone(),
                     };
-                    crate::dib::flip(&mut img, a.0 > b.0, a.1 > b.1);
+                    crate::bitmap::flip(&mut img, a.0 > b.0, a.1 > b.1);
                     Raw::Bitmap {
                         rect: [
                             a.0.min(b.0),
@@ -1680,7 +1680,7 @@ fn bitmap(r: Bytes) -> Option<Rgba> {
 
 fn top_down(mut img: Rgba) -> Rgba {
     if img.bottom_up {
-        crate::dib::flip(&mut img, false, true);
+        crate::bitmap::flip(&mut img, false, true);
         img.bottom_up = false;
     }
     img

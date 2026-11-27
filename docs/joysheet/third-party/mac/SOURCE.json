@@ -3,6 +3,11 @@
   "source": "published crates.io archive",
   "standardText": "Apache-2.0",
   "originalStandaloneTextAvailable": false,
+  "upstreamRevisionCheck": {
+    "commit": "66afc663b68a65633ea165c742b5a9c6734581c2",
+    "tree": "https://api.github.com/repos/reem/rust-mac/git/trees/66afc663b68a65633ea165c742b5a9c6734581c2?recursive=1",
+    "standaloneNoticePresent": false
+  },
   "files": {
     "DECLARATION.md": "8e3004a3aee05d81059d93cd94cd4e70917594a989bd03839372c1098f47ed8e",
     "LICENSE-APACHE-standard": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",

@@ -7,6 +7,7 @@ use std::io::{Cursor, Read};
 use std::sync::Arc;
 
 use crate::PptxError;
+pub use crate::relationships::{Rel, Rels, dir_of, file_of, relative, rels_path, resolve};
 use crate::xml::{self, A, W};
 
 /// Largest single part we decompress (media included).
@@ -217,7 +218,7 @@ impl Package {
         let Some(doc) = self.xml(&rp) else {
             return Rels::default();
         };
-        rels_of(&doc, part)
+        crate::relationships::read(&doc.root, part)
     }
     /// The root relationship, rather than a conventional directory, identifies the main part.
     pub(crate) fn presentation_path(&self) -> Result<String, PptxError> {
@@ -267,78 +268,14 @@ impl Package {
     }
 }
 
-/// The relationships in a parsed rels part, with internal targets resolved against `part`'s folder.
-fn rels_of(doc: &xml::Doc, part: &str) -> Rels {
-    let base = dir_of(part);
-    let mut out = Rels::default();
-    for r in doc.root.children_named("Relationship") {
-        let (Some(id), Some(ty), Some(target)) = (r.attr("Id"), r.attr("Type"), r.attr("Target"))
-        else {
-            continue;
-        };
-        let external = r
-            .attr("TargetMode")
-            .is_some_and(|m| m.eq_ignore_ascii_case("external"));
-        let target_raw = target.to_string();
-        let target = if external {
-            target_raw.clone()
-        } else {
-            resolve(&base, target)
-        };
-        out.items.push(Rel {
-            id: id.to_string(),
-            kind: ty.rsplit('/').next().unwrap_or(ty).to_string(),
-            ty: ty.to_string(),
-            target_raw,
-            target,
-            external,
-        });
-    }
-    out
-}
-
 /// The relationships of `part` from the bytes of its rels part (kept parts carried by a chart).
 pub fn rels_from_bytes(bytes: &[u8], part: &str) -> Rels {
     match xml::parse(bytes) {
-        Ok(doc) => rels_of(&doc, part),
+        Ok(doc) => crate::relationships::read(&doc.root, part),
         Err(e) => {
             log::warn!("pptx: relationships of {part}: {e}");
             Rels::default()
         }
-    }
-}
-
-#[derive(Clone, Debug, Default)]
-pub struct Rel {
-    pub id: String,
-    /// Last segment of the relationship type (`slide`, `image`, `media`…).
-    pub kind: String,
-    /// Full relationship type URI.
-    pub ty: String,
-    /// `Target` as written in the rels part (relative path or URL).
-    pub target_raw: String,
-    /// Absolute part name for internal targets; the URL for external ones.
-    pub target: String,
-    pub external: bool,
-}
-
-#[derive(Clone, Debug, Default)]
-pub struct Rels {
-    pub items: Vec<Rel>,
-}
-
-impl Rels {
-    pub fn get(&self, id: &str) -> Option<&Rel> {
-        self.items.iter().find(|r| r.id == id)
-    }
-    pub fn target(&self, id: &str) -> Option<&str> {
-        self.get(id).map(|r| r.target.as_str())
-    }
-    pub fn first_of(&self, kind: &str) -> Option<&Rel> {
-        self.items.iter().find(|r| r.kind == kind)
-    }
-    pub fn all_of<'a>(&'a self, kind: &'a str) -> impl Iterator<Item = &'a Rel> + 'a {
-        self.items.iter().filter(move |r| r.kind == kind)
     }
 }
 
@@ -373,92 +310,6 @@ pub fn sidecar_part(name: &str) -> bool {
         return false;
     }
     true
-}
-
-pub fn dir_of(part: &str) -> String {
-    let p = part.trim_start_matches('/');
-    match p.rfind('/') {
-        Some(i) => p.get(..i).unwrap_or("").to_string(),
-        None => String::new(),
-    }
-}
-
-pub fn file_of(part: &str) -> &str {
-    part.rsplit('/').next().unwrap_or(part)
-}
-
-pub fn rels_path(part: &str) -> String {
-    let p = part.trim_start_matches('/');
-    let dir = dir_of(p);
-    let file = file_of(p);
-    if dir.is_empty() {
-        format!("_rels/{file}.rels")
-    } else {
-        format!("{dir}/_rels/{file}.rels")
-    }
-}
-
-fn percent_decode(s: &str) -> String {
-    let b = s.as_bytes();
-    let mut out = Vec::with_capacity(b.len());
-    let mut i = 0;
-    while i < b.len() {
-        let c = b.get(i).copied().unwrap_or(0);
-        if c == b'%'
-            && let Some(h) = b
-                .get(i + 1..i + 3)
-                .filter(|h| h.iter().all(u8::is_ascii_hexdigit))
-                .and_then(|h| std::str::from_utf8(h).ok())
-                .and_then(|h| u8::from_str_radix(h, 16).ok())
-        {
-            out.push(h);
-            i += 3;
-            continue;
-        }
-        out.push(c);
-        i += 1;
-    }
-    String::from_utf8_lossy(&out).into_owned()
-}
-
-/// Resolve a relative target against a base directory into a part name.
-pub fn resolve(base: &str, target: &str) -> String {
-    let target = percent_decode(target.split('#').next().unwrap_or("")).replace('\\', "/");
-    let target = target.as_str();
-    let mut segs: Vec<&str> = if target.starts_with('/') {
-        vec![]
-    } else {
-        base.split('/').filter(|s| !s.is_empty()).collect()
-    };
-    for s in target.split('/') {
-        match s {
-            "" | "." => {}
-            ".." => {
-                segs.pop();
-            }
-            s => segs.push(s),
-        }
-    }
-    segs.join("/")
-}
-
-/// Relative target from the directory of `from` to part `to` (both absolute part names).
-pub fn relative(from: &str, to: &str) -> String {
-    let fd_s = dir_of(from);
-    let fd: Vec<&str> = fd_s.split('/').filter(|s| !s.is_empty()).collect();
-    let td_s = dir_of(to);
-    let td: Vec<&str> = td_s.split('/').filter(|s| !s.is_empty()).collect();
-    let common = fd.iter().zip(td.iter()).take_while(|(a, b)| a == b).count();
-    let mut out = String::new();
-    for _ in common..fd.len() {
-        out.push_str("../");
-    }
-    for s in td.iter().skip(common) {
-        out.push_str(s);
-        out.push('/');
-    }
-    out.push_str(file_of(to));
-    out
 }
 
 // ---------------------------------------------------------------------------------------------

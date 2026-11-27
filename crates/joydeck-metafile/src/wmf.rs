@@ -3,9 +3,9 @@
 
 use std::sync::Arc;
 
+use crate::bitmap;
 use crate::bytes::Bytes;
 use crate::canvas::{BS_HATCHED, Brush, Canvas, LogFont, Obj, Pen, colorref};
-use crate::dib;
 use crate::geom::{self, ArcKind, P};
 use crate::records::{self, Format};
 use crate::text::{ETO_CLIPPED, ETO_OPAQUE, Font, MAX_CHARS, decode_bytes};
@@ -269,8 +269,8 @@ fn create_brush(cv: &mut Canvas, r: Bytes) -> Option<()> {
 fn dib_pattern_brush(r: Bytes) -> Option<Brush> {
     let usage = r.u16(8)?;
     let dib = r.tail(10)?;
-    let n = dib::info_len(dib)?;
-    let img = dib::decode(Bytes(dib.slice(0, n)?), dib.tail(n)?, false)?;
+    let n = bitmap::info_len(dib)?;
+    let img = bitmap::decode(Bytes(dib.slice(0, n)?), dib.tail(n)?, false)?;
     Brush::pattern(img, usage == 1)
 }
 
@@ -442,7 +442,7 @@ fn dib_stretchblt(cv: &mut Canvas, r: Bytes) -> Option<()> {
 }
 
 /// A DIB at `at`, stretched from source rectangle `src` into `dst` (both in logical units, pixels for `src`).
-/// The raster operation `rop` decides how the pixels combine (see [`dib::prepare`]).
+/// The raster operation `rop` decides how the pixels combine (see [`bitmap::prepare`]).
 fn dib_blit(
     cv: &mut Canvas,
     r: Bytes,
@@ -452,12 +452,12 @@ fn dib_blit(
     src: [f64; 4],
 ) -> Option<()> {
     let dib = r.tail(at)?;
-    let n = dib::info_len(dib)?;
+    let n = bitmap::info_len(dib)?;
     let info = dib.slice(0, n)?;
     let bits = dib.tail(n)?;
-    let mut img = dib::decode(Bytes(info), bits, false)?;
-    dib::prepare(&mut img, dib::Blend::Rop(rop));
-    let (img, dst) = dib::clip_blit(&img, src.map(|v| v as i64), dst)?;
+    let mut img = bitmap::decode(Bytes(info), bits, false)?;
+    bitmap::prepare(&mut img, bitmap::Blend::Rop(rop));
+    let (img, dst) = bitmap::clip_blit(&img, src.map(|v| v as i64), dst)?;
     cv.bitmap(dst, img);
     Some(())
 }

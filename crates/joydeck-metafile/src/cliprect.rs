@@ -4,8 +4,8 @@
 //! per subpath, outlines with Cyrus–Beck per segment. Bitmaps are cropped (and masked outside a
 //! non-rectangular polygon) and text gets the polygon's bounding rectangle.
 
+use crate::bitmap::Rgba;
 use crate::canvas::Raw;
-use crate::dib::Rgba;
 use crate::geom::{Op, P};
 
 /// Line segments per Bézier when a crossing shape is flattened.

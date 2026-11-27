@@ -285,7 +285,11 @@ fn import_part(
                 .elements_mut()
                 .find(|e| e.attr("Id") == Some(&rel.id))
                 .ok_or_else(|| error("generated relationship missing"))?;
-            set(node, "Target", opc::relative(&target, &destination));
+            set(
+                node,
+                "Target",
+                crate::relationships::rebase(&target, &destination, &rel.target_raw),
+            );
         }
         parts.insert(opc::rels_path(&target), root.to_xml().into_bytes());
     }

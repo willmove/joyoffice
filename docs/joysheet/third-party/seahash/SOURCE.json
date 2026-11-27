@@ -3,6 +3,12 @@
   "source": "published crates.io archive",
   "standardText": "MIT",
   "originalStandaloneTextAvailable": false,
+  "upstreamRevisionCheck": {
+    "commit": "94b632aeac099031c373599313d5b5f0acbbaec0",
+    "tree": "https://archive.softwareheritage.org/api/1/directory/0903f041ae9759df8be982b638be18bd3790df63/",
+    "publishedFilesMatched": ["Cargo.toml.orig", "README.md"],
+    "standaloneNoticePresent": false
+  },
   "files": {
     "Cargo.toml.orig": "dd213de338ca98b7ef7a2562bcf4e4214d215d1a8277750a6a72b4e809c8d0dd",
     "DECLARATION.md": "8e3004a3aee05d81059d93cd94cd4e70917594a989bd03839372c1098f47ed8e",

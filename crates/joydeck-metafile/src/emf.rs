@@ -3,11 +3,11 @@
 
 use std::sync::Arc;
 
+use crate::bitmap::{self, Blend};
 use crate::bytes::Bytes;
 use crate::canvas::{
     BS_HATCHED, BS_NULL, Brush, Canvas, LogFont, Obj, PS_NULL, PS_STYLE_MASK, Pen, Xform, colorref,
 };
-use crate::dib::{self, Blend};
 use crate::geom::{self, ArcKind, P};
 use crate::records::{self, Format};
 use crate::text::{ETO_GLYPH_INDEX, ETO_PDY, Font, MAX_CHARS, decode_bytes, decode_utf16};
@@ -375,7 +375,7 @@ fn create_dib_brush(cv: &mut Canvas, r: Bytes, mono: bool) -> Option<()> {
     let usage = r.u32(12)?;
     let (bo, bl) = (r.u32(16)? as usize, r.u32(20)? as usize);
     let (po, pl) = (r.u32(24)? as usize, r.u32(28)? as usize);
-    let img = dib::decode(Bytes(r.slice(bo, bl)?), Bytes(r.slice(po, pl)?), false)?;
+    let img = bitmap::decode(Bytes(r.slice(bo, bl)?), Bytes(r.slice(po, pl)?), false)?;
     let b = Brush::pattern(img, mono || usage == 1)?;
     cv.add_object(Some(slot), Obj::Brush(b));
     Some(())
@@ -572,9 +572,9 @@ fn blit(
     }
     let info = Bytes(r.slice(bo, bl)?);
     let pixels = Bytes(r.slice(po, pl)?);
-    let mut img = dib::decode(info, pixels, blend.per_pixel())?;
-    dib::prepare(&mut img, blend);
-    let (img, dst) = dib::clip_blit(&img, src.map(|v| v as i64), dst)?;
+    let mut img = bitmap::decode(info, pixels, blend.per_pixel())?;
+    bitmap::prepare(&mut img, blend);
+    let (img, dst) = bitmap::clip_blit(&img, src.map(|v| v as i64), dst)?;
     cv.bitmap(dst, img);
     Some(())
 }
