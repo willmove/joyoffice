@@ -1,0 +1,208 @@
+{
+  "date": "2026-11-27",
+  "base": "bdf00a53",
+  "frozenRevision": "14cbb29616d7c0ababbf40a8f6c0218b996e7ae8",
+  "binaries": {
+    "frozen": "f8fd32a31570e241f17ced00dbce66f7e2ae53739b18e3c70bea03c2e78794f7",
+    "candidate": "5e4b83d3690f0467364d95dae7c47f279e03b161931eaede86e58d543bd614c4"
+  },
+  "tests": {
+    "rustPassed": 1083,
+    "rustFailed": 0,
+    "rustIgnored": 0,
+    "cliChecks": {
+      "r1": 28,
+      "r2": 20,
+      "r3": 20,
+      "r4-r5": 23,
+      "r6-r7": 35
+    },
+    "mcpProtocolResponses": 54,
+    "focusedRustTests": [
+      "plus_text::tests::driver_keeps_separate_baselines_and_accepts_realized_advance_with_one_origin",
+      "tests::emfplus_driver_string_uses_character_codes_and_positions",
+      "tests::emfplus_glyph_index_driver_strings_map_back_in_core_fonts_only",
+      "package_writer::tests::generated_types_follow_the_effective_member_inventory",
+      "preserve::assets::tests::copied_video_reuses_source_payload_for_both_relationship_roles"
+    ]
+  },
+  "exchange": {
+    "samples": 17,
+    "reads": 234,
+    "outputs": 100,
+    "knownChartPercentLabelComparisons": 12,
+    "catalogRejectedInputs": [
+      "bad-member-crc",
+      "broken-pptx",
+      "future-native",
+      "symlink-metadata",
+      "unbound-source",
+      "unknown-capability",
+      "utf16-dtd"
+    ],
+    "preservingWriteRefusals": [
+      "signed",
+      "macro-enabled"
+    ],
+    "retainedMarkup": [
+      "ppt/slides/Slide2.xml"
+    ],
+    "legacySample": "r9-ui2/legacy-review-media.joydeck",
+    "legacyPreserveDifference": "legacy WAV restored byte-for-byte with closed media relationships"
+  },
+  "packagedEdits": {
+    "tables": {
+      "table": {
+        "mergedColumns": 2,
+        "fill": "E6A857",
+        "bold": true,
+        "text": "阶段 5 表格",
+        "styleId": "{E0E4BE5C-8CB8-453C-8A4C-E9E2F1C7E5A3}",
+        "unknownAttribute": null
+      },
+      "table-with-opaque-cell": {
+        "mergedColumns": 2,
+        "fill": "E6A857",
+        "bold": true,
+        "text": "阶段 5 表格",
+        "styleId": "{E0E4BE5C-8CB8-453C-8A4C-E9E2F1C7E5A3}",
+        "unknownAttribute": "keep",
+        "mergedCellLeftMarginEmu": 25400,
+        "mergedCellBorderWidthEmu": 12700
+      }
+    },
+    "nestedUnknownFillEditRefused": true,
+    "media": {
+      "original": [
+        {
+          "mediaSha256": "98b4d61d13c8b87604f9b328c9cdfa4c9b69e9b5e5daf721e26130cbf28ec017",
+          "posterSha256": "53b8dd766a9a5cdb1cb82e14f56b403088abdccb5376ef366edd2bf208f718ab",
+          "rolesShareTarget": true
+        }
+      ],
+      "frozen": [
+        {
+          "mediaSha256": "98b4d61d13c8b87604f9b328c9cdfa4c9b69e9b5e5daf721e26130cbf28ec017",
+          "posterSha256": "53b8dd766a9a5cdb1cb82e14f56b403088abdccb5376ef366edd2bf208f718ab",
+          "rolesShareTarget": true
+        }
+      ],
+      "candidate": [
+        {
+          "mediaSha256": "98b4d61d13c8b87604f9b328c9cdfa4c9b69e9b5e5daf721e26130cbf28ec017",
+          "posterSha256": "53b8dd766a9a5cdb1cb82e14f56b403088abdccb5376ef366edd2bf208f718ab",
+          "rolesShareTarget": true
+        }
+      ]
+    }
+  },
+  "powerPoint": {
+    "version": "16.0.20625.20108",
+    "cases": [
+      {
+        "input": "package/table.pptx",
+        "inputSha256": "8d0a731547ea9d67e222d8b73b49b6f63e106b5c52e325e7eb595b845a6148ac",
+        "outputSha256": "40343e78feb98f4dab4b9f024ac4a331e2e27b1e054a9a044e9afebbd73a33d3",
+        "slideCount": 3
+      },
+      {
+        "input": "package/media-candidate.pptx",
+        "inputSha256": "4da530df83bfc81107d2498b1d4ec20136d88b6b4c9397f19db119376d3e8375",
+        "outputSha256": "8692af4e33114acc6d7f0af9bc0444a75467162868761d541e299605617d0dc9",
+        "slideCount": 3
+      },
+      {
+        "input": "package/legacy-wav.pptx",
+        "inputSha256": "e7f0c51158929b2262eabf8d4b79dc31a60447718baec1b3b3611cf210b3f336",
+        "outputSha256": "d87ca4d3a2e665384e02de303c32942f49fc63bb20a1f27f3ce47a4d2203719f",
+        "slideCount": 2
+      }
+    ],
+    "packageReadback": {
+      "table": {
+        "mergedColumns": 2,
+        "fill": "E6A857",
+        "bold": true,
+        "text": "阶段 5 表格",
+        "styleId": "{E0E4BE5C-8CB8-453C-8A4C-E9E2F1C7E5A3}",
+        "unknownAttribute": null
+      },
+      "video": [
+        {
+          "mediaSha256": "98b4d61d13c8b87604f9b328c9cdfa4c9b69e9b5e5daf721e26130cbf28ec017",
+          "posterSha256": "53b8dd766a9a5cdb1cb82e14f56b403088abdccb5376ef366edd2bf208f718ab",
+          "rolesShareTarget": true
+        }
+      ],
+      "audioBeforeSave": {
+        "mediaSha256": "78dffb5a391cf32fa888354f2037a4204a723bdd03294c59147e9ae05dc64d45",
+        "posterSha256": "eacb1a012fc0820bb358ea06380857fd97d62a420932142014ac89bcc4afbbc3",
+        "rolesShareTarget": true,
+        "trimEndMs": 5000
+      },
+      "audioAfterSave": {
+        "mediaSha256": "78dffb5a391cf32fa888354f2037a4204a723bdd03294c59147e9ae05dc64d45",
+        "posterSha256": "eacb1a012fc0820bb358ea06380857fd97d62a420932142014ac89bcc4afbbc3",
+        "rolesShareTarget": false,
+        "trimEndMs": 5000
+      }
+    }
+  },
+  "render": {
+    "pdfCases": 7,
+    "pdfPages": 14,
+    "acceptedBaselineFooterFixes": [
+      "handouts-3",
+      "handouts-6"
+    ],
+    "exactMetafileScenes": {
+      "wmf_original": "224d490d3bb534372bb1e56bc48a63824def6d955fc9644622662804f9e43ba6",
+      "emf_original": "a725d3bd5e6e39080a0d06af217e7d353025bd8c744083328ea34511c36718d6",
+      "wmf_vector": "c25ecad7949e81d9985fca3208732ad6bb4c454d9c2fd876f43674c431f3e95d",
+      "emf_vector": "e8677d4f7c2f7262843814178c2cc229e7c7e20f88cac3caed72bcbdae9908e3",
+      "emfplus": "b57f332aa696a41ea062b9f9b3c585462807bfbedb3c40754fecd1ea2a7e1cf7",
+      "codepages": "67fcaf03a2ab69362eff315fd0d1a9bf8679ec584a413fa473719b2da0cebc0b",
+      "brush_region_same_baseline": "77573853d336e880d48b581b776fa7664e50c6372ace5991889c04c34e68e71f"
+    },
+    "explicitGlyphBaselines": {
+      "emfSha256": "e1dfd794b1b83b0f40167fbf943e74c5062e43ae1f9a25a2d6f83a68c1eefc15",
+      "render": {
+        "frozen": {
+          "size": [
+            960,
+            540
+          ],
+          "sha256": "77573853d336e880d48b581b776fa7664e50c6372ace5991889c04c34e68e71f",
+          "redShapePixels": 12800,
+          "blueTextPixels": 56,
+          "blueHeight": 8,
+          "gradientColors": 9,
+          "gradientPixels": 2821
+        },
+        "candidate": {
+          "size": [
+            960,
+            540
+          ],
+          "sha256": "4843e1c07462aa2c42da7dfb9f296c2ad838c2c7ebf57e1b7b159d11ab7712eb",
+          "redShapePixels": 12862,
+          "blueTextPixels": 64,
+          "blueHeight": 51,
+          "gradientColors": 38,
+          "gradientPixels": 2772
+        }
+      }
+    }
+  },
+  "sourceAudit": {
+    "mappedProductionRustFiles": {
+      "joydeck": 114,
+      "joydeck-cli": 113
+    },
+    "mappedSharedBuildScripts": 1,
+    "retiredDeckPaths": 13,
+    "retiredThisRound": [
+      "crates/joydeck-pptx/src/tables.rs"
+    ]
+  }
+}
