@@ -154,8 +154,8 @@ R7 当前切片：独立观众/演示者窗口、已有动画/触发/转场采�
 | --- | --- | --- | --- | --- |
 | 进行中 | JD-800 | Windows MSVC 工程、字体/文件/对话框、默认栈、打包和 a11y 回归 | 保留默认栈启动所有布局；真实激活 a11y；中文空格路径与仓库外运行 | R7 |
 | 完成 | JD-801 | macOS Metal、菜单/文件事件、App 资源与应用生命周期 | 正常发布构建与开发 runtime_shaders 分开验证；实际 App 移位启动。[首次本机验证](../joyoffice/validation/20261104-macos/README.md) · [系统文件打开与菜单补验](../joyoffice/validation/20261105-macos-open/README.md) · [原生对话框补验](../joyoffice/validation/20261105-macos-desktop/README.md#原生文件对话框) | R7 |
-| 进行中 | JD-802 | Linux Wayland/X11、字体与图形后端诊断、桌面集成 | 2026-11-23 UOS 25 X11／DDE 已复验默认搜狗中文模式、PPTX 原生另存重开、Vulkan 1,850 帧和四种真实窗口转场；本机 Ctrl+Shift+S 被外部全局热键截获，文件页另存通过。Wayland、完整 IME／读屏／DPI 及其余桌面组合继续开放。[UOS 证据](../joyoffice/validation/20261123-uos-refactor/README.md) | R7 |
-| 进行中 | JD-803 | ARM64 等架构、UOS/麒麟/LoongArch 构建及无界面验证 | 2026-11-23 UOS 25 x86_64 真机 Debug 构建、1,041 项产品检查及限定桌面场景已复验；ARM64、LoongArch、麒麟及其他硬件继续分别标注，不以本机结果代替。[UOS 证据](../joyoffice/validation/20261123-uos-refactor/README.md) | JD-802 |
+| 进行中 | JD-802 | Linux Wayland/X11、字体与图形后端诊断、桌面集成 | 2026-11-27 UOS 25 X11／DDE 当前源码已复验搜狗中文输入、PPTX 原生另存重开、Vulkan 1,850 帧及四种真实窗口转场。Wayland、完整 IME／读屏／DPI 及其余桌面组合继续开放。[本轮证据](../joyoffice/validation/20261127-uos-native-refactor/README.md) · [11 月 23 日快捷键冲突](../joyoffice/validation/20261123-uos-refactor/README.md) | R7 |
+| 进行中 | JD-803 | ARM64 等架构、UOS/麒麟/LoongArch 构建及无界面验证 | 2026-11-27 UOS 25 x86_64 真机 Debug 构建、1,107 项产品检查及限定桌面场景已复验；ARM64、LoongArch、麒麟及其他硬件继续分别标注，不以本机结果代替。[UOS 证据](../joyoffice/validation/20261127-uos-native-refactor/README.md) | JD-802 |
 | 进行中 | JD-804 | 键盘全流程、本地化、对比度、读屏、焦点与高 DPI | 窄窗口/高 DPI 无关键控件不可达；系统 IME 和读屏有平台记录 | JD-800–JD-802 |
 | 进行中 | JD-805 | 解析/保存/恢复/后台任务的故障注入与长时间编辑压力 | Windows 复跑检查点进程终止、恢复副本读回和源文稿校验。其余取消／失败组合和长时间压力继续开放。[P2 验证](../joyoffice/validation/20261106-p2/README.md) | JD-607、JD-707 |
 | 待开始 | JD-806 | 三平台性能、字体、显存/内存和大型文稿资格化 | 使用固定 release 场景与真实呈现；目标未达有具体定位和处理任务 | JD-408、JD-800–JD-802 |

@@ -1,0 +1,724 @@
+{
+  "sourceCommit": "d68bb22b2c39738906a0d767ff723930eed9b952",
+  "sourceContext": "product builds from clean source; verification script updated after build",
+  "olderCandidateCommit": "22036e0209a38156748c5c6c61682f6c23519360",
+  "olderCliSha256": {
+    "word": "82d2252a9acac5ab433a8a02cb31d2a47ef4e4a7aaf80713a4f921626394c8ac",
+    "deck": "b150e023e4c0c20406e30840fc9603d513539868605ace344d4504d21db53f49"
+  },
+  "products": {
+    "joydeck": {
+      "buildExit": 0,
+      "checkExit": 0,
+      "passed": 1107,
+      "failed": 0,
+      "ignored": 0
+    },
+    "joysheet": {
+      "buildExit": 0,
+      "checkExit": 0,
+      "passed": 1534,
+      "failed": 0,
+      "ignored": 1
+    },
+    "joyword": {
+      "buildExit": 0,
+      "checkExit": 0,
+      "passed": 4222,
+      "failed": 0,
+      "ignored": 2
+    }
+  },
+  "gpu": {
+    "small": {
+      "size": [
+        64,
+        36
+      ],
+      "adapter": "AMD Radeon 890M Graphics (RADV GFX1150)",
+      "backend": "Vulkan",
+      "frames": 925,
+      "maxChannelDifference": 1,
+      "pixelsOver1": 0,
+      "endpointsMaxDifference": 0,
+      "missingSources": {
+        "frames": 48,
+        "maximumChannelDifference": 0
+      }
+    },
+    "large": {
+      "size": [
+        193,
+        109
+      ],
+      "adapter": "AMD Radeon 890M Graphics (RADV GFX1150)",
+      "backend": "Vulkan",
+      "frames": 925,
+      "maxChannelDifference": 1,
+      "pixelsOver1": 0,
+      "endpointsMaxDifference": 0,
+      "missingSources": {
+        "frames": 48,
+        "maximumChannelDifference": 1
+      }
+    }
+  },
+  "presentation": {
+    "prisms": {
+      "binarySha256": "5d378d2c534f2d122671e131f8dbe4d9e4689c11a35904ff45a739c3fb7ecf0f",
+      "sourceSha256": "fb2ffda407739420692c371929e9e60f5ba3a2bfc3ac02f0f423df59fb7a3d9b",
+      "exchange": {
+        "cliSha256": {
+          "baseline": "b150e023e4c0c20406e30840fc9603d513539868605ace344d4504d21db53f49",
+          "candidate": "d97c743b5f495d69dbdb4edafe120d45d4d14e6ea49721e52a2220458f7ff145"
+        },
+        "halfTimeFramesByWriterAndReader": {
+          "baseline-baseline": [
+            "f4419ca010a63de40a818d5b374bdf6fe94b75c8e2f09e62ed0406797b6b4230",
+            "4b3629907c47facf48509059b977ec4ebf2ea3a38d144a0a510db6fac5a09e9c"
+          ],
+          "baseline-candidate": [
+            "f4419ca010a63de40a818d5b374bdf6fe94b75c8e2f09e62ed0406797b6b4230",
+            "4b3629907c47facf48509059b977ec4ebf2ea3a38d144a0a510db6fac5a09e9c"
+          ],
+          "candidate-baseline": [
+            "f4419ca010a63de40a818d5b374bdf6fe94b75c8e2f09e62ed0406797b6b4230",
+            "4b3629907c47facf48509059b977ec4ebf2ea3a38d144a0a510db6fac5a09e9c"
+          ],
+          "candidate-candidate": [
+            "f4419ca010a63de40a818d5b374bdf6fe94b75c8e2f09e62ed0406797b6b4230",
+            "4b3629907c47facf48509059b977ec4ebf2ea3a38d144a0a510db6fac5a09e9c"
+          ]
+        }
+      },
+      "modes": {
+        "auto": {
+          "backend": "Vulkan / AMD Radeon 890M Graphics (RADV GFX1150)",
+          "slides": {
+            "cube": {
+              "referenceMean": [
+                99.97,
+                49.94,
+                97.92
+              ],
+              "outlyingSamples": 0,
+              "samples": 3864,
+              "pausedSeconds": 2.4472645980000007,
+              "firstColor": [
+                204,
+                34,
+                17
+              ],
+              "pausedColor": [
+                99.89,
+                49.96,
+                98.02
+              ],
+              "settledColor": [
+                35,
+                82,
+                208
+              ],
+              "pixels": [
+                1376,
+                774
+              ],
+              "preparation": {
+                "frames": 111,
+                "medianMs": 35.09,
+                "p95Ms": 47.79
+              }
+            },
+            "orbit": {
+              "referenceMean": [
+                43,
+                139,
+                136
+              ],
+              "outlyingSamples": 0,
+              "samples": 3864,
+              "pausedSeconds": 2.4476183149999993,
+              "firstColor": [
+                35,
+                82,
+                208
+              ],
+              "pausedColor": [
+                43,
+                139,
+                136
+              ],
+              "settledColor": [
+                51,
+                192,
+                68
+              ],
+              "pixels": [
+                1376,
+                774
+              ],
+              "preparation": {
+                "frames": 114,
+                "medianMs": 33.22,
+                "p95Ms": 47.58
+              }
+            }
+          }
+        },
+        "cpu": {
+          "backend": "CPU",
+          "slides": {
+            "cube": {
+              "referenceMean": [
+                59.99,
+                60.43,
+                141.04
+              ],
+              "outlyingSamples": 0,
+              "samples": 3864,
+              "pausedSeconds": 3.0442179580000004,
+              "firstColor": [
+                204,
+                34,
+                17
+              ],
+              "pausedColor": [
+                59.89,
+                60.42,
+                141.04
+              ],
+              "settledColor": [
+                35,
+                82,
+                208
+              ],
+              "pixels": [
+                1376,
+                774
+              ],
+              "preparation": {
+                "frames": 10,
+                "medianMs": 478.32,
+                "p95Ms": 608.9
+              }
+            },
+            "orbit": {
+              "referenceMean": [
+                45,
+                149,
+                123
+              ],
+              "outlyingSamples": 0,
+              "samples": 3864,
+              "pausedSeconds": 2.748349592999999,
+              "firstColor": [
+                35,
+                82,
+                208
+              ],
+              "pausedColor": [
+                45,
+                149,
+                123
+              ],
+              "settledColor": [
+                51,
+                192,
+                68
+              ],
+              "pixels": [
+                1376,
+                774
+              ],
+              "preparation": {
+                "frames": 13,
+                "medianMs": 362.28,
+                "p95Ms": 452.86
+              }
+            }
+          }
+        }
+      }
+    },
+    "airborne": {
+      "binarySha256": "5d378d2c534f2d122671e131f8dbe4d9e4689c11a35904ff45a739c3fb7ecf0f",
+      "sourceSha256": "f9b4f33592496ea72b673bac3c2bc9676822d9999429050fcb2e0fac2c4df2a4",
+      "exchange": {
+        "cliSha256": {
+          "baseline": "b150e023e4c0c20406e30840fc9603d513539868605ace344d4504d21db53f49",
+          "candidate": "d97c743b5f495d69dbdb4edafe120d45d4d14e6ea49721e52a2220458f7ff145"
+        },
+        "halfTimeFramesByWriterAndReader": {
+          "baseline-baseline": [
+            "8d86fa4b1bf4f6c4696145180c49734a792f3bedff9416b77728f3e08039270a",
+            "97fda96c36f6cc59149f811f839737b71f44bc4bdc9c9ed1570a16aa59c548e9"
+          ],
+          "baseline-candidate": [
+            "8d86fa4b1bf4f6c4696145180c49734a792f3bedff9416b77728f3e08039270a",
+            "97fda96c36f6cc59149f811f839737b71f44bc4bdc9c9ed1570a16aa59c548e9"
+          ],
+          "candidate-baseline": [
+            "8d86fa4b1bf4f6c4696145180c49734a792f3bedff9416b77728f3e08039270a",
+            "97fda96c36f6cc59149f811f839737b71f44bc4bdc9c9ed1570a16aa59c548e9"
+          ],
+          "candidate-candidate": [
+            "8d86fa4b1bf4f6c4696145180c49734a792f3bedff9416b77728f3e08039270a",
+            "97fda96c36f6cc59149f811f839737b71f44bc4bdc9c9ed1570a16aa59c548e9"
+          ]
+        }
+      },
+      "modes": {
+        "auto": {
+          "backend": "Vulkan / AMD Radeon 890M Graphics (RADV GFX1150)",
+          "slides": {
+            "wind": {
+              "referenceMean": [
+                122.41,
+                54.45,
+                101.98
+              ],
+              "outlyingSamples": 0,
+              "samples": 3864,
+              "pausedSeconds": 4.793228367,
+              "firstColor": [
+                204,
+                34,
+                17
+              ],
+              "pausedColor": [
+                122.41,
+                54.45,
+                101.98
+              ],
+              "settledColor": [
+                35,
+                82,
+                208
+              ],
+              "pixels": [
+                1376,
+                774
+              ],
+              "preparation": {
+                "frames": 143,
+                "medianMs": 46.47,
+                "p95Ms": 118.18
+              }
+            },
+            "prestige": {
+              "referenceMean": [
+                39.42,
+                115.71,
+                158.4
+              ],
+              "outlyingSamples": 0,
+              "samples": 3864,
+              "pausedSeconds": 5.9023185210000015,
+              "firstColor": [
+                35,
+                82,
+                208
+              ],
+              "pausedColor": [
+                39.41,
+                115.65,
+                158.46
+              ],
+              "settledColor": [
+                51,
+                192,
+                68
+              ],
+              "pixels": [
+                1376,
+                774
+              ],
+              "preparation": {
+                "frames": 182,
+                "medianMs": 37.68,
+                "p95Ms": 106.38
+              }
+            }
+          }
+        },
+        "cpu": {
+          "backend": "CPU",
+          "slides": {
+            "wind": {
+              "referenceMean": [
+                135.53,
+                50.76,
+                87.07
+              ],
+              "outlyingSamples": 0,
+              "samples": 3864,
+              "pausedSeconds": 4.545696198000001,
+              "firstColor": [
+                204,
+                34,
+                17
+              ],
+              "pausedColor": [
+                135.53,
+                50.76,
+                87.07
+              ],
+              "settledColor": [
+                35,
+                82,
+                208
+              ],
+              "pixels": [
+                1376,
+                774
+              ],
+              "preparation": {
+                "frames": 64,
+                "medianMs": 47.21,
+                "p95Ms": 611.16
+              }
+            },
+            "prestige": {
+              "referenceMean": [
+                37.35,
+                101.1,
+                177.68
+              ],
+              "outlyingSamples": 0,
+              "samples": 3864,
+              "pausedSeconds": 5.670243728000001,
+              "firstColor": [
+                35,
+                82,
+                208
+              ],
+              "pausedColor": [
+                37.35,
+                101.07,
+                177.72
+              ],
+              "settledColor": [
+                51,
+                192,
+                68
+              ],
+              "pixels": [
+                1376,
+                774
+              ],
+              "preparation": {
+                "frames": 124,
+                "medianMs": 43.77,
+                "p95Ms": 354.28
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "ime": {
+    "word": {
+      "passed": true,
+      "method": "com.sogou.ime.ng.fcitx5.uos",
+      "display": ":0",
+      "binarySha256": "ee4172bb279deb0e2ece1b5596012e4a6e751c08c2e3f46e195cdc2fea8d662e",
+      "ximSelectionOwner": 75497473,
+      "preedit": "server",
+      "temporaryModeToggle": "Shift_L",
+      "fileSha256": "7141f30907446a3703bb79cc25814c8fa57e7569e284b653d9b315ab8d1eadbc",
+      "candidateSha256": "84a0d6d6a047e190e699b310f3a4506f387f91e45c17df75aff70f468a856583",
+      "restoredMode": true
+    },
+    "deck": {
+      "passed": true,
+      "method": "com.sogou.ime.ng.fcitx5.uos",
+      "display": ":0",
+      "binarySha256": "5d378d2c534f2d122671e131f8dbe4d9e4689c11a35904ff45a739c3fb7ecf0f",
+      "ximSelectionOwner": 75497473,
+      "preedit": "server",
+      "temporaryModeToggle": "Shift_L",
+      "fileSha256": "6a26c4c40dd3c65f765f06e57b5d5a5d72e9e95c2bb76005755339ad8bae656d",
+      "candidateSha256": "e2eb4efa8acfe09263e92e77df1afdffbb1bb3ac601fc55ddf70dca1139de4f1",
+      "restoredMode": true
+    },
+    "sheet": {
+      "passed": true,
+      "method": "com.sogou.ime.ng.fcitx5.uos",
+      "display": ":0",
+      "binarySha256": "da341fa633c2cda316085744c3e131cb1930a9dc0c45c518c995f79968e8273c",
+      "ximSelectionOwner": 75497473,
+      "preedit": "server",
+      "temporaryModeToggle": "Shift_L",
+      "fileSha256": "89c0f3ebd6473abb2b7180d7ddd440f7d2e52d23325d3fdc164ccf75fb84ad62",
+      "candidateSha256": "6b59be913f0b11f7a79ee3995d9e7587e582573ebc5ebf1662f0a55827048de4",
+      "restoredMode": true
+    },
+    "sogouProbeOriginal": {
+      "passed": false,
+      "system": "Linux-6.18.57-061857-generic-x86_64-with-glibc2.38",
+      "events": "OS synthetic keys",
+      "binary": "/home/Wilmer/Coding/joyoffice/target/debug/examples/ime_probe",
+      "checks": [],
+      "environment": {
+        "LANG": "zh_CN.UTF-8",
+        "LC_ALL": null,
+        "LC_CTYPE": null,
+        "XMODIFIERS": "@im=fcitx",
+        "XDG_SESSION_TYPE": "x11"
+      },
+      "ximServers": "XIM_SERVERS(ATOM) = @server=fcitx",
+      "ximSelectionOwner": 75497473,
+      "inputMethod": "com.sogou.ime.ng.fcitx5.uos",
+      "error": "server-side preedit must leave the input empty until selection"
+    },
+    "sogouProbeChinese": {
+      "passed": true,
+      "system": "Linux-6.18.57-061857-generic-x86_64-with-glibc2.38",
+      "events": "OS synthetic keys",
+      "binary": "/home/Wilmer/Coding/joyoffice/target/debug/examples/ime_probe",
+      "checks": [
+        "marked=false utf16=2 chinese=true",
+        "marked=false utf16=0 chinese=false"
+      ],
+      "environment": {
+        "LANG": "zh_CN.UTF-8",
+        "LC_ALL": null,
+        "LC_CTYPE": null,
+        "XMODIFIERS": "@im=fcitx",
+        "XDG_SESSION_TYPE": "x11"
+      },
+      "ximServers": "XIM_SERVERS(ATOM) = @server=fcitx",
+      "ximSelectionOwner": 75497473,
+      "inputMethod": "com.sogou.ime.ng.fcitx5.uos",
+      "temporaryModeToggle": "Shift_L",
+      "preedit": "server",
+      "restoredMode": true
+    }
+  },
+  "save": {
+    "word": {
+      "passed": true,
+      "sourceSha256": "7f234d546783332adac448fecd8132cd0dc71900fa208e0b94021b33bdaf8cfb",
+      "checks": [
+        "cancel preserves draft",
+        "unsupported extension preserves draft",
+        "edited DOCX independently read back",
+        "source hash unchanged"
+      ],
+      "copySha256": "9f83327bc7f048bced6630bc08856bc3691016e50463b021c3cd7994c525c806",
+      "trace": [
+        "joyword-save picker-requested",
+        "joyword-save picker-cancelled",
+        "joyword-save picker-requested",
+        "joyword-save picker-selected",
+        "joyword-save job-rejected",
+        "joyword-save picker-requested",
+        "joyword-save picker-selected",
+        "joyword-save write-start",
+        "joyword-save readback-verified"
+      ]
+    },
+    "deck": {
+      "platform": "Linux-6.18.57-061857-generic-x86_64-with-glibc2.38",
+      "product": "deck",
+      "binarySha256": "5d378d2c534f2d122671e131f8dbe4d9e4689c11a35904ff45a739c3fb7ecf0f",
+      "passed": true,
+      "checks": [
+        "cancel then retry",
+        "late result after edit rejected before file creation",
+        "four slides in independent PPTX inspection and fresh process readback",
+        "original hash unchanged"
+      ],
+      "activation": "file-menu",
+      "x11SaveButtons": [
+        29,
+        58,
+        95,
+        653
+      ]
+    },
+    "sheet": {
+      "platform": "Linux-6.18.57-061857-generic-x86_64-with-glibc2.38",
+      "product": "sheet",
+      "binarySha256": "da341fa633c2cda316085744c3e131cb1930a9dc0c45c518c995f79968e8273c",
+      "passed": true,
+      "checks": [
+        "cancel then retry",
+        "late result after edit rejected before file creation",
+        "independent XLSX and fresh process readback",
+        "original hash unchanged"
+      ],
+      "activation": "file-menu",
+      "x11SaveButtons": [
+        42,
+        56,
+        100,
+        391
+      ]
+    }
+  },
+  "sheetSmoke": {
+    "passed": true,
+    "platform": "Linux-6.18.57-061857-generic-x86_64-with-glibc2.38",
+    "checks": [
+      "Linux GPU capability is accurate; unsupported request rejects without output",
+      "native sales window, charts and window screenshot",
+      "Unicode/emoji, pointer/text input and dependent formula recalculation",
+      "platform keyboard undo and redo",
+      "synthetic composition blocks premature Enter; commit retains UTF-16 text",
+      "system clipboard and relative formula references",
+      "registered function completion and calculation",
+      "freeze, zoom and real formatting form",
+      "cancelled close retains unsaved edits",
+      "Chinese/space path XLSX save, close, reopen and retained formulas/text",
+      "XLSX LF/CRLF/blank lines and wrap style survive double-click/Enter/Tab/Shift navigation and F2/Escape without dirtying",
+      "inline and formula-bar edits append at the caret and preserve line breaks and full style",
+      "multiline text and imported cell styles survive XLSX save/close/reopen"
+    ],
+    "binarySha256": "da341fa633c2cda316085744c3e131cb1930a9dc0c45c518c995f79968e8273c",
+    "eventSource": "production GPUI synthetic input",
+    "nativeImeVerified": false,
+    "gpuPresentationMeasured": false
+  },
+  "deckCli": {
+    "r1": {
+      "cliSha256": "d97c743b5f495d69dbdb4edafe120d45d4d14e6ea49721e52a2220458f7ff145",
+      "calls": 28,
+      "mcpResponses": 0
+    },
+    "r2": {
+      "cliSha256": "d97c743b5f495d69dbdb4edafe120d45d4d14e6ea49721e52a2220458f7ff145",
+      "calls": 20,
+      "mcpResponses": 0
+    },
+    "r3": {
+      "cliSha256": "d97c743b5f495d69dbdb4edafe120d45d4d14e6ea49721e52a2220458f7ff145",
+      "calls": 20,
+      "mcpResponses": 0
+    },
+    "r4-r5": {
+      "cliSha256": "d97c743b5f495d69dbdb4edafe120d45d4d14e6ea49721e52a2220458f7ff145",
+      "calls": 23,
+      "mcpResponses": 0
+    },
+    "r6-r7-delivery": {
+      "cliSha256": "d97c743b5f495d69dbdb4edafe120d45d4d14e6ea49721e52a2220458f7ff145",
+      "calls": 33,
+      "mcpResponses": 41
+    }
+  },
+  "metafile": {
+    "previous": {
+      "word-wmf": {
+        "screenScene": {
+          "rgbSha256": "0eff233dc2e3d3ebecd28781ad12a564547da5b82d066d1945808fd516e7320c",
+          "trianglePixels": 15522
+        },
+        "pdfRaster": {
+          "rgbSha256": "282b7d01ecaed8343298056f83f56858bd5d09e7ea8e567f43861970f2e30ad4",
+          "trianglePixels": 15736
+        }
+      },
+      "word-emf": {
+        "screenScene": {
+          "rgbSha256": "91a869436f0ad8dd7f361bc365945201314a3fc152277ca908c4cb3780bd42d2",
+          "trianglePixels": 12177
+        },
+        "pdfRaster": {
+          "rgbSha256": "8b211ba5ccc05711abb46e8f32f5052e284bd8c05ca6aa33ceb8af8da7a5b2c4",
+          "trianglePixels": 12372
+        }
+      },
+      "deck-wmf": {
+        "screenScene": {
+          "rgbSha256": "37f331ac2e8ed2bfdd14a7479fe692874749dd0b0fd343810c696984b0f9aa2d",
+          "trianglePixels": 8960
+        },
+        "pdfRaster": {
+          "rgbSha256": "7e486ff46c9b05dd85eb2917c5cb4ae385f0fc02419bf09b40bc8345d953b315",
+          "trianglePixels": 16311
+        }
+      },
+      "deck-emf": {
+        "screenScene": {
+          "rgbSha256": "bc15a02f21cde36e155c78c6b0faaac1cf3ce95e365d92527ff2a2a00ba4f097",
+          "trianglePixels": 7048
+        },
+        "pdfRaster": {
+          "rgbSha256": "61428f24abddddcb558a6b54c6157a31248223f46b03ed2b2163cc0346c3c095",
+          "trianglePixels": 12859
+        }
+      }
+    },
+    "current": {
+      "word-wmf": {
+        "screenScene": {
+          "rgbSha256": "0eff233dc2e3d3ebecd28781ad12a564547da5b82d066d1945808fd516e7320c",
+          "trianglePixels": 15522
+        },
+        "pdfRaster": {
+          "rgbSha256": "282b7d01ecaed8343298056f83f56858bd5d09e7ea8e567f43861970f2e30ad4",
+          "trianglePixels": 15736
+        }
+      },
+      "word-emf": {
+        "screenScene": {
+          "rgbSha256": "91a869436f0ad8dd7f361bc365945201314a3fc152277ca908c4cb3780bd42d2",
+          "trianglePixels": 12177
+        },
+        "pdfRaster": {
+          "rgbSha256": "8b211ba5ccc05711abb46e8f32f5052e284bd8c05ca6aa33ceb8af8da7a5b2c4",
+          "trianglePixels": 12372
+        }
+      },
+      "deck-wmf": {
+        "screenScene": {
+          "rgbSha256": "37f331ac2e8ed2bfdd14a7479fe692874749dd0b0fd343810c696984b0f9aa2d",
+          "trianglePixels": 8960
+        },
+        "pdfRaster": {
+          "rgbSha256": "7e486ff46c9b05dd85eb2917c5cb4ae385f0fc02419bf09b40bc8345d953b315",
+          "trianglePixels": 16311
+        }
+      },
+      "deck-emf": {
+        "screenScene": {
+          "rgbSha256": "bc15a02f21cde36e155c78c6b0faaac1cf3ce95e365d92527ff2a2a00ba4f097",
+          "trianglePixels": 7048
+        },
+        "pdfRaster": {
+          "rgbSha256": "61428f24abddddcb558a6b54c6157a31248223f46b03ed2b2163cc0346c3c095",
+          "trianglePixels": 12859
+        }
+      }
+    },
+    "vector": {
+      "wmf": {
+        "metafileSha256": "7df93285d5224a688f0a09fa1b8d35264e9f16f72833cd96736af4132884dec4",
+        "raster": {
+          "size": [
+            960,
+            540
+          ],
+          "sha256": "dab50d87893383c6a9900b7b48bdc951d4b31a31070326112187f3120c848536",
+          "redShapePixels": 9098,
+          "blueTextPixels": 188
+        }
+      },
+      "emf": {
+        "metafileSha256": "ac606b10aa0e7a5a2e378adfeaf8ea725853cd19469566b8a5aff08a3248f17f",
+        "raster": {
+          "size": [
+            960,
+            540
+          ],
+          "sha256": "85cdfe48b3efd60f39c89f167639ffe79604d90554050b6dd6411d3cf33d8240",
+          "redShapePixels": 9438,
+          "blueTextPixels": 138
+        }
+      }
+    }
+  },
+  "initialR6R7Failure": "Script expected Linux media-inspect to fail; current FFmpeg backend returned ready video/audio. Corrected test then passed."
+}

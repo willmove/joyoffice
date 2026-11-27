@@ -1,5 +1,7 @@
 # Joysheet 实施状态
 
+2026-11-27 UOS Desktop 25 Professional x86_64：源码 `d68bb22b` 的 Debug automation 桌面／CLI 构建、fmt、严格 Clippy 和 **1,534 项测试**通过，另有 1 项忽略。13 组窗口冒烟、搜狗中文选词／取消／历史／保存重开，以及原生另存取消、过时结果拒绝和新进程读回通过。未重新运行 Excel 实时重算或设备打印，完整平台与 M8 条件继续开放。[本轮证据与范围](../joyoffice/validation/20261127-uos-native-refactor/README.md)
+
 2026-11-24：工作区与内部精确版本约束统一为 0.3.0；拉齐三产品全六平台发布包格式（Windows EXE/ZIP、macOS DMG/ZIP、Linux DEB/TAR.GZ/ZIP），修复 Linux DEB 依赖（移除 `libssl3t64` 与 `libc6 >= 2.39`）与 xz 压缩，Linux x86_64/ARM64 切换至 glibc 2.28 基线以兼容 UOS 20/25（含 ARM64）。[发布规则与平台扩展](../joyoffice/RELEASE-PLATFORMS.md)
 
 2026-11-23 UOS 25 x86_64：源码 `22036e02` 的产品检查 **1,524 通过、1 项既有忽略、0 失败**，fmt、严格 Clippy 与 Debug automation 桌面／CLI 构建通过。四个公式族的八份规范工作簿、604 个公式缓存对照及原生编辑／撤销／重做／保存／新进程重开通过；窗格、显示、尺寸、打印和保护／超链接共 39 份三格式导入、156 组两版读写组合通过。13 组原生冒烟、默认搜狗中文模式和文件页原生另存的过时结果拒绝通过。未在本机运行 Excel 实时重算或设备打印；完整 Linux／M8 条件不关闭。[本轮证据](../joyoffice/validation/20261123-uos-refactor/README.md)

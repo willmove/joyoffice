@@ -1,5 +1,7 @@
 # JoyWord 宿主任务状态
 
+2026-11-27 UOS Desktop 25 Professional x86_64：源码 `d68bb22b` 的 Debug 桌面／CLI 构建、fmt、严格 Clippy 和 **4,222 项测试**通过，另有 2 项忽略。搜狗中文选词／取消／历史／保存重开通过；DDE 原生另存取消、不支持扩展名拒绝、有效 DOCX 副本独立读回及原件散列保持通过。复杂分页、打印和完整平台条件仍按各任务验收。[本轮证据与范围](../../joyoffice/validation/20261127-uos-native-refactor/README.md)
+
 2026-11-24：工作区与内部精确版本约束统一为 0.3.0；拉齐三产品全六平台发布包格式（新增 macOS DMG、Linux DEB 与 Linux ZIP），Linux x86_64/ARM64 切换至 Debian 10（glibc 2.28）基线与 xz 压缩 DEB 以兼容 UOS 20/25（含 ARM64）。[发布规则与平台扩展](../../joyoffice/RELEASE-PLATFORMS.md)
 
 2026-11-23 UOS 25 x86_64：源码 `22036e02` 的产品检查 **4,211 通过、2 项既有忽略、0 失败**，fmt、严格 Clippy 与 Debug 桌面／CLI 构建通过。分节边界／绘图重锚 14 步与完整分页对照、69 页两版 PDF 像素及 DOCX 读回、原生插入／撤销／重做均通过；校对 485、规则 12、语言包存储 22 项及实际安装／替换／卸载和固定发行荷兰语包通过。六应用依赖闭包无 `craft-*`；默认搜狗中文模式的选词、取消、历史及保存重开通过。旧功能、正式打印、完整平台与发行矩阵保持开放。[本轮证据](../../joyoffice/validation/20261123-uos-refactor/README.md)

@@ -1,0 +1,45 @@
+{
+  "date": "2026-11-27T17:38:34.159538+08:00",
+  "sourceCommit": "d68bb22b2c39738906a0d767ff723930eed9b952",
+  "branch": "feat/uos-native-validation-20261127",
+  "osRelease": "PRETTY_NAME=\"UOS Desktop 25 Professional\"\nNAME=\"Uos\"\nVERSION_ID=\"25\"\nVERSION=\"25\"\nID=uos\nHOME_URL=\"https://www.chinauos.com/\"\nBUG_REPORT_URL=\"http://bbs.chinauos.com\"\nVERSION_CODENAME=snipe\n",
+  "kernel": "6.18.57-061857-generic",
+  "architecture": "x86_64",
+  "cpu": "AMD Ryzen AI 9 HX 370 w/ Radeon 890M",
+  "glibc": [
+    "glibc",
+    "2.38"
+  ],
+  "versions": {
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+    "cargo": "cargo 1.98.1 (797e8a9bc 2026-08-05)"
+  },
+  "cargoLockSha256": "b7ef1a1e22eab23d3928c90cc801fa53a7d0a0e36f358a48a7799bc4689263c9",
+  "binarySha256": {
+    "joydeck": "5d378d2c534f2d122671e131f8dbe4d9e4689c11a35904ff45a739c3fb7ecf0f",
+    "joydeck-cli": "d97c743b5f495d69dbdb4edafe120d45d4d14e6ea49721e52a2220458f7ff145",
+    "joysheet": "da341fa633c2cda316085744c3e131cb1930a9dc0c45c518c995f79968e8273c",
+    "joysheet-cli": "cc41207378c12b8d276e2b6801649972d6c36871f0eb683f26da0db305fd3a98",
+    "joyword": "ee4172bb279deb0e2ece1b5596012e4a6e751c08c2e3f46e195cdc2fea8d662e",
+    "joyword-cli": "b038cdbb98e43a837cf0a0d8aafd89c1b0bf7e94dcf17fa31f572416e569e1ac"
+  },
+  "session": {
+    "XDG_SESSION_TYPE": "x11",
+    "XDG_CURRENT_DESKTOP": "DDE",
+    "DISPLAY": ":0",
+    "XMODIFIERS": "@im=fcitx",
+    "GDK_SCALE": null,
+    "QT_SCALE_FACTOR": null
+  },
+  "screen": [
+    "Screen 0: minimum 320 x 200, current 2560 x 1600, maximum 16384 x 16384",
+    "DisplayPort-0 disconnected (normal left inverted right x axis y axis)",
+    "HDMI-A-0 disconnected (normal left inverted right x axis y axis)",
+    "DisplayPort-1 disconnected (normal left inverted right x axis y axis)",
+    "DisplayPort-2 disconnected primary 2560x1600+0+0 (normal left inverted right x axis y axis) 0mm x 0mm",
+    "DisplayPort-3 disconnected (normal left inverted right x axis y axis)"
+  ],
+  "xftDpi": "Xcursor.theme:\tbloom\nXcursor.size:\t30\nXft.dpi:\t120\n*customization:\t-color",
+  "fcitxState": "2",
+  "fcitxMethod": "com.sogou.ime.ng.fcitx5.uos"
+}

@@ -1,6 +1,6 @@
 """Exercise the actual executable; independent OOXML/image/PDF metadata is checked separately."""
 from pathlib import Path
-import argparse,hashlib,json,queue,shutil,subprocess,sys,tempfile,threading,time,zipfile
+import argparse,hashlib,json,os,queue,shutil,subprocess,sys,tempfile,threading,time,zipfile
 ROOT=Path(__file__).resolve().parents[2]
 
 def main():
@@ -69,11 +69,21 @@ def main():
     for values in [['--pages','0'],['--dpi','301'],['--scale','nan'],['--format','jpeg','--transparent']]:
         dest=work/f'invalid-{len(records)}';run(['export',public,'--output',dest,*values],1);assert not dest.exists()
     existing=work/'existing.pdf';existing.write_bytes(b'keep');run(['export',public,'--output',existing],1);assert existing.read_bytes()==b'keep'
-    if sys.platform=='win32':
-        probe=json.loads(run(['media-inspect',source/'original-h264-aac.mp4']));assert probe['ready'] and probe['video']
+    # The native helper is available on Windows. Other platforms can use the
+    # FFmpeg backend; match its PATH and fallback-directory discovery.
+    search_dirs = [*os.get_exec_path(), '/usr/bin', '/usr/local/bin', '/bin']
+    media_tools = all(
+        any((Path(folder) / name).is_file() for folder in search_dirs)
+        for name in ('ffprobe', 'ffmpeg')
+    )
+    if sys.platform=='win32' or media_tools:
+        probe=json.loads(run(['media-inspect',source/'original-h264-aac.mp4']))
+        assert probe['ready'] and probe['video']
+        if sys.platform.startswith('linux'):
+            assert probe['backend'] == 'Linux FFmpeg' and probe['audio'] and probe['duration'] > 0
     else:
         run(['media-inspect',source/'original-h264-aac.mp4'],1)
-        assert 'media adapter is unavailable on this platform' in records[-1]['stderr']
+        assert any(f'requires {name}' in records[-1]['stderr'] for name in ('ffprobe', 'ffmpeg'))
     # Real MCP transport and JSON control use the same revision/replay dispatcher.
     local=work/'input.pptx';shutil.copyfile(public,local)
     proc=subprocess.Popen([str(exe),'mcp','--root',str(work)],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,encoding='utf-8');inbox=queue.Queue()

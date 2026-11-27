@@ -1,5 +1,7 @@
 # JoyDeck 当前状态
 
+2026-11-27 UOS Desktop 25 Professional x86_64：源码 `d68bb22b` 的 Debug validation 桌面／CLI 构建、产品 fmt／严格 Clippy 和 **1,107 项测试**通过。Radeon 890M Vulkan／CPU 的 1,850 帧最大通道差 1、首尾一致；立方体、轨道、风吹和魔术升幕的真实窗口及 CPU 回退通过。搜狗中文输入、原生另存取消／过时结果拒绝／重开，以及限定 WMF／EMF 对照通过。R1–R7 共 124 次 CLI 与 41 次 MCP 交互通过；修正了脚本对 Linux FFmpeg 探测的过时预期。JD-802／803、完整阶段 4 平台条件及阶段 5 来源／许可继续开放。[本轮证据与范围](../joyoffice/validation/20261127-uos-native-refactor/README.md)
+
 2026-11-24：工作区与内部精确版本约束统一为 0.3.0；拉齐三产品全六平台发布包格式（Windows EXE/ZIP、macOS DMG/ZIP、Linux DEB/TAR.GZ/ZIP），Linux x86_64/ARM64 切换至 Debian 10（glibc 2.28）基线与 xz 压缩 DEB 以兼容 UOS 20/25（含 ARM64）。[发布规则与平台扩展](../joyoffice/RELEASE-PLATFORMS.md)
 
 2026-11-24 Windows 11 x64：放映 GPU 合成沿用 CPU 的像素覆盖规则，按图层顺序在计算着色器中合成，并保留每层 8 位舍入。Intel Arc 140T 的 Vulkan 与 DX12、NVIDIA RTX 5060 Laptop 的 Vulkan 均通过 64×36 和 193×109 的 925 帧矩阵。Intel Vulkan 另通过 321×181 矩阵。合计 6,475 帧最大通道差 1，起止帧逐字节相同，336 次缺失图层检查也在门槛内。Intel Vulkan 实屏确认立方体和轨道转场中间帧、终态和退出，绘制尺寸为 3200×1801。GPU 几何超预算或设备不可用时继续走 CPU 回退。本轮结果覆盖 Windows Debug 构建，Release 性能和其他平台的计算着色器后端仍待复测。
@@ -22,7 +24,7 @@
 
 2026-11-09 Windows P1 续验 JD-305、JD-307、JD-602 与 JD-608。插入功能区新增清空全稿已有页脚文字，实屏验证确认、取消、单步撤销和重做。PPTX 保留写回保留形状树非可视组属性和扩展位置。Microsoft Word 的粗体、斜体和颜色经系统剪贴板粘贴，PowerPoint 直接打开另存的三页 PPTX。[本机验证](../joyoffice/validation/20261109-p1-followup/README.md)
 
-当前工作区版本为 v0.2.0。JoyDeck 桌面、CLI 和组件统一继承 JoyOffice 工作区版本，仍使用 `joydeck-v*` 标签独立打包。历史重构包 0.8.0 用户换版时需显式选择 0.2.0。[R9 交接](../joyoffice/JOYDECK-R9-HANDOFF.md)
+2026-11-16 工作区版本为 v0.2.0，2026-11-24 已更新为 v0.3.0。JoyDeck 桌面、CLI 和组件统一继承 JoyOffice 工作区版本，仍使用 `joydeck-v*` 标签独立打包。历史重构包 0.8.0 的换版边界见 [R9 交接](../joyoffice/JOYDECK-R9-HANDOFF.md)。
 
 2026-11-09 推进 JD-305。「插入」页脚支持当前缺失页、全部缺失页和更新已有页脚三种事务。Windows 已通过重复拒绝、单页与批量补建、混合值更新、撤销和 PPTX 另存读回。页眉、隐式继承、显示开关及其他文字能力继续开放。[本机验收](../joyoffice/validation/20261109-v012/README.md#p1)
 
