@@ -3,6 +3,8 @@
 use crate::bytes::Bytes;
 use crate::device::Xform;
 use crate::geom::{self, Op, P};
+use crate::image_placement;
+use kurbo::Affine;
 
 pub const MAX_POINTS: usize = 100_000;
 pub type Rect = [f64; 4];
@@ -26,7 +28,7 @@ pub struct Drawing {
 pub enum Command {
     Clear(u32),
     Region { slot: usize, brush: u32 },
-    Image { slot: usize, destination: Rect },
+    Image { slot: usize, destination: Affine },
     Text,
     DriverText,
 }
@@ -44,24 +46,51 @@ pub fn command(kind: u16, flags: u16, record: Bytes<'_>) -> Option<Command> {
             let [l, t, r, b] = rectangle(record, 24, short)?;
             Command::Image {
                 slot,
-                destination: [l, t, r - l, b - t],
+                destination: image_placement::rectangle([l, t, r - l, b - t]),
             }
         }
         0x401b => {
-            let vertices = points(record, 28, 3, short)?;
-            let &[(x, y), (rx, ry), (bx, by)] = vertices.as_slice() else {
+            if record.u32(24)? != 3 {
                 return None;
+            }
+            let vertices = if flags & 0x0800 != 0 {
+                relative_image_points(record.tail(28)?)?
+            } else {
+                points(record, 28, 3, short)?.try_into().ok()?
             };
-            // The currently supported image placement projects the parallelogram onto the axes.
             Command::Image {
                 slot,
-                destination: [x, y, rx - x + (bx - x), by - y + (ry - y)],
+                destination: image_placement::parallelogram(vertices),
             }
         }
         0x401c => Command::Text,
         0x4036 => Command::DriverText,
         _ => return None,
     })
+}
+
+fn relative_image_points(data: Bytes<'_>) -> Option<[P; 3]> {
+    let mut offset = 0;
+    let mut next = || {
+        let first = *data.0.get(offset)?;
+        offset += 1;
+        if first & 0x80 == 0 {
+            Some(i32::from(((first << 1) as i8) >> 1))
+        } else {
+            let last = *data.0.get(offset)?;
+            offset += 1;
+            let bits = u16::from_be_bytes([first & 0x7f, last]);
+            Some(i32::from(((bits << 1) as i16) >> 1))
+        }
+    };
+    let mut previous = (0, 0);
+    let mut points = [(0.0, 0.0); 3];
+    for point in &mut points {
+        previous.0 += next()?;
+        previous.1 += next()?;
+        *point = (f64::from(previous.0), f64::from(previous.1));
+    }
+    Some(points)
 }
 
 pub fn drawing(kind: u16, flags: u16, r: Bytes<'_>) -> Option<Drawing> {

@@ -323,7 +323,7 @@ fn set_dibits(cv: &mut Canvas, r: Bytes) -> Option<()> {
 
 /// Decodes the bitmap at `at` = (offset of the bmi offset/length pair, offset of the bits pair), both
 /// inside the record, and stretches the source rectangle `src` into `dst`. Both are `[x, y, w, h]`; a
-/// non-positive source size means the whole bitmap. `blend` decides how it combines.
+/// zero source dimensions select the whole bitmap; signed source extents can mirror it.
 fn blit(
     cv: &mut Canvas,
     r: Bytes,
@@ -341,6 +341,9 @@ fn blit(
     let pixels = Bytes(r.slice(po, pl)?);
     let mut img = bitmap::decode(info, pixels, blend.per_pixel())?;
     bitmap::prepare(&mut img, blend);
+    if src[2] != 0.0 && src[3] != 0.0 && (src[2] < 0.0 || src[3] < 0.0) {
+        return cv.affine_bitmap(crate::image_placement::rectangle(dst), src, img);
+    }
     let (img, dst) = bitmap::clip_blit(&img, src.map(|v| v as i64), dst)?;
     cv.bitmap(dst, img);
     Some(())

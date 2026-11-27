@@ -17,28 +17,27 @@
 //!
 //! Every drawing record of MS-EMFPLUS §2.3.4 is played. Image attributes are not drawn.
 //! Deliberately ignored: rendering hints (antialias, text
-//! hint, interpolation, pixel offset, compositing; the renderer has its own), SetRenderingOrigin
-//! (hatch phase), SerializableObject image effects, the terminal-server records SetTSGraphics and
+//! hint, interpolation, pixel offset, compositing; the renderer has its own),
+//! SerializableObject image effects, the terminal-server records SetTSGraphics and
 //! SetTSClip, and StrokeFillPath (0x4037), which the specification lists but gives no layout for
 //! and GDI+ doesn't write.
 
 use std::sync::Arc;
 
-use crate::bitmap::Rgba;
+use kurbo::{Affine, Rect};
+
+use crate::ImagePlacement;
 use crate::bytes::Bytes;
-use crate::canvas::{
-    BS_NULL, BS_SOLID, Brush, Canvas, LogFont, PS_NULL, Pen, RawTile, Xform, hatch_tile, mul,
-};
+use crate::canvas::{BS_NULL, BS_SOLID, Brush, Canvas, LogFont, PS_NULL, Pen, RawTile, Xform, mul};
 use crate::canvas::{PlusClip, Raw};
 use crate::geom::{Op, P};
 use crate::plus_image::{ImageData, image};
-use crate::plus_paint::{Brush as Fill, argb, blend as lerp, brush};
+use crate::plus_paint::{Brush as Fill, argb, brush};
 use crate::plus_pen::{self, Pen as PlusPen};
 use crate::plus_region::{self, Area};
 use crate::plus_shapes::{Drawing, Geometry, Paint, floats, path};
 use crate::plus_text::{DriverString, FontSpec, Format, Run, unit_px};
 use crate::text::ETO_CLIPPED;
-use crate::{Item, Picture, Seg};
 
 /// "EMF+" as the comment identifier of an EMR_COMMENT holding EMF+ records.
 pub(crate) const EMF_PLUS: u32 = 0x2B46_4D45;
@@ -62,6 +61,7 @@ struct Saved {
     id: u32,
     world: Xform,
     page: f64,
+    rendering_origin: P,
     clip: Area,
     clip_paint: Option<PlusClip>,
 }
@@ -72,6 +72,7 @@ pub(crate) struct Plus {
     dpi: f64,
     world: Xform,
     page: f64,
+    rendering_origin: P,
     /// The logical region and the compiled mask are in device units.
     clip: Area,
     clip_paint: Option<PlusClip>,
@@ -91,6 +92,7 @@ impl Plus {
             dpi: 96.0,
             world: IDENTITY,
             page: 1.0,
+            rendering_origin: (0.0, 0.0),
             clip: Area::full(),
             clip_paint: None,
             clip_work: plus_region::WORK_BUDGET,
@@ -121,6 +123,7 @@ impl Plus {
         Painter {
             xf: self.xf(),
             clip: self.clip_paint.clone(),
+            rendering_origin: self.rendering_origin,
         }
     }
 
@@ -145,7 +148,7 @@ impl Plus {
             0x4009 | 0x4013 | 0x401A..=0x401C | 0x4036 => {
                 self.record_image_text_region(cv, typ, flags, r)
             }
-            0x4025..=0x4035 => self.record_state(cv, typ, flags, r),
+            0x401d | 0x4025..=0x4035 => self.record_state(cv, typ, flags, r),
             _ => self.record_shape(cv, typ, flags, r),
         }
     }
@@ -199,7 +202,12 @@ impl Plus {
                 let [x, y, w, h] = self.frame?;
                 if color[3] != 0 && w > 0.0 && h > 0.0 {
                     let xf = invert(mul(cv.world(), cv.device_affine()))?;
-                    Painter { xf, clip: None }.fill(
+                    Painter {
+                        xf,
+                        clip: None,
+                        rendering_origin: self.rendering_origin,
+                    }
+                    .fill(
                         cv,
                         &rect_ops([x, y, x + w, y + h]),
                         &Fill::Solid(color),
@@ -240,6 +248,7 @@ impl Plus {
             State::Restore(id) => self.pop(id),
             State::Transform(matrix) => self.world = matrix,
             State::Concat(matrix) => return self.apply(matrix, flags),
+            State::RenderingOrigin(origin) => self.rendering_origin = origin,
             State::Page(scale) => {
                 let page = scale * unit_px(u32::from(flags & 0xff), self.dpi);
                 if (0.0..1.0e6).contains(&page) && page > 0.0 {
@@ -296,6 +305,7 @@ impl Plus {
                 id,
                 world: self.world,
                 page: self.page,
+                rendering_origin: self.rendering_origin,
                 clip: self.clip.clone(),
                 clip_paint: self.clip_paint.clone(),
             });
@@ -307,6 +317,7 @@ impl Plus {
             let s = self.stack.swap_remove(i);
             (self.world, self.page, self.clip, self.clip_paint) =
                 (s.world, s.page, s.clip, s.clip_paint);
+            self.rendering_origin = s.rendering_origin;
             self.stack.truncate(i);
         }
     }
@@ -315,7 +326,10 @@ impl Plus {
         self.clip_paint = if area.is_full() {
             None
         } else if let Some(ring) = area.convex() {
-            Some(PlusClip::Convex(ring.into()))
+            Some(PlusClip::Convex {
+                outline: Arc::new(crate::cliprect::outline(&ring)),
+                vertices: ring.into(),
+            })
         } else {
             Some(PlusClip::Outline(Arc::new(
                 area.mask(canvas.clip_surface(), &mut self.clip_work)
@@ -365,7 +379,7 @@ impl Plus {
         match obj {
             Obj::Image(img) => match img.as_ref() {
                 ImageData::Bitmap(rgba) => rgba.px.len(),
-                ImageData::Meta(pic) => pic.items.len().saturating_mul(128),
+                ImageData::Meta { bytes, .. } => *bytes,
             },
             Obj::Brush(Fill::Texture { img, .. }) => img.px.len(),
             Obj::Pen(pen) => pen.brush.cost(),
@@ -407,24 +421,74 @@ impl Plus {
         }
     }
 
-    /// DrawImage and DrawImagePoints: the source rectangle (pixels) cut from the image, drawn
-    /// into world rectangle `dst` = `[x, y, w, h]`.
-    fn draw_image(&self, cv: &mut Canvas, img: &ImageData, r: Bytes, dst: [f64; 4]) -> Option<()> {
-        let img = match img {
-            ImageData::Bitmap(b) => b,
-            ImageData::Meta(pic) => {
-                self.painter().picture(cv, dst, pic);
-                return Some(());
+    fn draw_image(
+        &self,
+        cv: &mut Canvas,
+        image: &ImageData,
+        record: Bytes<'_>,
+        dst: Affine,
+    ) -> Option<()> {
+        let source = floats::<4>(record, 8)?;
+        let use_source = record.u32(4)? == 2 && source[2] != 0.0 && source[3] != 0.0;
+        let painter = self.painter();
+        painter.begin(cv, IDENTITY);
+        let result = Self::image_in_device(cv, image, dst, use_source.then_some(source));
+        painter.end(cv);
+        result
+    }
+
+    fn image_in_device(
+        cv: &mut Canvas,
+        image: &ImageData,
+        dst: Affine,
+        source: Option<[f64; 4]>,
+    ) -> Option<()> {
+        let target = Affine::new(cv.device_affine()) * dst;
+        match image {
+            ImageData::Bitmap(bitmap) => {
+                let (w, h) = (bitmap.w as f64, bitmap.h as f64);
+                let source = source.unwrap_or([0.0, 0.0, w, h]);
+                let [a, _, _, d, x, y] = dst.as_coeffs();
+                // Keep the existing integer transfer for ordinary axis-aligned bitmaps.
+                if crate::image_placement::axis_aligned(dst)
+                    && crate::image_placement::axis_aligned(target)
+                    && source[2] > 0.0
+                    && source[3] > 0.0
+                    && source
+                        .iter()
+                        .all(|value| value.fract() == 0.0 && value.abs() <= 1e9)
+                {
+                    let (bitmap, rect) = crate::bitmap::clip_blit(
+                        bitmap,
+                        source.map(|value| value as i64),
+                        [x, y, a, d],
+                    )?;
+                    cv.bitmap(rect, bitmap);
+                } else {
+                    cv.affine_bitmap(dst, source, bitmap.clone())?;
+                }
             }
-        };
-        let [sx, sy, sw, sh] = floats::<4>(r, 8)?;
-        let src = if r.u32(4)? == 2 {
-            [sx, sy, sw, sh].map(|v| v.round().clamp(-1.0e9, 1.0e9) as i64)
-        } else {
-            [0; 4]
-        };
-        let (part, dst) = crate::bitmap::clip_blit(img, src, dst)?;
-        self.painter().image(cv, dst, part);
+            ImageData::Meta {
+                picture,
+                device_size: [device_w, device_h],
+                bytes,
+            } => {
+                let (w, h) = (f64::from(picture.width), f64::from(picture.height));
+                let [x, y, sw, sh] = source.unwrap_or([0.0, 0.0, *device_w, *device_h]);
+                let (sx, sy) = (w / device_w, h / device_h);
+                let placement = ImagePlacement::new(
+                    target,
+                    [x * sx, y * sy, sw * sx, sh * sy],
+                    Rect::new(0.0, 0.0, w, h),
+                )?;
+                cv.push_device(Raw::Nested {
+                    placement,
+                    picture: picture.clone(),
+                    bytes: *bytes,
+                    region: None,
+                });
+            }
+        }
         Some(())
     }
 
@@ -526,6 +590,7 @@ struct TextStyle {
 struct Painter {
     xf: Xform,
     clip: Option<PlusClip>,
+    rendering_origin: P,
 }
 
 impl Painter {
@@ -562,23 +627,21 @@ impl Painter {
                 cv.set_brush(Brush::new(BS_SOLID, *c));
                 cv.shape(ops, true, false);
             }
-            Fill::Hatch { style, fg, bg } => match hatch_tile(*style, *fg, Some(*bg)) {
-                Some(px) => cv.tile_shape(
-                    ops,
-                    Arc::new(RawTile {
-                        w: 8,
-                        h: 8,
-                        px,
-                        cell: cv.pattern_px,
-                        sampled: false,
-                    }),
-                ),
-                // GDI+ has many more hatch styles than GDI: those fill with the blend of both colours.
-                None => {
-                    cv.set_brush(Brush::new(BS_SOLID, lerp(*fg, *bg, 0.5)));
-                    cv.shape(ops, true, false);
+            Fill::Hatch { style, fg, bg } => {
+                if let Some(px) = crate::plus_hatch::tile(*style, *fg, *bg) {
+                    cv.tile_shape(
+                        ops,
+                        Arc::new(RawTile {
+                            w: 8,
+                            h: 8,
+                            px,
+                            cell: cv.pattern_px,
+                            origin: self.rendering_origin,
+                            sampled: false,
+                        }),
+                    );
                 }
-            },
+            }
             _ => {
                 // Device point to brush space: invert brush space → world → device.
                 let tf = if fill.device_space() {
@@ -609,118 +672,6 @@ impl Painter {
         });
         cv.set_brush(Brush::new(BS_NULL, [0, 0, 0, 0]));
         cv.shape(ops, false, true);
-        self.end(cv);
-    }
-
-    fn image(&self, cv: &mut Canvas, dst: [f64; 4], img: Rgba) {
-        self.begin(cv, IDENTITY);
-        cv.bitmap(dst, img);
-        self.end(cv);
-    }
-
-    /// A nested metafile's picture stretched into world rectangle `dst` = `[x, y, w, h]`.
-    fn picture(&self, cv: &mut Canvas, [x, y, w, h]: [f64; 4], pic: &Picture) {
-        self.begin(cv, IDENTITY);
-        let (sx, sy) = (w / f64::from(pic.width), h / f64::from(pic.height));
-        let m = mul([sx, 0.0, 0.0, sy, x, y], cv.device_affine());
-        let scale = (m[0] * m[3] - m[1] * m[2]).abs().sqrt();
-        let pt = |a: f32, b: f32| apply(m, (f64::from(a), f64::from(b)));
-        let ops = |segs: &[Seg]| -> Vec<Op> {
-            segs.iter()
-                .map(|s| match *s {
-                    Seg::Move(a, b) => Op::M(pt(a, b)),
-                    Seg::Line(a, b) => Op::L(pt(a, b)),
-                    Seg::Cubic(a, b, c, d, e, f) => Op::C(pt(a, b), pt(c, d), pt(e, f)),
-                    Seg::Close => Op::Z,
-                })
-                .collect()
-        };
-        // The nested picture's own clip regions are not carried over: each item takes the
-        // canvas's current clip.
-        for item in &pic.items {
-            if cv.full() {
-                break;
-            }
-            let raw = match item {
-                Item::Path {
-                    segs,
-                    fill,
-                    stroke,
-                    even_odd,
-                    ..
-                } => Raw::Path {
-                    ops: ops(segs),
-                    fill: *fill,
-                    stroke: stroke.map(|(c, w)| (c, f64::from(w) * scale)),
-                    even_odd: *even_odd,
-                    region: None,
-                },
-                Item::Pattern {
-                    segs,
-                    even_odd,
-                    tile,
-                    ..
-                } => Raw::Pattern {
-                    ops: ops(segs),
-                    even_odd: *even_odd,
-                    tile: Arc::new(RawTile {
-                        w: tile.width as usize,
-                        h: tile.height as usize,
-                        px: tile.rgba.clone(),
-                        cell: f64::from(tile.cell[0]) * scale,
-                        sampled: tile.sampled,
-                    }),
-                    region: None,
-                },
-                Item::Bitmap {
-                    rect,
-                    width,
-                    height,
-                    rgba,
-                    ..
-                } => {
-                    let (a, b) = (
-                        pt(rect[0], rect[1]),
-                        pt(rect[0] + rect[2], rect[1] + rect[3]),
-                    );
-                    let mut img = Rgba {
-                        w: *width as usize,
-                        h: *height as usize,
-                        bottom_up: false,
-                        px: rgba.clone(),
-                    };
-                    crate::bitmap::flip(&mut img, a.0 > b.0, a.1 > b.1);
-                    Raw::Bitmap {
-                        rect: [
-                            a.0.min(b.0),
-                            a.1.min(b.1),
-                            (b.0 - a.0).abs(),
-                            (b.1 - a.1).abs(),
-                        ],
-                        img,
-                        region: None,
-                    }
-                }
-                Item::Text(t) => {
-                    let mut t = t.clone();
-                    t.transform = mul(t.transform, m);
-                    if let Some([x0, y0, x1, y1]) = t.clip {
-                        let (p, q) = (pt(x0, y0), pt(x1, y1));
-                        t.clip = Some([
-                            p.0.min(q.0) as f32,
-                            p.1.min(q.1) as f32,
-                            p.0.max(q.0) as f32,
-                            p.1.max(q.1) as f32,
-                        ]);
-                    }
-                    Raw::Text {
-                        text: t,
-                        region: None,
-                    }
-                }
-            };
-            cv.push_device(raw);
-        }
         self.end(cv);
     }
 

@@ -1,8 +1,7 @@
-//! Clipping drawn output to a convex device polygon (EMF+ clip rectangles, and clip paths and
-//! regions that are convex; others are reduced to their bounding rectangle). Shapes wholly inside
+//! Geometry fast path for a single convex device clip. Shapes wholly inside
 //! pass unchanged; shapes crossing the edge are flattened and cut: fills with Sutherland–Hodgman
 //! per subpath, outlines with Cyrus–Beck per segment. Bitmaps are cropped (and masked outside a
-//! non-rectangular polygon) and text gets the polygon's bounding rectangle.
+//! non-rectangular polygon). Text and affine drawings keep the polygon as a scene mask.
 
 use crate::bitmap::Rgba;
 use crate::canvas::Raw;
@@ -52,6 +51,18 @@ pub(crate) fn intersect(a: [f64; 4], b: [f64; 4]) -> [f64; 4] {
 /// A rectangle `[l, t, r, b]` as a polygon.
 pub(crate) fn rect_poly([l, t, r, b]: [f64; 4]) -> Vec<P> {
     vec![(l, t), (r, t), (r, b), (l, b)]
+}
+
+pub(crate) fn outline(ring: &[P]) -> kurbo::BezPath {
+    let mut path = kurbo::BezPath::new();
+    if let Some((&start, rest)) = ring.split_first() {
+        path.move_to(start);
+        for &point in rest {
+            path.line_to(point);
+        }
+        path.close_path();
+    }
+    path
 }
 
 /// The bounding box of a point list.
@@ -172,17 +183,7 @@ pub(crate) fn clip_raw(raw: Raw, clip: &[P]) -> Vec<Raw> {
         Raw::Bitmap { rect, img, region } => crop(rect, img, clip)
             .map(|(rect, img)| vec![Raw::Bitmap { rect, img, region }])
             .unwrap_or_default(),
-        Raw::Text {
-            text: mut t,
-            region,
-        } => {
-            // Text clips to a rectangle: the one around the polygon.
-            let cur = t.clip.map_or(cb, |[a, b, d, e]| {
-                intersect(cb, [f64::from(a), f64::from(b), f64::from(d), f64::from(e)])
-            });
-            t.clip = Some(cur.map(|v| v as f32));
-            vec![Raw::Text { text: t, region }]
-        }
+        Raw::Text { .. } | Raw::AffineBitmap { .. } | Raw::Nested { .. } => vec![raw],
     }
 }
 

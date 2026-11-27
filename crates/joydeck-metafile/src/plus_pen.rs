@@ -1,15 +1,19 @@
 //! EMF+ pen records and expansion of a stroked path into a brush-filled outline.
 
-use kurbo::{Affine, BezPath, Cap, Join, PathEl, PathSeg, Point, Stroke, StrokeOpts, Vec2};
+use kurbo::{
+    Affine, BezPath, Cap, Join, ParamCurve, ParamCurveArclen, PathEl, PathSeg, Point, Stroke,
+    StrokeOpts, Vec2,
+};
 
 use crate::bytes::Bytes;
 use crate::geom::Op;
+use crate::plus_caps::{self, CustomCap};
 use crate::plus_paint::{self, Brush};
 use crate::plus_shapes::{floats, matrix};
 
 const MAX_PATTERN: usize = 64;
 const MAX_OUTLINE: usize = 16_384;
-const TOLERANCE: f64 = 0.08;
+pub(super) const TOLERANCE: f64 = 0.08;
 const IDENTITY: [f64; 6] = [1.0, 0.0, 0.0, 1.0, 0.0, 0.0];
 
 pub struct Pen {
@@ -27,16 +31,7 @@ pub struct Pen {
     dash_cap: u32,
     alignment: u32,
     bands: Vec<f64>,
-    custom: [Option<Arrow>; 2],
-}
-
-#[derive(Clone, Copy)]
-struct Arrow {
-    width: f64,
-    height: f64,
-    inset: f64,
-    filled: bool,
-    scale: f64,
+    custom: [Option<CustomCap>; 2],
 }
 
 pub fn read(bytes: Bytes<'_>) -> Option<Pen> {
@@ -56,11 +51,7 @@ pub fn read(bytes: Bytes<'_>) -> Option<Pen> {
     };
     let start = fields.integer(flags & 2, 0)?;
     let end = fields.integer(flags & 4, 0)?;
-    let join = match fields.integer(flags & 8, 0)? {
-        1 => Join::Bevel,
-        2 => Join::Round,
-        _ => Join::Miter,
-    };
+    let join = join(fields.integer(flags & 8, 0)?);
     let miter = fields.number(flags & 0x10, 10.0)?.clamp(1.0, 100.0);
     let line = fields.integer(flags & 0x20, 0)?;
     let dash_cap = fields.integer(flags & 0x40, 0)?;
@@ -104,7 +95,10 @@ pub fn read(bytes: Bytes<'_>) -> Option<Pen> {
     } else {
         vec![0.0, 1.0]
     };
-    let custom = [fields.arrow(flags & 0x800)?, fields.arrow(flags & 0x1000)?];
+    let custom = [
+        fields.custom_cap(flags & 0x800)?,
+        fields.custom_cap(flags & 0x1000)?,
+    ];
     let brush = plus_paint::brush(bytes.tail(fields.offset)?)?;
     let simple = matches!(brush, Brush::Solid(_)) && flags & !0x80 == 0 && unit <= 2;
     Some(Pen {
@@ -158,25 +152,14 @@ impl Fields<'_> {
         (0..length).map(|_| self.number(1, 0.0)).collect()
     }
 
-    fn arrow(&mut self, flag: u32) -> Option<Option<Arrow>> {
+    fn custom_cap(&mut self, flag: u32) -> Option<Option<CustomCap>> {
         if flag == 0 {
             return Some(None);
         }
         let size = self.integer(1, 0)? as usize;
         let cap = Bytes(self.bytes.slice(self.offset, size)?);
         self.offset += size;
-        if cap.u32(4)? != 1 {
-            return Some(None);
-        }
-        let [width, height, inset] = floats(cap, 8)?;
-        let [scale] = floats(cap, 40)?;
-        Some(Some(Arrow {
-            width: width.clamp(0.0, 100.0),
-            height: height.clamp(0.0, 100.0),
-            inset: inset.clamp(0.0, height.max(0.0)),
-            filled: cap.u32(20)? != 0,
-            scale: scale.clamp(0.0, 100.0),
-        }))
+        Some(Some(CustomCap::read(cap)?))
     }
 }
 
@@ -216,23 +199,26 @@ impl Pen {
             return None;
         }
         let needs_bands = self.alignment != 0 || self.bands.len() > 2;
+        let custom = self.custom.each_ref().map(Option::as_ref);
         let style = Stroke::new(width)
             .with_join(self.join)
             .with_miter_limit(self.miter)
-            .with_start_cap(cap(self.start))
-            .with_end_cap(cap(self.end));
-        let mut outline = if needs_bands {
-            self.stroke_bands(&input, &style, &pattern)?
+            .with_start_cap(cap(custom[0].map_or(self.start, CustomCap::base)))
+            .with_end_cap(cap(custom[1].map_or(self.end, CustomCap::base)));
+        let insets = custom.map(|cap| cap.map_or(0.0, |cap| cap.inset(width)));
+        let trimmed;
+        let stem = if insets.iter().any(|inset| *inset > 0.0) {
+            trimmed = trim_open_subpaths(&input, insets);
+            &trimmed
         } else {
-            self.stroke_band(&input, &style, &pattern)
+            &input
         };
-        add_caps(
-            &mut outline,
-            &input,
-            width,
-            [self.start, self.end],
-            self.custom,
-        );
+        let mut outline = if needs_bands {
+            self.stroke_bands(stem, &style, &pattern)?
+        } else {
+            self.stroke_band(stem, &style, &pattern)
+        };
+        add_caps(&mut outline, &input, width, [self.start, self.end], custom);
         if outline.elements().len() > MAX_OUTLINE {
             return None;
         }
@@ -300,7 +286,7 @@ impl Pen {
     }
 }
 
-fn cap(value: u32) -> Cap {
+pub(super) fn cap(value: u32) -> Cap {
     match value {
         1 => Cap::Square,
         2 | 0x12 => Cap::Round,
@@ -308,7 +294,15 @@ fn cap(value: u32) -> Cap {
     }
 }
 
-fn bez(ops: &[Op]) -> BezPath {
+pub(super) fn join(value: u32) -> Join {
+    match value {
+        1 => Join::Bevel,
+        2 => Join::Round,
+        _ => Join::Miter,
+    }
+}
+
+pub(super) fn bez(ops: &[Op]) -> BezPath {
     let mut path = BezPath::new();
     for &op in ops {
         match op {
@@ -452,7 +446,7 @@ fn add_caps(
     path: &BezPath,
     width: f64,
     kinds: [u32; 2],
-    custom: [Option<Arrow>; 2],
+    custom: [Option<&CustomCap>; 2],
 ) {
     if kinds.iter().all(|&kind| kind <= 2) && custom.iter().all(Option::is_none) {
         return;
@@ -482,26 +476,7 @@ fn add_caps(
                 cap.close_path();
             };
             match (kind, datum) {
-                (_, Some(arrow)) => {
-                    let s = arrow.scale;
-                    polygon(
-                        &mut cap,
-                        &[
-                            (0.0, 0.0),
-                            (-arrow.height * s, -arrow.width * s / 2.0),
-                            (-(arrow.height - arrow.inset) * s, 0.0),
-                            (-arrow.height * s, arrow.width * s / 2.0),
-                        ],
-                    );
-                    if !arrow.filled {
-                        cap = kurbo::stroke(
-                            cap.iter(),
-                            &Stroke::new(width),
-                            &StrokeOpts::default(),
-                            TOLERANCE,
-                        );
-                    }
-                }
+                (_, Some(custom)) => cap = custom.paint(anchor, direction, width),
                 (3, None) => polygon(&mut cap, &[(0.0, -0.5), (0.5, 0.0), (0.0, 0.5)]),
                 (0x11, None) => polygon(
                     &mut cap,
@@ -519,8 +494,54 @@ fn add_caps(
                 _ => {}
             }
             if outline.elements().len() + cap.elements().len() <= MAX_OUTLINE {
-                outline.extend(cap);
+                if datum.is_some() {
+                    plus_caps::extend(outline, cap);
+                } else {
+                    outline.extend(cap);
+                }
             }
         }
     }
+}
+
+fn trim_open_subpaths(path: &BezPath, [start, end]: [f64; 2]) -> BezPath {
+    let elements = path.elements();
+    let starts = elements
+        .iter()
+        .enumerate()
+        .filter_map(|(i, el)| matches!(el, PathEl::MoveTo(_)).then_some(i));
+    let mut result = BezPath::new();
+    for (from, to) in starts
+        .clone()
+        .zip(starts.skip(1).chain(std::iter::once(elements.len())))
+    {
+        let subpath = &elements[from..to];
+        if matches!(subpath.last(), Some(PathEl::ClosePath)) {
+            result.extend(subpath.iter().copied());
+            continue;
+        }
+        const ACCURACY: f64 = 0.002;
+        let segments: Vec<_> = kurbo::segments(subpath.iter().copied())
+            .map(|segment| (segment, segment.arclen(ACCURACY)))
+            .collect();
+        let stop = segments.iter().map(|segment| segment.1).sum::<f64>() - end;
+        let mut distance = 0.0;
+        let mut open = false;
+        for (segment, length) in segments {
+            let lo = (start - distance).max(0.0);
+            let hi = (stop - distance).min(length);
+            distance += length;
+            if hi <= lo {
+                continue;
+            }
+            let piece = segment
+                .subsegment(segment.inv_arclen(lo, ACCURACY)..segment.inv_arclen(hi, ACCURACY));
+            if !open {
+                result.move_to(piece.start());
+                open = true;
+            }
+            result.push(piece.as_path_el());
+        }
+    }
+    result
 }

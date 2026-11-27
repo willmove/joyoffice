@@ -12,8 +12,8 @@ use crate::geom::{Op, P};
 use crate::text::{ETO_CLIPPED, ETO_OPAQUE, Font, Text};
 use crate::text_records::Placement;
 use crate::{
-    ClipRegion, GlyphPlacement, IndexedGlyphs, MAX_BYTES, MAX_ITEMS, MAX_OBJECTS, MAX_PATH_OPS,
-    MAX_STACK,
+    ClipRegion, GlyphPlacement, ImagePlacement, IndexedGlyphs, MAX_BYTES, MAX_ITEMS, MAX_OBJECTS,
+    MAX_PATH_OPS, MAX_STACK, Picture,
 };
 
 const STOCK: u32 = 0x8000_0000;
@@ -135,6 +135,7 @@ pub(crate) struct RawTile {
     pub h: usize,
     pub px: Vec<u8>,
     pub cell: f64,
+    pub origin: P,
     /// This tile samples one finite shade, so averaging its entire area loses the paint.
     pub sampled: bool,
 }
@@ -177,6 +178,17 @@ pub(crate) enum Raw {
         img: Rgba,
         region: Option<ClipRegion<f64>>,
     },
+    AffineBitmap {
+        placement: ImagePlacement,
+        img: Rgba,
+        region: Option<ClipRegion<f64>>,
+    },
+    Nested {
+        placement: ImagePlacement,
+        picture: Arc<Picture>,
+        bytes: usize,
+        region: Option<ClipRegion<f64>>,
+    },
     /// Text whose transform and clip are in device units. `region` is the device clip.
     Text {
         text: Box<Text>,
@@ -190,8 +202,15 @@ impl Raw {
             Raw::Path { region: slot, .. }
             | Raw::Pattern { region: slot, .. }
             | Raw::Bitmap { region: slot, .. }
+            | Raw::AffineBitmap { region: slot, .. }
+            | Raw::Nested { region: slot, .. }
             | Raw::Text { region: slot, .. } => {
-                *slot = region;
+                if let Some(next) = region {
+                    *slot = Some(match slot.take() {
+                        Some(current) => ClipRegion::Intersection(Box::new((current, next))),
+                        None => next,
+                    });
+                }
             }
         }
     }
@@ -199,7 +218,10 @@ impl Raw {
 
 #[derive(Clone)]
 pub(crate) enum PlusClip {
-    Convex(Arc<[P]>),
+    Convex {
+        vertices: Arc<[P]>,
+        outline: Arc<kurbo::BezPath>,
+    },
     Outline(Arc<kurbo::BezPath>),
 }
 
@@ -211,6 +233,7 @@ struct TextState {
     bk_opaque: bool,
     align: u32,
     font: Option<Arc<LogFont>>,
+    exact_layout: bool,
 }
 
 #[derive(Clone)]
@@ -281,6 +304,7 @@ impl Canvas {
                 bk_opaque: true,
                 align: 0,
                 font: None,
+                exact_layout: false,
             },
             pattern_px: 1.0,
             pos: (0.0, 0.0),
@@ -307,11 +331,25 @@ impl Canvas {
         self.full
     }
 
+    pub fn recorded_bytes(&self) -> usize {
+        self.used
+    }
+
     fn push(&mut self, raw: Raw) {
         match self.plus_clip.clone() {
             None => self.push_raw(raw, None),
-            Some(PlusClip::Convex(c)) => {
-                for r in crate::cliprect::clip_raw(raw, &c) {
+            Some(PlusClip::Convex { vertices, outline })
+                if matches!(
+                    raw,
+                    Raw::Text { .. } | Raw::AffineBitmap { .. } | Raw::Nested { .. }
+                ) =>
+            {
+                if vertices.len() >= 3 {
+                    self.push_raw(raw, Some(outline));
+                }
+            }
+            Some(PlusClip::Convex { vertices, .. }) => {
+                for r in crate::cliprect::clip_raw(raw, &vertices) {
                     self.push_raw(r, None);
                 }
             }
@@ -324,17 +362,18 @@ impl Canvas {
         if self.clip.as_ref().is_some_and(Vec::is_empty) {
             return;
         }
-        let region = outline
-            .map(ClipRegion::Outline)
-            .or_else(|| self.clip.clone().map(ClipRegion::Rectangles));
-        let region_cost = match region.as_ref() {
+        let clip_cost = |region: Option<&ClipRegion<f64>>| match region {
             Some(ClipRegion::Rectangles(rectangles)) => {
                 rectangles.len() * std::mem::size_of::<[f64; 4]>()
             }
             Some(ClipRegion::Outline(path)) => std::mem::size_of_val(path.elements()),
-            None => 0,
+            _ => 0,
         };
-        raw.set_region(region);
+        let gdi = self.clip.clone().map(ClipRegion::Rectangles);
+        let plus = outline.map(ClipRegion::Outline);
+        let region_cost = clip_cost(gdi.as_ref()) + clip_cost(plus.as_ref());
+        raw.set_region(gdi);
+        raw.set_region(plus);
         let cost = match &raw {
             Raw::Path { ops, .. } => ops.len() * std::mem::size_of::<Op>(),
             // A tile shared with its brush is counted once (by the brush); one made for this fill
@@ -347,7 +386,8 @@ impl Canvas {
                 };
                 ops.len() * std::mem::size_of::<Op>() + 64 + own
             }
-            Raw::Bitmap { img, .. } => img.px.len(),
+            Raw::Bitmap { img, .. } | Raw::AffineBitmap { img, .. } => img.px.len(),
+            Raw::Nested { bytes, .. } => *bytes,
             Raw::Text { text: t, .. } => {
                 let glyphs = t.indexed.as_ref().map_or(0, |run| {
                     run.ids.len() * 2
@@ -473,6 +513,7 @@ impl Canvas {
         self.text.color = color;
         self.text.bk_opaque = false;
         self.text.align = align;
+        self.text.exact_layout = true;
         self.text.font = Some(Arc::new(font));
     }
 
@@ -529,6 +570,7 @@ impl Canvas {
                 h,
                 px,
                 cell,
+                origin: (0.0, 0.0),
                 sampled: true,
             }),
             region: None,
@@ -733,6 +775,7 @@ impl Canvas {
                     h: 8,
                     px,
                     cell: self.pattern_px,
+                    origin: (0.0, 0.0),
                     sampled: false,
                 })))
             }
@@ -748,6 +791,7 @@ impl Canvas {
                                     h: p.h,
                                     px: p.px.clone(),
                                     cell,
+                                    origin: (0.0, 0.0),
                                     sampled: false,
                                 })
                             })
@@ -780,6 +824,7 @@ impl Canvas {
                     h: p.h,
                     px,
                     cell: self.pattern_px,
+                    origin: (0.0, 0.0),
                     sampled: false,
                 })))
             }
@@ -1047,17 +1092,31 @@ impl Canvas {
         let Some(transform) = placement.transform() else {
             return;
         };
-        let clip = match (options & ETO_CLIPPED != 0, rect) {
+        let (clip, region) = match (options & ETO_CLIPPED != 0, rect) {
             (true, Some([l, t, r, b])) => {
-                let (p, q) = (self.map.device((l, t)), self.map.device((r, b)));
-                Some([
-                    p.0.min(q.0) as f32,
-                    p.1.min(q.1) as f32,
-                    p.0.max(q.0) as f32,
-                    p.1.max(q.1) as f32,
-                ])
+                if !self.text.exact_layout
+                    || crate::image_placement::axis_aligned(kurbo::Affine::new(
+                        self.device_affine(),
+                    ))
+                {
+                    let (p, q) = (self.map.device((l, t)), self.map.device((r, b)));
+                    (
+                        Some([
+                            p.0.min(q.0) as f32,
+                            p.1.min(q.1) as f32,
+                            p.0.max(q.0) as f32,
+                            p.1.max(q.1) as f32,
+                        ]),
+                        None,
+                    )
+                } else {
+                    let points =
+                        [(l, t), (r, t), (r, b), (l, b)].map(|point| self.map.device(point));
+                    let outline = crate::cliprect::outline(&points);
+                    (None, Some(ClipRegion::Outline(Arc::new(outline))))
+                }
             }
-            _ => None,
+            _ => (None, None),
         };
         self.push(Raw::Text {
             text: Box::new(Text {
@@ -1073,7 +1132,7 @@ impl Canvas {
                 clip,
                 region: None,
             }),
-            region: None,
+            region,
         });
     }
 
@@ -1107,6 +1166,16 @@ impl Canvas {
     /// bitmap, as the mapping does.
     pub fn bitmap(&mut self, rect: [f64; 4], mut img: Rgba) {
         let [x, y, w, h] = rect;
+        let transform = kurbo::Affine::new(self.device_affine());
+        if !crate::image_placement::axis_aligned(transform) {
+            let (w, h) = (img.w as f64, img.h as f64);
+            let _ = self.affine_bitmap(
+                crate::image_placement::rectangle(rect),
+                [0.0, 0.0, w, h],
+                img,
+            );
+            return;
+        }
         let a = self.map.device((x, y));
         let b = self.map.device((x + w, y + h));
         crate::bitmap::flip(&mut img, a.0 > b.0, a.1 > b.1);
@@ -1121,6 +1190,26 @@ impl Canvas {
             img,
             region: None,
         });
+    }
+
+    pub fn affine_bitmap(
+        &mut self,
+        destination: kurbo::Affine,
+        mut source: [f64; 4],
+        img: Rgba,
+    ) -> Option<()> {
+        let (w, h) = (img.w as f64, img.h as f64);
+        if img.bottom_up {
+            source[1] = h - source[1] - source[3];
+        }
+        let target = kurbo::Affine::new(self.device_affine()) * destination;
+        let placement = ImagePlacement::new(target, source, kurbo::Rect::new(0.0, 0.0, w, h))?;
+        self.push(Raw::AffineBitmap {
+            placement,
+            img,
+            region: None,
+        });
+        Some(())
     }
 }
 

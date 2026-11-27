@@ -46,6 +46,8 @@
 
 2026-11-27 EMF+ 接入非凸及布尔区域裁剪、复杂笔刷描边和物理字体字形索引。冻结回归和 PowerPoint 16 回存验证通过。逐文件核查剩余生产来源，后续继续处理高级端帽和网纹、图元场景适配、其他运行路径及平台实机。[裁剪、描边与物理字形](../joyoffice/validation/20261127-craft-stage5-deck-complex-emfplus/README.md)
 
+2026-11-27 EMF+ 自定义路径端帽、余下 47 种网纹和凸区文字轮廓裁剪通过定向验证。位图仿射及嵌套图元切换到自研场景投影，6 份 PPTX 保留另存与 PowerPoint 16 回存重开通过。图像属性、传统 GDI 合成和其余生产来源继续跟踪。[图元场景和回存证据](../joyoffice/validation/20261127-craft-stage5-deck-metafile-scene/README.md)
+
 2026-11-06 推进 JD-807/808。SBOM 生成现在核对补充许可来源清单的文件哈希及复制结果，拒绝被改动、缺失、越界或未登记文件。后续已按精确提交补入 6 项上游正文：Linux 559 包剩 3 项缺口，Windows 452 包剩 2 项，严格许可门禁均拒绝；macOS 跨目标 SBOM 的 host 构建依赖身份缺失已修复，Linux 主机盘点 463 包剩 5 项正文缺口。未作合规结论。[核查与回归](evidence/R9-LICENSE-INTEGRITY/README.md)
 
 2026-11-06 本地整合五个 R3 切片：剪贴板隐藏内容、字符输入优先、清除格式保留语义、页脚摘要与批量已有页脚命令。首轮组合核心 203 项、Linux 适配器 5 项及按键分流 3 项通过；随后合入最新 main `aac15f2f`，三产品定向回归 852 项通过，严格 Clippy 与工程门禁通过。新增缺失页脚与完整 UI 仍开放，尚未进行本批真实桌面验收；未发布 PR。[整合证据与接入边界](evidence/R3-LOCAL-INTEGRATION/README.md)
