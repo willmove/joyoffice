@@ -2,7 +2,9 @@
 
 use std::{collections::HashMap, sync::Arc};
 
-use joydeck_metafile::{ImageComposition, Item, Picture, PlacedItem, RasterTransfer, Tile};
+use joydeck_metafile::{
+    ImageComposition, Item, Picture, PlacedItem, RasterTransfer, Rop2, Tile, VectorMix,
+};
 use kurbo::{Affine, BezPath, Point, Rect, Shape};
 use vello_cpu::{Pixmap, RenderContext, Resources, peniko};
 
@@ -27,14 +29,7 @@ pub(super) fn rasterize(picture: &Picture, side: u32) -> Option<image::RgbaImage
     let h = (height * scale)
         .round()
         .clamp(1.0, f64::from(MAX_RASTER_SIDE)) as u16;
-    let mut ctx = RenderContext::new_with(
-        w,
-        h,
-        vello_cpu::RenderSettings {
-            num_threads: 0,
-            ..Default::default()
-        },
-    );
+    let mut ctx = context(w, h);
     let viewport = Rect::new(0.0, 0.0, f64::from(w), f64::from(h));
     let mut playback = Playback {
         tiles: HashMap::new(),
@@ -42,12 +37,31 @@ pub(super) fn rasterize(picture: &Picture, side: u32) -> Option<image::RgbaImage
         remaining_pixels: MAX_TRANSFER_PIXELS,
         remaining_reads: MAX_DESTINATION_READS,
         viewport,
-        masks: Vec::new(),
+        direct_clip: uses_destination(picture, 0),
     };
-    playback.push_mask(&mut ctx, Arc::new(viewport.to_path(0.1)));
+    playback.push_mask(&mut ctx, &viewport.to_path(0.1));
     playback.play(&mut ctx, picture, picture.fit(viewport, [0.0; 4])?, 0);
-    ctx.set_fill_rule(peniko::Fill::NonZero);
-    ctx.pop_layer();
+    playback.pop_mask(&mut ctx);
+
+    let mut pixels = render_pixels(&mut ctx, w, h)?;
+    for pixel in pixels.as_chunks_mut::<4>().0 {
+        *pixel = straight(*pixel);
+    }
+    image::RgbaImage::from_raw(u32::from(w), u32::from(h), pixels)
+}
+
+fn context(w: u16, h: u16) -> RenderContext {
+    RenderContext::new_with(
+        w,
+        h,
+        vello_cpu::RenderSettings {
+            num_threads: 0,
+            ..Default::default()
+        },
+    )
+}
+
+fn render_pixels(ctx: &mut RenderContext, w: u16, h: u16) -> Option<Vec<u8>> {
     ctx.flush();
 
     let mut pixels = vec![0u8; usize::from(w) * usize::from(h) * 4];
@@ -55,10 +69,7 @@ pub(super) fn rasterize(picture: &Picture, side: u32) -> Option<image::RgbaImage
         vello_cpu::PixmapMut::new(w, h, &mut pixels)?,
         &mut Resources::new(),
     );
-    for pixel in pixels.as_chunks_mut::<4>().0 {
-        *pixel = straight(*pixel);
-    }
-    image::RgbaImage::from_raw(u32::from(w), u32::from(h), pixels)
+    Some(pixels)
 }
 
 struct Playback {
@@ -67,7 +78,7 @@ struct Playback {
     remaining_pixels: usize,
     remaining_reads: usize,
     viewport: Rect,
-    masks: Vec<Arc<BezPath>>,
+    direct_clip: bool,
 }
 
 struct PreparedTile {
@@ -75,16 +86,45 @@ struct PreparedTile {
     average: peniko::Color,
 }
 
+enum VectorPaint {
+    Solid(peniko::Color),
+    Tile(Arc<Pixmap>, Affine),
+}
+
+impl VectorPaint {
+    fn draw(&self, ctx: &mut RenderContext, offset: Affine, draw: impl FnOnce(&mut RenderContext)) {
+        match self {
+            Self::Solid(color) => {
+                ctx.set_paint(*color);
+                draw(ctx);
+            }
+            Self::Tile(pixels, mapping) => {
+                let sampler = peniko::ImageSampler {
+                    x_extend: peniko::Extend::Repeat,
+                    y_extend: peniko::Extend::Repeat,
+                    quality: peniko::ImageQuality::Low,
+                    alpha: 1.0,
+                };
+                paint_image(ctx, pixels.clone(), sampler, offset * *mapping, draw);
+            }
+        }
+    }
+}
+
 impl Playback {
-    fn push_mask(&mut self, ctx: &mut RenderContext, mask: Arc<BezPath>) {
+    fn push_mask(&self, ctx: &mut RenderContext, mask: &BezPath) {
         ctx.set_fill_rule(peniko::Fill::NonZero);
-        ctx.push_clip_layer(&mask);
-        self.masks.push(mask);
+        if self.direct_clip {
+            ctx.push_clip_path(mask);
+        } else {
+            ctx.push_clip_layer(mask);
+        }
     }
 
-    fn pop_masks(&mut self, ctx: &mut RenderContext, count: usize) {
-        for _ in 0..count {
-            self.masks.pop();
+    fn pop_mask(&self, ctx: &mut RenderContext) {
+        if self.direct_clip {
+            ctx.pop_clip_path();
+        } else {
             ctx.pop_layer();
         }
     }
@@ -119,10 +159,12 @@ impl Playback {
             self.remaining -= cost;
             let mask_count = masks.len();
             for outline in masks {
-                self.push_mask(ctx, outline.clone());
+                self.push_mask(ctx, outline);
             }
             self.paint(ctx, &picture.items, operation, depth);
-            self.pop_masks(ctx, mask_count);
+            for _ in 0..mask_count {
+                self.pop_mask(ctx);
+            }
         }
     }
 
@@ -139,22 +181,11 @@ impl Playback {
                 fill,
                 stroke,
                 even_odd,
+                mix,
                 ..
             } => {
-                if let Some(color) = fill {
-                    ctx.set_fill_rule(fill_rule(even_odd));
-                    ctx.set_paint(rgba(color));
-                    ctx.fill_path(&path);
-                }
-                if let Some((color, width)) = stroke {
-                    ctx.set_paint(rgba(color));
-                    ctx.set_stroke(
-                        kurbo::Stroke::new(width.max(1.0))
-                            .with_caps(kurbo::Cap::Round)
-                            .with_join(kurbo::Join::Round),
-                    );
-                    ctx.stroke_path(&path);
-                }
+                let fill = fill.map(|color| VectorPaint::Solid(rgba(color)));
+                self.vector(ctx, &path, even_odd, fill, stroke, mix);
             }
             PlacedItem::Bitmap { index, rect, .. } => {
                 let Some((w, h, pixels)) = items.get(index).and_then(Item::pixels) else {
@@ -181,6 +212,14 @@ impl Playback {
                 let Some(texture) = premul(w, h, pixels) else {
                     return;
                 };
+                let sampler = if matches!(
+                    items.get(index),
+                    Some(Item::AffineBitmap { nearest: true, .. })
+                ) {
+                    photo_sampler().with_quality(peniko::ImageQuality::Low)
+                } else {
+                    photo_sampler()
+                };
                 let outline = placement.transform * placement.source.to_path(0.1);
                 ctx.set_fill_rule(peniko::Fill::NonZero);
                 if matches!(
@@ -190,22 +229,13 @@ impl Playback {
                         ..
                     })
                 ) {
-                    ctx.push_layer(
-                        Some(&outline),
-                        Some(peniko::BlendMode::new(
-                            peniko::Mix::Normal,
-                            peniko::Compose::Copy,
-                        )),
-                        None,
-                        None,
-                        None,
-                    );
-                    paint_image(ctx, texture, photo_sampler(), placement.transform, |ctx| {
-                        ctx.fill_rect(&placement.bounds())
+                    source_copy(ctx, |ctx| {
+                        paint_image(ctx, texture, sampler, placement.transform, |ctx| {
+                            ctx.fill_path(&outline)
+                        });
                     });
-                    ctx.pop_layer();
                 } else {
-                    paint_image(ctx, texture, photo_sampler(), placement.transform, |ctx| {
+                    paint_image(ctx, texture, sampler, placement.transform, |ctx| {
                         ctx.fill_path(&outline)
                     });
                 }
@@ -223,6 +253,8 @@ impl Playback {
                 path,
                 even_odd,
                 tile,
+                stroke,
+                mix,
                 ..
             } => {
                 let Some(Item::Pattern { tile: source, .. }) = items.get(index) else {
@@ -235,23 +267,16 @@ impl Playback {
                         pixels: premul(source.width, source.height, &source.rgba),
                         average: average(&source.rgba),
                     });
-                ctx.set_fill_rule(fill_rule(even_odd));
-                if let Some(texture) = &paint.pixels
-                    && (source.sampled || tile.determinant().abs().sqrt() >= MIN_PATTERN_PIXEL)
+                let paint = if let Some(texture) = &paint.pixels
+                    && (mix != VectorMix::SourceOver
+                        || source.sampled
+                        || tile.determinant().abs().sqrt() >= MIN_PATTERN_PIXEL)
                 {
-                    let sampler = peniko::ImageSampler {
-                        x_extend: peniko::Extend::Repeat,
-                        y_extend: peniko::Extend::Repeat,
-                        quality: peniko::ImageQuality::Low,
-                        alpha: 1.0,
-                    };
-                    paint_image(ctx, texture.clone(), sampler, tile, |ctx| {
-                        ctx.fill_path(&path)
-                    });
+                    VectorPaint::Tile(texture.clone(), tile)
                 } else {
-                    ctx.set_paint(paint.average);
-                    ctx.fill_path(&path);
-                }
+                    VectorPaint::Solid(paint.average)
+                };
+                self.vector(ctx, &path, even_odd, Some(paint), stroke, mix);
             }
             PlacedItem::Text {
                 index,
@@ -262,8 +287,13 @@ impl Playback {
                 let Some(Item::Text(text)) = items.get(index) else {
                     return;
                 };
-                let clip = clip.map(|bounds| bounds.to_path(0.1));
-                inside(ctx, clip.as_ref(), |ctx| draw_text(ctx, text, transform));
+                if let Some(bounds) = clip {
+                    self.push_mask(ctx, &bounds.to_path(0.1));
+                }
+                draw_text(ctx, text, transform);
+                if clip.is_some() {
+                    self.pop_mask(ctx);
+                }
             }
             PlacedItem::Nested {
                 index, placement, ..
@@ -272,85 +302,235 @@ impl Playback {
                     return;
                 };
                 let clip = placement.transform * placement.source.to_path(0.1);
-                self.push_mask(ctx, Arc::new(clip));
+                // Native GDI+ plays the child directly into its parent's DC. The child's
+                // mix records apply where it draws. Its undrawn area keeps the backdrop.
+                self.push_mask(ctx, &clip);
                 self.play(ctx, picture, placement.transform, depth + 1);
-                self.pop_masks(ctx, 1);
+                self.pop_mask(ctx);
             }
         }
+    }
+
+    fn stroke_outline(&mut self, path: &BezPath, style: &kurbo::Stroke) -> Option<BezPath> {
+        if path.elements().len() > self.remaining.min(10_000) {
+            return None;
+        }
+        let outline = kurbo::stroke(path.iter(), style, &kurbo::StrokeOpts::default(), 0.25);
+        self.remaining = self.remaining.checked_sub(outline.elements().len())?;
+        Some(outline)
+    }
+
+    fn vector(
+        &mut self,
+        ctx: &mut RenderContext,
+        path: &BezPath,
+        odd: bool,
+        fill: Option<VectorPaint>,
+        stroke: Option<([u8; 4], f64)>,
+        mix: VectorMix,
+    ) {
+        let stroke = stroke.map(|(color, width)| {
+            let style = kurbo::Stroke::new(width.max(1.0))
+                .with_caps(kurbo::Cap::Round)
+                .with_join(kurbo::Join::Round);
+            (rgba(color), style)
+        });
+        if mix == VectorMix::SourceOver {
+            if let Some(fill) = fill {
+                ctx.set_fill_rule(fill_rule(odd));
+                fill.draw(ctx, Affine::IDENTITY, |ctx| ctx.fill_path(path));
+            }
+            if let Some((color, style)) = stroke {
+                ctx.set_paint(color);
+                ctx.set_stroke(style);
+                ctx.stroke_path(path);
+            }
+            return;
+        }
+        let stroke =
+            stroke.and_then(|(color, style)| Some((color, self.stroke_outline(path, &style)?)));
+        if let VectorMix::Raster(rop) = mix {
+            self.vector_rop(ctx, path, odd, fill, stroke, rop);
+            return;
+        }
+        if let Some(fill) = fill {
+            ctx.set_fill_rule(fill_rule(odd));
+            source_copy(ctx, |ctx| {
+                fill.draw(ctx, Affine::IDENTITY, |ctx| ctx.fill_path(path))
+            });
+        }
+        if let Some((color, outline)) = stroke {
+            ctx.set_fill_rule(peniko::Fill::NonZero);
+            source_copy(ctx, |ctx| {
+                ctx.set_paint(color);
+                ctx.fill_path(&outline);
+            });
+        }
+    }
+
+    fn vector_rop(
+        &mut self,
+        ctx: &mut RenderContext,
+        path: &BezPath,
+        odd: bool,
+        fill: Option<VectorPaint>,
+        stroke: Option<(peniko::Color, BezPath)>,
+        rop: Rop2,
+    ) {
+        let path_bounds = path.bounding_box();
+        let bounds = stroke.as_ref().map_or(path_bounds, |(_, outline)| {
+            outline.bounding_box().union(path_bounds)
+        });
+        let Some(window) = RasterWindow::new(bounds, self.viewport) else {
+            return;
+        };
+        let Some(prefix) = self.charge_transfer(window, rop.reads_destination(), 2) else {
+            return;
+        };
+        let offset = Affine::translate((-window.rect.x0, -window.rect.y0));
+        let mut layer = context(window.w as u16, window.h as u16);
+        if let Some(fill) = fill {
+            layer.set_fill_rule(fill_rule(odd));
+            fill.draw(&mut layer, offset, |layer| {
+                layer.fill_path(&(offset * path))
+            });
+        }
+        // The pen owns the overlap. One GDI shape applies its mix once per pixel.
+        if let Some((color, outline)) = stroke {
+            layer.set_fill_rule(peniko::Fill::NonZero);
+            layer.set_paint(color);
+            layer.fill_path(&(offset * outline));
+        }
+        let Some(mut pixels) = render_pixels(&mut layer, window.w as u16, window.h as u16) else {
+            return;
+        };
+        let backdrop = prefix.and_then(|(w, h)| render_pixels(ctx, w, h));
+        for (index, pixel) in pixels.as_chunks_mut::<4>().0.iter_mut().enumerate() {
+            let [x, y] = window.point(index);
+            let before = snapshot_pixel(backdrop.as_deref(), prefix, x, y).unwrap_or_default();
+            *pixel = if pixel[3] == 0 {
+                [0; 4]
+            } else {
+                rop.paint(straight(*pixel), before).unwrap_or_default()
+            };
+        }
+        window.paint(ctx, &pixels);
     }
 
     fn transfer(&mut self, ctx: &mut RenderContext, transfer: &RasterTransfer, transform: Affine) {
         let mut transfer = transfer.clone();
         transfer.map(transform);
-        let bounds = transfer.placement.bounds();
+        let Some(window) = RasterWindow::new(transfer.placement.bounds(), self.viewport) else {
+            return;
+        };
+        let Some(prefix) = self.charge_transfer(window, transfer.logic.uses_destination(), 1)
+        else {
+            return;
+        };
+        let backdrop = prefix.and_then(|(w, h)| render_pixels(ctx, w, h));
+        let get = |x, y| snapshot_pixel(backdrop.as_deref(), prefix, x, y);
+        let inverse = transfer.placement.transform.inverse();
+        let mut patch = vec![0; window.w * window.h * 4];
+        for (index, pixel) in patch.as_chunks_mut::<4>().0.iter_mut().enumerate() {
+            let [column, row] = window.point(index);
+            let center = Point::new(column as f64 + 0.5, row as f64 + 0.5);
+            let destination = get(column, row).unwrap_or_default();
+            if let Some(output) = transfer.paint(inverse * center, center, destination) {
+                *pixel = output;
+            }
+        }
+        window.paint(ctx, &patch);
+    }
+
+    fn charge_transfer(
+        &mut self,
+        window: RasterWindow,
+        read: bool,
+        passes: usize,
+    ) -> Option<Option<(u16, u16)>> {
+        // Vello crops the right and bottom of a snapshot at the supplied dimensions.
+        let prefix = read.then_some((window.rect.x1 as u16, window.rect.y1 as u16));
+        let work = window.w * window.h * passes
+            + prefix.map_or(0, |(w, h)| usize::from(w) * usize::from(h));
+        if work > self.remaining_pixels || (prefix.is_some() && self.remaining_reads == 0) {
+            return None;
+        }
+        self.remaining_pixels -= work;
+        self.remaining_reads -= usize::from(prefix.is_some());
+        Some(prefix)
+    }
+}
+
+#[derive(Clone, Copy)]
+struct RasterWindow {
+    rect: Rect,
+    w: usize,
+    h: usize,
+}
+
+impl RasterWindow {
+    fn new(bounds: Rect, viewport: Rect) -> Option<Self> {
+        if !bounds.is_finite() {
+            return None;
+        }
         let rect = Rect::new(
             bounds.x0.floor(),
             bounds.y0.floor(),
             bounds.x1.ceil(),
             bounds.y1.ceil(),
         )
-        .intersect(self.viewport);
-        let (x, y) = (rect.x0 as usize, rect.y0 as usize);
+        .intersect(viewport);
         let (w, h) = (rect.width() as usize, rect.height() as usize);
-        let reads = transfer.logic.uses_destination();
-        // Vello crops the right and bottom of a snapshot at the supplied dimensions.
-        let (prefix_w, prefix_h) = (x + w, y + h);
-        let work = w * h + if reads { prefix_w * prefix_h } else { 0 };
-        if w == 0 || h == 0 || work > self.remaining_pixels || (reads && self.remaining_reads == 0)
-        {
-            return;
-        }
-        self.remaining_pixels -= work;
-        let backdrop = if reads {
-            self.remaining_reads -= 1;
-            self.read_destination(ctx, prefix_w as u16, prefix_h as u16)
-        } else {
-            Vec::new()
-        };
-        let backdrop = backdrop.as_chunks::<4>().0;
-        let inverse = transfer.placement.transform.inverse();
-        let mut patch = vec![0; w * h * 4];
-        for (i, pixel) in patch.as_chunks_mut::<4>().0.iter_mut().enumerate() {
-            let (column, row) = (x + i % w, y + i / w);
-            let center = Point::new(column as f64 + 0.5, row as f64 + 0.5);
-            let destination = backdrop
-                .get(row * prefix_w + column)
-                .copied()
-                .map_or([0; 4], straight);
-            if let Some(output) = transfer.paint(inverse * center, center, destination) {
-                *pixel = output;
-            }
-        }
-        if let Some(texture) = premul(w as u32, h as u32, &patch) {
+        (w != 0 && h != 0).then_some(Self { rect, w, h })
+    }
+
+    fn point(self, index: usize) -> [usize; 2] {
+        [
+            self.rect.x0 as usize + index % self.w,
+            self.rect.y0 as usize + index / self.w,
+        ]
+    }
+
+    fn paint(self, ctx: &mut RenderContext, pixels: &[u8]) {
+        if let Some(texture) = premul(self.w as u32, self.h as u32, pixels) {
             ctx.set_fill_rule(peniko::Fill::NonZero);
             paint_image(
                 ctx,
                 texture,
                 peniko::ImageSampler::default().with_quality(peniko::ImageQuality::Low),
-                Affine::translate((rect.x0, rect.y0)),
-                |ctx| ctx.fill_rect(&rect),
+                Affine::translate((self.rect.x0, self.rect.y0)),
+                |ctx| ctx.fill_rect(&self.rect),
             );
         }
     }
+}
 
-    fn read_destination(&self, ctx: &mut RenderContext, w: u16, h: u16) -> Vec<u8> {
-        let mut pixels = vec![0; usize::from(w) * usize::from(h) * 4];
-        let Some(target) = vello_cpu::PixmapMut::new(w, h, &mut pixels) else {
-            return Vec::new();
-        };
-        // Close clip layers to make the recorded prefix readable. Reopen the same clips for
-        // subsequent operations, so both the prefix and the resulting write stay clipped.
-        for _ in &self.masks {
-            ctx.pop_layer();
-        }
-        ctx.flush();
-        ctx.render(target, &mut Resources::new());
-        for mask in &self.masks {
-            ctx.set_fill_rule(peniko::Fill::NonZero);
-            ctx.push_clip_layer(mask);
-        }
-        pixels
+fn snapshot_pixel(
+    pixels: Option<&[u8]>,
+    size: Option<(u16, u16)>,
+    x: usize,
+    y: usize,
+) -> Option<[u8; 4]> {
+    let (w, h) = size?;
+    let w = usize::from(w);
+    if x >= w || y >= usize::from(h) {
+        return None;
     }
+    pixels?
+        .as_chunks::<4>()
+        .0
+        .get(y * w + x)
+        .copied()
+        .map(straight)
+}
+
+pub(super) fn source_copy(ctx: &mut RenderContext, fill: impl FnOnce(&mut RenderContext)) {
+    ctx.set_blend_mode(peniko::BlendMode::new(
+        peniko::Mix::Normal,
+        peniko::Compose::Copy,
+    ));
+    fill(ctx);
+    ctx.set_blend_mode(peniko::BlendMode::default());
 }
 
 fn straight([r, g, b, a]: [u8; 4]) -> [u8; 4] {
@@ -374,15 +554,18 @@ fn fill_rule(even_odd: bool) -> peniko::Fill {
     }
 }
 
-fn inside(ctx: &mut RenderContext, mask: Option<&BezPath>, paint: impl FnOnce(&mut RenderContext)) {
-    if let Some(mask) = mask {
-        ctx.set_fill_rule(peniko::Fill::NonZero);
-        ctx.push_clip_layer(mask);
-        paint(ctx);
-        ctx.pop_layer();
-    } else {
-        paint(ctx);
-    }
+/// Destination operations need the real backdrop even inside child clips. Pictures that only
+/// paint source-over keep grouped edge coverage for ordinary clip stacks.
+fn uses_destination(picture: &Picture, depth: u8) -> bool {
+    depth <= 3
+        && picture.items.iter().any(|item| match item {
+            Item::Path { mix, .. } | Item::Pattern { mix, .. } => *mix != VectorMix::SourceOver,
+            Item::Text(text) => text.composition == ImageComposition::SourceCopy,
+            Item::AffineBitmap { composition, .. } => *composition == ImageComposition::SourceCopy,
+            Item::Transfer { transfer, .. } => transfer.logic.uses_destination(),
+            Item::Nested { picture, .. } => uses_destination(picture, depth + 1),
+            Item::Bitmap { .. } => false,
+        })
 }
 
 fn paint_image(

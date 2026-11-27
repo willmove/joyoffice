@@ -149,9 +149,14 @@ fn record(cv: &mut Canvas, func: u16, r: Bytes) {
             cv.add_object(None, b);
             Some(())
         }
-        // Palettes, old-style pattern brushes and regions take a handle slot too, so later
+        _ if func as u8 == 0xf9 => {
+            let brush = crate::wmf_bitmap::pattern(r).map_or(Obj::Other, Obj::Brush);
+            cv.add_object(None, brush);
+            Some(())
+        }
+        // Palettes and regions take a handle slot too, so later
         // SELECTOBJECT handles count them; selecting one draws nothing.
-        0x00F7 | 0x01F9 | 0x06FF => {
+        0x00F7 | 0x06FF => {
             cv.add_object(None, Obj::Other);
             Some(())
         }
@@ -180,6 +185,7 @@ fn record(cv: &mut Canvas, func: u16, r: Bytes) {
         }
         0x0B41 => dib_stretchblt(cv, r),
         0x0940 => dib_bitblt(cv, r),
+        _ if matches!(func as u8, 0x22 | 0x23) => crate::wmf_bitmap::blit(cv, func, r),
         _ => play_wmf(cv, func, r),
     };
 }

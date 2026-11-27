@@ -65,6 +65,7 @@ struct Saved {
     page: f64,
     rendering_origin: P,
     composition: ImageComposition,
+    nearest: bool,
     clip: Area,
     clip_paint: Option<PlusClip>,
 }
@@ -77,6 +78,7 @@ pub(crate) struct Plus {
     page: f64,
     rendering_origin: P,
     composition: ImageComposition,
+    nearest: bool,
     effect: Option<Effect>,
     effect_work: usize,
     /// The logical region and the compiled mask are in device units.
@@ -100,6 +102,7 @@ impl Plus {
             page: 1.0,
             rendering_origin: (0.0, 0.0),
             composition: ImageComposition::SourceOver,
+            nearest: false,
             effect: None,
             effect_work: plus_effects::EFFECT_WORK,
             clip: Area::full(),
@@ -133,6 +136,7 @@ impl Plus {
             xf: self.xf(),
             clip: self.clip_paint.clone(),
             rendering_origin: self.rendering_origin,
+            composition: self.composition,
         }
     }
 
@@ -161,7 +165,7 @@ impl Plus {
                 self.effect = plus_effects::read(r);
                 Some(())
             }
-            0x401d | 0x4023 | 0x4025..=0x4035 => self.record_state(cv, typ, flags, r),
+            0x401d | 0x4021 | 0x4023 | 0x4025..=0x4035 => self.record_state(cv, typ, flags, r),
             _ => self.record_shape(cv, typ, flags, r),
         }
     }
@@ -213,12 +217,13 @@ impl Plus {
             Command::Clear(value) => {
                 let color = argb(value);
                 let [x, y, w, h] = self.frame?;
-                if color[3] != 0 && w > 0.0 && h > 0.0 {
+                if w > 0.0 && h > 0.0 {
                     let xf = invert(mul(cv.world(), cv.device_affine()))?;
                     Painter {
                         xf,
-                        clip: None,
+                        clip: self.clip_paint.clone(),
                         rendering_origin: self.rendering_origin,
+                        composition: ImageComposition::SourceCopy,
                     }
                     .fill(
                         cv,
@@ -269,6 +274,7 @@ impl Plus {
             State::Transform(matrix) => self.world = matrix,
             State::Concat(matrix) => return self.apply(matrix, flags),
             State::RenderingOrigin(origin) => self.rendering_origin = origin,
+            State::NearestNeighbor(nearest) => self.nearest = nearest,
             State::SourceCopy(copy) => {
                 self.composition = if copy {
                     ImageComposition::SourceCopy
@@ -334,6 +340,7 @@ impl Plus {
                 page: self.page,
                 rendering_origin: self.rendering_origin,
                 composition: self.composition,
+                nearest: self.nearest,
                 clip: self.clip.clone(),
                 clip_paint: self.clip_paint.clone(),
             });
@@ -347,6 +354,7 @@ impl Plus {
                 (s.world, s.page, s.clip, s.clip_paint);
             self.rendering_origin = s.rendering_origin;
             self.composition = s.composition;
+            self.nearest = s.nearest;
             self.stack.truncate(i);
         }
     }
@@ -520,6 +528,7 @@ impl Plus {
                 if crate::image_placement::axis_aligned(dst)
                     && crate::image_placement::axis_aligned(target)
                     && self.composition == ImageComposition::SourceOver
+                    && !self.nearest
                     && source[2] > 0.0
                     && source[3] > 0.0
                     && source
@@ -534,7 +543,7 @@ impl Plus {
                     cv.bitmap(rect, bitmap);
                 } else {
                     let bitmap = processed.unwrap_or_else(|| bitmap.clone());
-                    cv.composited_bitmap(dst, source, bitmap, self.composition)?;
+                    cv.composited_bitmap(dst, source, bitmap, self.composition, self.nearest)?;
                 }
             }
             ImageData::Meta {
@@ -661,12 +670,14 @@ struct Painter {
     xf: Xform,
     clip: Option<PlusClip>,
     rendering_origin: P,
+    composition: ImageComposition,
 }
 
 impl Painter {
     fn begin(&self, cv: &mut Canvas, pre: Xform) {
         let world = cv.world();
         cv.save_dc();
+        cv.set_plus_composition(self.composition);
         cv.modify_world(mul(mul(pre, self.xf), world), 4);
         cv.set_clip(self.clip.clone());
     }

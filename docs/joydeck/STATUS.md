@@ -50,6 +50,8 @@
 
 2026-11-27 EMF+ 图像属性、序列化效果和位图透明合成已接入绘制。传统 GDI 的带掩码位图、色键和 DIB 位运算使用当前目标像素完成合成。冻结回归及 PowerPoint 16 回存重开通过。空间滤镜的原生差异、传统 GDI 矢量 ROP2 和其余生产来源仍继续跟踪。[图像效果与合成](../joyoffice/validation/20261127-craft-stage5-deck-image-composite/README.md)
 
+2026-11-27 已按原生 GDI+ 实测修正模糊轴向和最近邻采样。矢量 ROP2、WMF Bitmap16 和嵌套图元透明覆盖已接入，4 份 PPTX 保留另存及 PowerPoint 16 回存重开通过。旧式设备调色板、高半径滤镜、其余生产来源和平台实机继续跟踪。[矢量合成与原生模糊](../joyoffice/validation/20261127-craft-stage5-deck-vector-copy/README.md)
+
 2026-11-06 推进 JD-807/808。SBOM 生成现在核对补充许可来源清单的文件哈希及复制结果，拒绝被改动、缺失、越界或未登记文件。后续已按精确提交补入 6 项上游正文：Linux 559 包剩 3 项缺口，Windows 452 包剩 2 项，严格许可门禁均拒绝；macOS 跨目标 SBOM 的 host 构建依赖身份缺失已修复，Linux 主机盘点 463 包剩 5 项正文缺口。未作合规结论。[核查与回归](evidence/R9-LICENSE-INTEGRITY/README.md)
 
 2026-11-06 本地整合五个 R3 切片：剪贴板隐藏内容、字符输入优先、清除格式保留语义、页脚摘要与批量已有页脚命令。首轮组合核心 203 项、Linux 适配器 5 项及按键分流 3 项通过；随后合入最新 main `aac15f2f`，三产品定向回归 852 项通过，严格 Clippy 与工程门禁通过。新增缺失页脚与完整 UI 仍开放，尚未进行本批真实桌面验收；未发布 PR。[整合证据与接入边界](evidence/R3-LOCAL-INTEGRATION/README.md)

@@ -54,8 +54,10 @@ mod records;
 mod text;
 mod text_encoding;
 mod text_records;
+mod vector_mix;
 mod vector_records;
 mod wmf;
+mod wmf_bitmap;
 
 #[cfg(test)]
 #[allow(
@@ -77,6 +79,7 @@ pub use image_placement::ImagePlacement;
 pub use projection::{MAX_BITMAP_SIDE, PlacedItem};
 pub use raster_transfer::{Logic, RasterTransfer};
 pub use text::{Font, GlyphPlacement, HAlign, IndexedGlyphs, SYMBOL_CHARSET, Text, VAlign};
+pub use vector_mix::{Rop2, VectorMix};
 
 /// Clip geometry in the same space as the drawing item. Outlines use nonzero winding.
 #[derive(Debug, Clone, PartialEq)]
@@ -118,6 +121,7 @@ pub enum Item {
         /// Colour and width in picture units.
         stroke: Option<([u8; 4], f32)>,
         even_odd: bool,
+        mix: VectorMix,
         /// Clip region in picture units, each rectangle `[x0, y0, x1, y1]`. None is the default clip.
         region: Option<ClipRegion<f32>>,
     },
@@ -133,6 +137,7 @@ pub enum Item {
     AffineBitmap {
         placement: ImagePlacement,
         composition: ImageComposition,
+        nearest: bool,
         width: u32,
         height: u32,
         rgba: Vec<u8>,
@@ -153,6 +158,8 @@ pub enum Item {
         segs: Vec<Seg>,
         even_odd: bool,
         tile: Arc<Tile>,
+        stroke: Option<([u8; 4], f32)>,
+        mix: VectorMix,
         /// Clip region in picture units. None is the default clip.
         region: Option<ClipRegion<f32>>,
     },
@@ -259,6 +266,7 @@ fn build(raw: Vec<Raw>, frame: Option<Frame>) -> Picture {
             fill,
             stroke,
             even_odd,
+            mix,
             region,
         } => {
             let segs = ops
@@ -274,6 +282,7 @@ fn build(raw: Vec<Raw>, frame: Option<Frame>) -> Picture {
                 fill,
                 stroke,
                 even_odd,
+                mix,
                 region: map_region(region, &tf, affine)?,
             })
         }
@@ -297,9 +306,11 @@ fn build(raw: Vec<Raw>, frame: Option<Frame>) -> Picture {
             img,
             region,
             composition,
+            nearest,
         } => Some(Item::AffineBitmap {
             placement: placement.map(affine),
             composition,
+            nearest,
             width: u32::try_from(img.w).ok()?,
             height: u32::try_from(img.h).ok()?,
             rgba: img.px,
@@ -329,6 +340,8 @@ fn build(raw: Vec<Raw>, frame: Option<Frame>) -> Picture {
             ops,
             even_odd,
             tile,
+            stroke,
+            mix,
             region,
         } => {
             let segs = ops
@@ -360,6 +373,8 @@ fn build(raw: Vec<Raw>, frame: Option<Frame>) -> Picture {
                 segs,
                 even_odd,
                 tile,
+                stroke: stroke.and_then(|(c, w)| Some((c, f((w * stroke_scale).min(diag))?))),
+                mix,
                 region: map_region(region, &tf, affine)?,
             })
         }

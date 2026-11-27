@@ -78,7 +78,7 @@ def attributes_and_lut(windows):
     return SCENE.emfplus(*records), probes
 
 
-def filters():
+def filters(horizontal_blur=False):
     source = (0, 0, 8, 8)
     records = [SCENE.fill(SCENE.WHITE), bitmap(color_at=lambda x, y: 0xFF40648C)]
     probes = []
@@ -107,7 +107,9 @@ def filters():
     records.append(bitmap(color_at=lambda x, y: 0xFFFF0000 if 2 <= x <= 5 and 2 <= y <= 5 else 0))
     swatch("633C80A4-1843-482B-9EF2-BE2834C5FDD4", pack("<fI", 1, 1),
            (38, 63, 24, 24), [((49, 75), (255, 0, 0)), ((42.5, 75), (255, (200, 245), (200, 245))),
-                            ((49, 67.5), (255, (200, 245), (200, 245))), ((38, 75), (255, 255, 255))])
+                            ((49, 66.5), (255, 255, 255)) if horizontal_blur
+                            else ((49, 67.5), (255, (200, 245), (200, 245))),
+                            ((38, 75), (255, 255, 255))])
     records.append(bitmap(color_at=lambda x, y: 0xFFC0C0C0 if x >= 4 else 0xFF505050))
     swatch("63CBF3EE-C526-402C-8F71-62C540BF5142", pack("<2f", 2, 100),
            (68, 59, 28, 32), [((80, 75), ((0, 65),) * 3), ((84, 75), ((213, 255),) * 3)])
@@ -205,7 +207,7 @@ def gdi():
     return SCENE.wrap_emf(records), probes
 
 
-def office_media(file):
+def office_media(file, suffix=".emf"):
     folder = PurePosixPath("ppt/slides")
     with ZipFile(file) as archive:
         slide = ElementTree.fromstring(archive.read(str(folder / "slide2.xml")))
@@ -215,10 +217,10 @@ def office_media(file):
         rels = ElementTree.fromstring(archive.read(str(folder / "_rels/slide2.xml.rels")))
         for rel in rels:
             target = rel.attrib["Target"]
-            if rel.attrib["Id"] in references and target.endswith(".emf"):
+            if rel.attrib["Id"] in references and target.endswith(suffix):
                 assert target.startswith("../"), target
                 return archive.read(str(folder.parent / target[3:]))
-    raise AssertionError(f"No related EMF on slide 2: {file}")
+    raise AssertionError(f"No related {suffix} on slide 2: {file}")
 
 
 def main():
@@ -226,6 +228,7 @@ def main():
     for name in ("frozen", "candidate", "shell", "native", "output"):
         parser.add_argument(name, type=Path)
     parser.add_argument("--office", type=Path)
+    parser.add_argument("--horizontal-blur", action="store_true")
     args = parser.parse_args()
     report = args.output / "verification.json"
     windows = json.loads((args.native / "windows.json").read_text(encoding="utf-8-sig"))
@@ -251,7 +254,7 @@ def main():
             "matrix": ((args.native / "matrix-native.emf").read_bytes(), [((45, 45), windows["matrix"])]),
             "attributes-lut": attributes_and_lut(windows),
             "gdi": gdi(),
-            "filters": filters(),
+            "filters": filters(args.horizontal_blur),
         }
         evidence = {}
         for name, (payload, probes) in fixtures.items():
