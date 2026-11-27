@@ -39,6 +39,7 @@ mod plus_commands;
 mod plus_image;
 mod plus_objects;
 mod plus_paint;
+mod plus_pen;
 mod plus_region;
 mod plus_shapes;
 mod plus_text;
@@ -65,7 +66,14 @@ use bytes::Bytes;
 use canvas::Raw;
 use geom::{Op, P};
 pub use place::{MAX_BITMAP_SIDE, PlacedItem};
-pub use text::{Font, HAlign, SYMBOL_CHARSET, Text, VAlign};
+pub use text::{Font, GlyphPlacement, HAlign, IndexedGlyphs, SYMBOL_CHARSET, Text, VAlign};
+
+/// Clip geometry in the same space as the drawing item. Outlines use nonzero winding.
+#[derive(Debug, Clone, PartialEq)]
+pub enum ClipRegion<T> {
+    Rectangles(Vec<[T; 4]>),
+    Outline(Arc<kurbo::BezPath>),
+}
 
 /// Items kept from one file. Past the cap the parse stops and keeps what it has.
 pub(crate) const MAX_ITEMS: usize = 200_000;
@@ -100,7 +108,7 @@ pub enum Item {
         stroke: Option<([u8; 4], f32)>,
         even_odd: bool,
         /// Clip region in picture units, each rectangle `[x0, y0, x1, y1]`. None is the default clip.
-        region: Option<Vec<[f32; 4]>>,
+        region: Option<ClipRegion<f32>>,
     },
     /// A bitmap stretched into `rect` = `[x, y, w, h]` (picture units), RGBA8 rows top-down.
     Bitmap {
@@ -109,7 +117,7 @@ pub enum Item {
         height: u32,
         rgba: Vec<u8>,
         /// Clip region in picture units. None is the default clip.
-        region: Option<Vec<[f32; 4]>>,
+        region: Option<ClipRegion<f32>>,
     },
     /// A path filled with a repeating tile (pattern and hatch brushes). Items filled with the same
     /// brush share its tile.
@@ -118,7 +126,7 @@ pub enum Item {
         even_odd: bool,
         tile: Arc<Tile>,
         /// Clip region in picture units. None is the default clip.
-        region: Option<Vec<[f32; 4]>>,
+        region: Option<ClipRegion<f32>>,
     },
     /// A text string.
     Text(Box<Text>),
@@ -133,6 +141,7 @@ pub struct Tile {
     pub rgba: Vec<u8>,
     pub cell: [f32; 2],
     pub origin: [f32; 2],
+    pub sampled: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -271,6 +280,7 @@ fn build(raw: Vec<Raw>, frame: Option<Frame>) -> Picture {
                         rgba: tile.px.clone(),
                         cell: [f(tile.cell * sx)?, f(tile.cell * sy)?],
                         origin: [f(ox)?, f(oy)?],
+                        sampled: tile.sampled,
                     });
                     // The raw tile is kept with its key, so the address is never reused by another.
                     tiles.insert(key, (tile.clone(), t.clone()));
@@ -317,11 +327,20 @@ fn build(raw: Vec<Raw>, frame: Option<Frame>) -> Picture {
 }
 
 fn map_region(
-    region: Option<Vec<[f64; 4]>>,
+    region: Option<ClipRegion<f64>>,
     tf: &impl Fn(P) -> P,
-) -> Option<Option<Vec<[f32; 4]>>> {
-    let Some(rects) = region else {
-        return Some(None);
+) -> Option<Option<ClipRegion<f32>>> {
+    let rects = match region {
+        None => return Some(None),
+        Some(ClipRegion::Rectangles(rects)) => rects,
+        Some(ClipRegion::Outline(outline)) => {
+            let (x, y) = tf((0.0, 0.0));
+            let (u, v) = tf((1.0, 1.0));
+            let transform = kurbo::Affine::new([u - x, 0.0, 0.0, v - y, x, y]);
+            return Some(Some(ClipRegion::Outline(Arc::new(
+                transform * outline.as_ref(),
+            ))));
+        }
     };
     let mut out = Vec::with_capacity(rects.len());
     for [x0, y0, x1, y1] in rects {
@@ -333,7 +352,7 @@ fn map_region(
             f(p.1.max(q.1))?,
         ]);
     }
-    Some(Some(out))
+    Some(Some(ClipRegion::Rectangles(out)))
 }
 
 fn f(v: f64) -> Option<f32> {

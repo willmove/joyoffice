@@ -10,14 +10,13 @@
 //!   DrawDriverString with character codes);
 //! - world and page transforms, save/restore and containers;
 //! - arcs and pies;
-//! - clipping to rectangles and convex clip paths and regions (others: their bounding rectangle);
-//! - nested metafile images, and glyph-index driver strings in the Windows core fonts;
+//! - clipping to paths and regions, including non-convex outlines and boolean combinations;
+//! - nested metafile images and driver strings with physical glyph indices;
 //! - cardinal splines (DrawCurve, DrawClosedCurve, FillClosedCurve), FillRegion, and Clear
 //!   (over the picture frame).
 //!
-//! Every drawing record of MS-EMFPLUS §2.3.4 is played. Not drawn: image attributes, glyph
-//! indices of other fonts, and region combinations other than intersect and union (XOR, exclude
-//! and complement keep the left area). Deliberately ignored: rendering hints (antialias, text
+//! Every drawing record of MS-EMFPLUS §2.3.4 is played. Image attributes are not drawn.
+//! Deliberately ignored: rendering hints (antialias, text
 //! hint, interpolation, pixel offset, compositing; the renderer has its own), SetRenderingOrigin
 //! (hatch phase), SerializableObject image effects, the terminal-server records SetTSGraphics and
 //! SetTSClip, and StrokeFillPath (0x4037), which the specification lists but gives no layout for
@@ -27,17 +26,17 @@ use std::sync::Arc;
 
 use crate::bitmap::Rgba;
 use crate::bytes::Bytes;
-use crate::canvas::Raw;
 use crate::canvas::{
     BS_NULL, BS_SOLID, Brush, Canvas, LogFont, PS_NULL, Pen, RawTile, Xform, hatch_tile, mul,
 };
-use crate::cliprect::rect_poly;
-use crate::geom::{Op, P, polygon as poly_ops};
+use crate::canvas::{PlusClip, Raw};
+use crate::geom::{Op, P};
 use crate::plus_image::{ImageData, image};
-use crate::plus_paint::{Brush as Fill, argb, blend as lerp, brush, pen};
+use crate::plus_paint::{Brush as Fill, argb, blend as lerp, brush};
+use crate::plus_pen::{self, Pen as PlusPen};
 use crate::plus_region::{self, Area};
 use crate::plus_shapes::{Drawing, Geometry, Paint, floats, path};
-use crate::plus_text::{FontSpec, Format, Run, unit_px};
+use crate::plus_text::{DriverString, FontSpec, Format, Run, unit_px};
 use crate::text::ETO_CLIPPED;
 use crate::{Item, Picture, Seg};
 
@@ -50,15 +49,12 @@ const MAX_STACK: usize = 64;
 #[derive(Clone)]
 enum Obj {
     Brush(Fill),
-    Pen {
-        color: [u8; 4],
-        width: f64,
-    },
+    Pen(Arc<PlusPen>),
     Path(Vec<Op>),
     Image(Arc<ImageData>),
     Font(FontSpec),
     Format(Format),
-    /// A region's bounding rectangle `[l, t, r, b]` in world units; None is infinite.
+    /// A region object in world units.
     Region(Area),
 }
 
@@ -67,6 +63,7 @@ struct Saved {
     world: Xform,
     page: f64,
     clip: Area,
+    clip_paint: Option<PlusClip>,
 }
 
 pub(crate) struct Plus {
@@ -75,8 +72,10 @@ pub(crate) struct Plus {
     dpi: f64,
     world: Xform,
     page: f64,
-    /// Convex device clip polygon; None is unclipped.
+    /// The logical region and the compiled mask are in device units.
     clip: Area,
+    clip_paint: Option<PlusClip>,
+    clip_work: usize,
     objects: Vec<Option<Obj>>,
     object_bytes: usize,
     stack: Vec<Saved>,
@@ -92,7 +91,9 @@ impl Plus {
             dpi: 96.0,
             world: IDENTITY,
             page: 1.0,
-            clip: None,
+            clip: Area::full(),
+            clip_paint: None,
+            clip_work: plus_region::WORK_BUDGET,
             objects: vec![None; MAX_OBJECTS],
             object_bytes: 0,
             stack: Vec::new(),
@@ -119,7 +120,7 @@ impl Plus {
     fn painter(&self) -> Painter {
         Painter {
             xf: self.xf(),
-            clip: self.clip.clone(),
+            clip: self.clip_paint.clone(),
         }
     }
 
@@ -157,7 +158,15 @@ impl Plus {
                 let brush = self.brush_of(flags, value)?;
                 EitherPaint::Brush(brush)
             }
-            Paint::Stroke(id) => EitherPaint::Pen(self.pen(id)?),
+            Paint::Stroke(id) => {
+                let pen = self.pen(id)?;
+                let scale = if pen.unit <= 2 {
+                    1.0
+                } else {
+                    unit_px(pen.unit, self.dpi) / self.page
+                };
+                EitherPaint::Pen(pen, pen.width * scale)
+            }
         };
         let draw = |canvas: &mut Canvas, path: &[Op]| paint.play(&painter, canvas, path);
         match geometry {
@@ -199,13 +208,20 @@ impl Plus {
             }
             Command::Region { slot, brush } => {
                 let fill = self.brush_of(flags, brush)?;
-                let Some(Some(Obj::Region(Some(area)))) = self.objects.get(slot) else {
+                let Some(Some(Obj::Region(area))) = self.objects.get(slot) else {
                     return None;
                 };
-                if area.len() < 3 {
-                    return None;
-                }
-                self.painter().fill(cv, &poly_ops(area, true), &fill);
+                let domain = cv.clip_surface().and_then(|[l, t, r, b]| {
+                    let inverse = invert(mul(self.xf(), cv.device_affine()))?;
+                    let world = crate::cliprect::rect_poly([l, t, r, b]);
+                    let world: Vec<_> = world
+                        .into_iter()
+                        .map(|point| apply(inverse, point))
+                        .collect();
+                    crate::cliprect::pts_bbox(&world)
+                });
+                let ops = area.fill(domain, &mut self.clip_work)?;
+                self.painter().fill(cv, &ops, &fill);
             }
             Command::Image { slot, destination } => {
                 return self.draw_image(cv, self.image(slot)?.as_ref(), r, destination);
@@ -230,37 +246,38 @@ impl Plus {
                     self.page = page;
                 }
             }
-            State::ClearClip => self.clip = None,
+            State::ClearClip => self.set_clip(cv, Area::full()),
             State::ClipRectangle(bounds) => {
-                let area = self.map_clip(cv, Some(rect_poly(bounds)));
-                return self.combine(flags, area);
+                let area = self.map_clip(cv, &Area::rectangle(bounds));
+                return self.combine(cv, flags, &area);
             }
             State::ClipPath(id) => {
-                let area = self.map_clip(cv, Some(plus_region::outline(&self.path(id)?)));
-                return self.combine(flags, area);
+                let ops = self.path(id)?;
+                let Some(area) = Area::outline(&ops) else {
+                    self.set_clip(cv, Area::empty());
+                    return None;
+                };
+                let area = self.map_clip(cv, &area);
+                return self.combine(cv, flags, &area);
             }
             State::ClipRegion(id) => {
                 let Some(Some(Obj::Region(region))) = self.objects.get(id) else {
                     return None;
                 };
-                let area = self.map_clip(cv, region.clone());
-                return self.combine(flags, area);
+                let area = self.map_clip(cv, region);
+                return self.combine(cv, flags, &area);
             }
             State::ClipOffset((dx, dy)) => {
                 let [a, b, c, d, ..] = mul(self.xf(), cv.device_affine());
-                if let Some(clip) = self.clip.as_mut() {
-                    let (x, y) = (dx * a + dy * c, dx * b + dy * d);
-                    for point in clip {
-                        *point = (point.0 + x, point.1 + y);
-                    }
-                }
+                let (x, y) = (dx * a + dy * c, dx * b + dy * d);
+                self.set_clip(cv, self.clip.map([1.0, 0.0, 0.0, 1.0, x, y]));
             }
         }
         Some(())
     }
 
-    fn map_clip(&self, canvas: &Canvas, area: Area) -> Area {
-        plus_region::map(area, mul(self.xf(), canvas.device_affine()))
+    fn map_clip(&self, canvas: &Canvas, area: &Area) -> Area {
+        area.map(mul(self.xf(), canvas.device_affine()))
     }
 
     /// Without the `A` flag a transform is applied before the world transform (prepended).
@@ -280,6 +297,7 @@ impl Plus {
                 world: self.world,
                 page: self.page,
                 clip: self.clip.clone(),
+                clip_paint: self.clip_paint.clone(),
             });
         }
     }
@@ -287,22 +305,42 @@ impl Plus {
     fn pop(&mut self, id: u32) {
         if let Some(i) = self.stack.iter().rposition(|s| s.id == id) {
             let s = self.stack.swap_remove(i);
-            (self.world, self.page, self.clip) = (s.world, s.page, s.clip);
+            (self.world, self.page, self.clip, self.clip_paint) =
+                (s.world, s.page, s.clip, s.clip_paint);
             self.stack.truncate(i);
         }
     }
 
-    /// Combines a new clip area with the current one under the record's combine mode: replace,
-    /// intersect and union (as the rectangle around both). XOR, exclude and complement leave the
-    /// clip as it was.
-    fn combine(&mut self, flags: u16, new: Area) -> Option<()> {
-        self.clip = plus_region::combine(self.clip.take(), new, u32::from((flags >> 8) & 0xf));
+    fn set_clip(&mut self, canvas: &Canvas, area: Area) {
+        self.clip_paint = if area.is_full() {
+            None
+        } else if let Some(ring) = area.convex() {
+            Some(PlusClip::Convex(ring.into()))
+        } else {
+            Some(PlusClip::Outline(Arc::new(
+                area.mask(canvas.clip_surface(), &mut self.clip_work)
+                    .unwrap_or_default(),
+            )))
+        };
+        self.clip = area;
+    }
+
+    fn combine(&mut self, canvas: &Canvas, flags: u16, new: &Area) -> Option<()> {
+        let mode = u32::from((flags >> 8) & 0xf);
+        let result = plus_region::combine(&self.clip, new, mode, &mut self.clip_work);
+        if mode <= 5 {
+            self.set_clip(canvas, result.unwrap_or_else(Area::empty));
+        }
         Some(())
     }
 
     fn object(&mut self, flags: u16, r: Bytes) -> Option<()> {
         let decoded = self.objects_pending.push(flags, r)?;
-        let object = parse_object(decoded.kind, Bytes(decoded.payload.as_ref()));
+        let object = parse_object(
+            decoded.kind,
+            Bytes(decoded.payload.as_ref()),
+            &mut self.clip_work,
+        );
         self.store(decoded.slot, object);
         Some(())
     }
@@ -330,7 +368,9 @@ impl Plus {
                 ImageData::Meta(pic) => pic.items.len().saturating_mul(128),
             },
             Obj::Brush(Fill::Texture { img, .. }) => img.px.len(),
+            Obj::Pen(pen) => pen.brush.cost(),
             Obj::Path(ops) => ops.len().saturating_mul(std::mem::size_of::<Op>()),
+            Obj::Region(area) => area.vertices().saturating_mul(std::mem::size_of::<P>()),
             _ => 0,
         }
     }
@@ -342,9 +382,9 @@ impl Plus {
         }
     }
 
-    fn pen(&self, id: usize) -> Option<([u8; 4], f64)> {
+    fn pen(&self, id: usize) -> Option<&PlusPen> {
         match self.objects.get(id)? {
-            Some(Obj::Pen { color, width }) => Some((*color, *width)),
+            Some(Obj::Pen(pen)) => Some(pen.as_ref()),
             _ => None,
         }
     }
@@ -414,8 +454,17 @@ impl Plus {
             .font(usize::from(flags & 0xff))?
             .logical(self.dpi, self.page);
         let color = self.brush_of(flags, bytes.u32(0)?)?.color();
-        let (runs, xf) = crate::plus_text::driver(bytes, &font.font.family, -font.font.height)?;
-        self.play_text(canvas, font, color, runs, None, xf);
+        let (draw, xf) = crate::plus_text::driver(bytes, -font.font.height)?;
+        match draw {
+            DriverString::Text(runs) => self.play_text(canvas, font, color, runs, None, xf),
+            DriverString::Glyphs { at, indexed } => {
+                let painter = self.painter();
+                painter.begin(canvas, xf);
+                canvas.set_text_style(color, font, 24);
+                canvas.indexed_text(at, indexed);
+                painter.end(canvas);
+            }
+        }
         Some(())
     }
 
@@ -450,16 +499,16 @@ impl Plus {
     }
 }
 
-enum EitherPaint {
+enum EitherPaint<'a> {
     Brush(Fill),
-    Pen(([u8; 4], f64)),
+    Pen(&'a PlusPen, f64),
 }
 
-impl EitherPaint {
+impl EitherPaint<'_> {
     fn play(&self, painter: &Painter, canvas: &mut Canvas, ops: &[Op]) {
         match self {
             Self::Brush(brush) => painter.fill(canvas, ops, brush),
-            Self::Pen(pen) => painter.stroke(canvas, ops, *pen),
+            Self::Pen(pen, width) => painter.stroke(canvas, ops, pen, *width),
         }
     }
 }
@@ -476,7 +525,7 @@ struct TextStyle {
 /// canvas's GDI state back.
 struct Painter {
     xf: Xform,
-    clip: Area,
+    clip: Option<PlusClip>,
 }
 
 impl Painter {
@@ -501,7 +550,12 @@ impl Painter {
     }
 
     fn fill(&self, cv: &mut Canvas, ops: &[Op], fill: &Fill) {
+        self.fill_path(cv, ops, fill, true);
+    }
+
+    fn fill_path(&self, cv: &mut Canvas, ops: &[Op], fill: &Fill, alternate: bool) {
         self.begin(cv, IDENTITY);
+        cv.set_polyfill(if alternate { 1 } else { 2 });
         Self::no_pen(cv);
         match fill {
             Fill::Solid(c) => {
@@ -516,6 +570,7 @@ impl Painter {
                         h: 8,
                         px,
                         cell: cv.pattern_px,
+                        sampled: false,
                     }),
                 ),
                 // GDI+ has many more hatch styles than GDI: those fill with the blend of both colours.
@@ -526,7 +581,12 @@ impl Painter {
             },
             _ => {
                 // Device point to brush space: invert brush space → world → device.
-                if let Some(inv) = invert(mul(fill.xf(), cv.device_affine())) {
+                let tf = if fill.device_space() {
+                    fill.xf()
+                } else {
+                    mul(fill.xf(), cv.device_affine())
+                };
+                if let Some(inv) = invert(tf) {
                     cv.shade_shape(ops, &|p| fill.sample(apply(inv, p)));
                 }
             }
@@ -534,12 +594,18 @@ impl Painter {
         self.end(cv);
     }
 
-    fn stroke(&self, cv: &mut Canvas, ops: &[Op], (color, width): ([u8; 4], f64)) {
+    fn stroke(&self, cv: &mut Canvas, ops: &[Op], pen: &PlusPen, width: f64) {
+        if !pen.simple {
+            if let Some(outline) = pen.outline(ops, width) {
+                self.fill_path(cv, &outline, &pen.brush, false);
+            }
+            return;
+        }
         self.begin(cv, IDENTITY);
         cv.set_pen(Pen {
             style: 0,
             width,
-            color,
+            color: pen.brush.color(),
         });
         cv.set_brush(Brush::new(BS_NULL, [0, 0, 0, 0]));
         cv.shape(ops, false, true);
@@ -602,6 +668,7 @@ impl Painter {
                         h: tile.height as usize,
                         px: tile.rgba.clone(),
                         cell: f64::from(tile.cell[0]) * scale,
+                        sampled: tile.sampled,
                     }),
                     region: None,
                 },
@@ -694,12 +761,12 @@ fn invert(m: Xform) -> Option<Xform> {
 }
 
 /// ARGB (0xAARRGGBB) to RGBA.
-fn parse_object(kind: u16, record: Bytes) -> Option<Obj> {
+fn parse_object(kind: u16, record: Bytes, region_work: &mut usize) -> Option<Obj> {
     match kind {
         1 => brush(record).map(Obj::Brush),
-        2 => pen(record).map(|(color, width)| Obj::Pen { color, width }),
+        2 => plus_pen::read(record).map(|pen| Obj::Pen(Arc::new(pen))),
         3 => path(record).map(Obj::Path),
-        4 => plus_region::parse(record).map(Obj::Region),
+        4 => plus_region::parse(record, region_work).map(Obj::Region),
         5 => image(record).map(|image| Obj::Image(Arc::new(image))),
         6 => FontSpec::read(record).map(Obj::Font),
         7 => Format::read(record).map(Obj::Format),

@@ -11,7 +11,10 @@ pub(crate) use crate::device::{Xform, mul};
 use crate::geom::{Op, P};
 use crate::text::{ETO_CLIPPED, ETO_OPAQUE, Font, Text};
 use crate::text_records::Placement;
-use crate::{MAX_BYTES, MAX_ITEMS, MAX_OBJECTS, MAX_PATH_OPS, MAX_STACK};
+use crate::{
+    ClipRegion, GlyphPlacement, IndexedGlyphs, MAX_BYTES, MAX_ITEMS, MAX_OBJECTS, MAX_PATH_OPS,
+    MAX_STACK,
+};
 
 const STOCK: u32 = 0x8000_0000;
 pub(crate) const PS_NULL: u32 = 5;
@@ -132,6 +135,8 @@ pub(crate) struct RawTile {
     pub h: usize,
     pub px: Vec<u8>,
     pub cell: f64,
+    /// This tile samples one finite shade, so averaging its entire area loses the paint.
+    pub sampled: bool,
 }
 
 /// What a fill paints.
@@ -158,29 +163,29 @@ pub(crate) enum Raw {
         stroke: Option<([u8; 4], f64)>,
         even_odd: bool,
         /// Device-space clip region. None is the default clip.
-        region: Option<Vec<[f64; 4]>>,
+        region: Option<ClipRegion<f64>>,
     },
     /// A path filled with a repeating tile.
     Pattern {
         ops: Vec<Op>,
         even_odd: bool,
         tile: Arc<RawTile>,
-        region: Option<Vec<[f64; 4]>>,
+        region: Option<ClipRegion<f64>>,
     },
     Bitmap {
         rect: [f64; 4],
         img: Rgba,
-        region: Option<Vec<[f64; 4]>>,
+        region: Option<ClipRegion<f64>>,
     },
     /// Text whose transform and clip are in device units. `region` is the device clip.
     Text {
         text: Box<Text>,
-        region: Option<Vec<[f64; 4]>>,
+        region: Option<ClipRegion<f64>>,
     },
 }
 
 impl Raw {
-    fn set_region(&mut self, region: Option<Vec<[f64; 4]>>) {
+    fn set_region(&mut self, region: Option<ClipRegion<f64>>) {
         match self {
             Raw::Path { region: slot, .. }
             | Raw::Pattern { region: slot, .. }
@@ -190,6 +195,12 @@ impl Raw {
             }
         }
     }
+}
+
+#[derive(Clone)]
+pub(crate) enum PlusClip {
+    Convex(Arc<[P]>),
+    Outline(Arc<kurbo::BezPath>),
 }
 
 /// Text drawing state: colours, background mode, alignment and the selected font.
@@ -242,8 +253,7 @@ pub(crate) struct Canvas {
     clip: Option<Vec<[f64; 4]>>,
     /// Device bounds of the picture, so excluding from the default clip has a surface to cut.
     surface: Option<[f64; 4]>,
-    /// EMF+ convex device clip polygon: drawing is cut to it geometrically.
-    plus_clip: Option<Vec<P>>,
+    plus_clip: Option<PlusClip>,
 }
 
 impl Canvas {
@@ -288,32 +298,43 @@ impl Canvas {
         self.surface = clip::normalize(rect);
     }
 
+    pub fn clip_surface(&self) -> Option<[f64; 4]> {
+        self.surface
+    }
+
     /// True once the item cap is hit; the readers stop there and keep what they have.
     pub fn full(&self) -> bool {
         self.full
     }
 
     fn push(&mut self, raw: Raw) {
-        match self.plus_clip.take() {
-            None => self.push_raw(raw),
-            Some(c) => {
+        match self.plus_clip.clone() {
+            None => self.push_raw(raw, None),
+            Some(PlusClip::Convex(c)) => {
                 for r in crate::cliprect::clip_raw(raw, &c) {
-                    self.push_raw(r);
+                    self.push_raw(r, None);
                 }
-                self.plus_clip = Some(c);
             }
+            Some(PlusClip::Outline(path)) if !path.is_empty() => self.push_raw(raw, Some(path)),
+            Some(PlusClip::Outline(_)) => {}
         }
     }
 
-    fn push_raw(&mut self, mut raw: Raw) {
+    fn push_raw(&mut self, mut raw: Raw, outline: Option<Arc<kurbo::BezPath>>) {
         if self.clip.as_ref().is_some_and(Vec::is_empty) {
             return;
         }
-        raw.set_region(self.clip.clone());
-        let region_cost = self
-            .clip
-            .as_ref()
-            .map_or(0, |c| c.len() * std::mem::size_of::<[f64; 4]>());
+        let region = outline
+            .map(ClipRegion::Outline)
+            .or_else(|| self.clip.clone().map(ClipRegion::Rectangles));
+        let region_cost = match region.as_ref() {
+            Some(ClipRegion::Rectangles(rectangles)) => {
+                rectangles.len() * std::mem::size_of::<[f64; 4]>()
+            }
+            Some(ClipRegion::Outline(path)) => std::mem::size_of_val(path.elements()),
+            None => 0,
+        };
+        raw.set_region(region);
         let cost = match &raw {
             Raw::Path { ops, .. } => ops.len() * std::mem::size_of::<Op>(),
             // A tile shared with its brush is counted once (by the brush); one made for this fill
@@ -327,7 +348,18 @@ impl Canvas {
                 ops.len() * std::mem::size_of::<Op>() + 64 + own
             }
             Raw::Bitmap { img, .. } => img.px.len(),
-            Raw::Text { text: t, .. } => t.text.len() + t.dx.len() * 4 + t.font.family.len() + 128,
+            Raw::Text { text: t, .. } => {
+                let glyphs = t.indexed.as_ref().map_or(0, |run| {
+                    run.ids.len() * 2
+                        + match &run.placement {
+                            GlyphPlacement::Explicit(points) => {
+                                points.len() * std::mem::size_of::<P>()
+                            }
+                            GlyphPlacement::Realized { .. } => 0,
+                        }
+                });
+                t.text.len() + t.dx.len() * 4 + t.font.family.len() + 128 + glyphs
+            }
         } + region_cost;
         if self.items.len() >= MAX_ITEMS || self.used.saturating_add(cost) > MAX_BYTES {
             self.full = true;
@@ -424,8 +456,8 @@ impl Canvas {
         self.brush = brush;
     }
 
-    /// Sets the EMF+ convex device clip polygon (None: unclipped).
-    pub fn set_clip(&mut self, clip: Option<Vec<P>>) {
+    /// Sets the EMF+ device clip (None means the whole output surface).
+    pub fn set_clip(&mut self, clip: Option<PlusClip>) {
         self.plus_clip = clip;
     }
 
@@ -492,7 +524,13 @@ impl Canvas {
         self.push(Raw::Pattern {
             ops: dev,
             even_odd,
-            tile: Arc::new(RawTile { w, h, px, cell }),
+            tile: Arc::new(RawTile {
+                w,
+                h,
+                px,
+                cell,
+                sampled: true,
+            }),
             region: None,
         });
     }
@@ -695,6 +733,7 @@ impl Canvas {
                     h: 8,
                     px,
                     cell: self.pattern_px,
+                    sampled: false,
                 })))
             }
             BS_PATTERN | BS_DIBPATTERN | BS_DIBPATTERNPT => {
@@ -709,6 +748,7 @@ impl Canvas {
                                     h: p.h,
                                     px: p.px.clone(),
                                     cell,
+                                    sampled: false,
                                 })
                             })
                             .clone(),
@@ -740,6 +780,7 @@ impl Canvas {
                     h: p.h,
                     px,
                     cell: self.pattern_px,
+                    sampled: false,
                 })))
             }
             _ => None,
@@ -1022,6 +1063,7 @@ impl Canvas {
             text: Box::new(Text {
                 transform,
                 text,
+                indexed: None,
                 dx,
                 font: lf.font,
                 color: self.text.color,
@@ -1029,6 +1071,32 @@ impl Canvas {
                 h_align: placement.horizontal,
                 v_align: placement.vertical,
                 clip,
+                region: None,
+            }),
+            region: None,
+        });
+    }
+
+    pub fn indexed_text(&mut self, at: P, indexed: IndexedGlyphs) {
+        let Some(font) = self.text.font.as_deref() else {
+            return;
+        };
+        let placement = Placement::new(&self.map, self.text.align, at, self.pos, font.escapement);
+        let Some(transform) = placement.transform() else {
+            return;
+        };
+        self.push(Raw::Text {
+            text: Box::new(Text {
+                transform,
+                text: String::new(),
+                indexed: Some(indexed),
+                dx: Vec::new(),
+                font: font.font.clone(),
+                color: self.text.color,
+                background: None,
+                h_align: placement.horizontal,
+                v_align: placement.vertical,
+                clip: None,
                 region: None,
             }),
             region: None,

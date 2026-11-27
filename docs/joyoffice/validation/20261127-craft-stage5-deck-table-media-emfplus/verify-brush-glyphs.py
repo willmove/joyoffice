@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 from struct import pack, pack_into
 
-from PIL import Image
+from PIL import Image, ImageChops
 
 PREVIOUS = Path(__file__).resolve().parents[1] / "20261127-craft-stage5-deck-xml-vector/verify-metafiles.py"
 SPEC = importlib.util.spec_from_file_location("metafile_fixtures", PREVIOUS)
@@ -71,12 +71,32 @@ def inspect(output):
             "gradientColors": len(gradient), "gradientPixels": gradient_pixels}
 
 
+def sampled_shade_check(frozen, candidate):
+    with Image.open(next(frozen.glob("*.png"))) as a, Image.open(next(candidate.glob("*.png"))) as b:
+        a, b = a.convert("RGB"), b.convert("RGB")
+        assert a.size == b.size == (960, 540)
+        diff = ImageChops.difference(a, b)
+        changed = diff.getbbox()
+        # The shell projects the intersected world rectangle [23, 40, 78, 66] here,
+        # including a one-pixel allowance around its antialiased edges.
+        assert changed and changed[0] >= 362 and changed[1] >= 260 and changed[2] <= 461 and changed[3] <= 294
+        probes = [(376, 274), (410, 274), (445, 274)]
+        before = [a.getpixel(point) for point in probes]
+        after = [b.getpixel(point) for point in probes]
+        assert before[0] == before[1] == before[2]
+        assert after[0][0] > after[1][0] > after[2][0] and after[0][2] < after[1][2] < after[2][2]
+        return {"changedBounds": changed,
+                "changedPixels": sum(pixel != (0, 0, 0) for pixel in diff.get_flattened_data()),
+                "frozenGradientSamples": before, "candidateGradientSamples": after}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("frozen", type=Path)
     parser.add_argument("candidate", type=Path)
     parser.add_argument("shells", type=Path)
     parser.add_argument("output", type=Path)
+    parser.add_argument("--sample-subpixel-shades", action="store_true")
     args = parser.parse_args()
     args.output.mkdir(parents=True)
     evidence = {}
@@ -88,13 +108,18 @@ def main():
         for key, cli in (("frozen", args.frozen), ("candidate", args.candidate)):
             dest = args.output / f"{label}-{key}"
             samples[key] = BASE.render(cli, pptx, dest) | inspect(dest)
+        evidence[label] = {"emfSha256": BASE.digest(payload), "render": samples}
         if offset:
             assert samples["candidate"]["blueHeight"] > samples["frozen"]["blueHeight"] + 15, samples
+        elif args.sample_subpixel_shades:
+            for key in ("redShapePixels", "blueTextPixels", "blueHeight"):
+                assert samples["candidate"][key] == samples["frozen"][key], samples
+            evidence[label]["sampledShade"] = sampled_shade_check(
+                args.output / f"{label}-frozen", args.output / f"{label}-candidate")
         else:
             assert samples["candidate"] == samples["frozen"], samples
-        evidence[label] = {"emfSha256": BASE.digest(payload), "render": samples}
     (args.output / "report.json").write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8", newline="\n")
-    print("EMF+ brush and region raster matched. Separate glyph baselines rendered at their supplied heights.")
+    print("EMF+ region, gradient sampling and separate glyph baselines verified")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,576 @@
+{
+  "date": "2026-11-27",
+  "base": "bb7128d8",
+  "frozenRevision": "14cbb29616d7c0ababbf40a8f6c0218b996e7ae8",
+  "binaries": {
+    "frozen": "f8fd32a31570e241f17ced00dbce66f7e2ae53739b18e3c70bea03c2e78794f7",
+    "candidate": "1252485a898e1f9d3a32346dd508105a3ed545b3c9590219446a76dcec21afdf"
+  },
+  "testing": {
+    "passedRust": 1083,
+    "failedRust": 0,
+    "ignoredRust": 0,
+    "cliChecks": {
+      "r1": 28,
+      "r2": 20,
+      "r3": 20,
+      "r4-r5": 23,
+      "r6-r7": 35
+    },
+    "mcpResponses": 58,
+    "physicalGlyphUnitTest": "tests::emfplus_driver_strings_keep_physical_glyph_indices_and_positions"
+  },
+  "exchange": {
+    "samples": 17,
+    "outputs": 100,
+    "reads": 234,
+    "catalogRejections": [
+      "bad-member-crc",
+      "broken-pptx",
+      "future-native",
+      "symlink-metadata",
+      "unbound-source",
+      "unknown-capability",
+      "utf16-dtd"
+    ],
+    "preserveRefusals": [
+      "signed",
+      "macro-enabled"
+    ],
+    "knownChartComparisons": 12
+  },
+  "directedPlayback": {
+    "fontSha256": "57e93ff143572bcc092c1f56202d43ddc07bb119aa104c6d7af163470fb551f6",
+    "glyphIds": [
+      591,
+      17
+    ],
+    "horizontalAdvanceEm": [
+      0.6640625,
+      0.5439453125
+    ],
+    "samples": {
+      "regions": {
+        "emfSha256": "1673ba185e26d76b16c1732f4ccd1a57deab46d790a688ecabfa1e13975b5d83",
+        "candidateRgbSha256": "1f98b8cee9a7f63d4aaf55880dfc2e551dc1aeead71abae28d0008e19d8aedb1",
+        "frozenRgbSha256": "02bd3f54770f67f85905bea0671b9b5695b97e1f1903f4f437fdca313868f59f",
+        "checkedPoints": 20,
+        "preservedAllParts": true
+      },
+      "pens": {
+        "emfSha256": "4259d8db1317e361be1d1c3552db481b9b3f46d4ed1917b5fe938e837d49919c",
+        "candidateRgbSha256": "71bf446e3ef5120071fddfb53d5328c7d57cd3e9c4615965ed7deed0c492f0ed",
+        "frozenRgbSha256": "a7b9f6f90743ca71efd42f594569834fd56b47606235623e75fbda7f4f267cc1",
+        "measurements": {
+          "compound": [
+            [
+              221,
+              0,
+              0
+            ],
+            [
+              255,
+              255,
+              255
+            ],
+            [
+              220,
+              0,
+              0
+            ]
+          ],
+          "dashInteriorPoints": 49,
+          "dashColors": [
+            [
+              248,
+              0,
+              7
+            ],
+            [
+              7,
+              0,
+              248
+            ]
+          ],
+          "pathGradient": [
+            [
+              249,
+              245,
+              242
+            ],
+            [
+              61,
+              203,
+              87
+            ],
+            [
+              153,
+              95,
+              36
+            ]
+          ],
+          "tileFlipX": [
+            [
+              221,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              238
+            ],
+            [
+              0,
+              0,
+              238
+            ],
+            [
+              221,
+              0,
+              0
+            ],
+            [
+              221,
+              0,
+              0
+            ]
+          ]
+        },
+        "preservedAllParts": true
+      },
+      "glyphs": {
+        "emfSha256": "5f6b07dfc66fc8986658e28dbb957a77aaf3b750a2ea1b9d2901a809b271a66e",
+        "candidateRgbSha256": "de976ba1349192553a5119c02fb38f1d463167612067a3e220c6ba77654d7107",
+        "frozenRgbSha256": "afcfbe0df085dce684d04dd210aa4d1cc74cc1c6d1bef9e224a9a99ed7957b5c",
+        "glyphPixelBounds": [
+          [
+            357,
+            241,
+            371,
+            252
+          ],
+          [
+            436,
+            263,
+            445,
+            273
+          ],
+          [
+            360,
+            285,
+            389,
+            295
+          ],
+          null
+        ],
+        "preservedAllParts": true
+      },
+      "glyph-reference": {
+        "emfSha256": "0204dcbd5c2470211dd162073265be3f680586e080caecf80383f3fdda23480b",
+        "candidateRgbSha256": "de976ba1349192553a5119c02fb38f1d463167612067a3e220c6ba77654d7107"
+      }
+    }
+  },
+  "powerPoint": {
+    "version": "16.0.20625.20108",
+    "cases": {
+      "regions": {
+        "inputSha256": "72d206f8eafbb9ecb4714f56bec90069bffa3f454b15f58dfa9584e23fa8d8cc",
+        "outputSha256": "2be068383e87063e219a2dfede8ebabda50c30a06497299eba1bcb18450bc67e",
+        "slideCount": 3,
+        "storedEmfSha256": "1673ba185e26d76b16c1732f4ccd1a57deab46d790a688ecabfa1e13975b5d83",
+        "member": "ppt/media/image1.emf"
+      },
+      "pens": {
+        "inputSha256": "336834d796cffe692ae15501cd8945803148fbf8a602fcc21b322833edee0ab4",
+        "outputSha256": "7213648a93ab21f0275db6fea363602aaa6c34730de12fa7e6e52e115df5e624",
+        "slideCount": 3,
+        "storedEmfSha256": "4259d8db1317e361be1d1c3552db481b9b3f46d4ed1917b5fe938e837d49919c",
+        "member": "ppt/media/image1.emf"
+      },
+      "glyphs": {
+        "inputSha256": "63078f9fbf06250241e7c3d7484be9e65aa00dda2adc1b4681bc368d689bffe7",
+        "outputSha256": "597a28ee474b4adae50123b6bf8201b95b41c7e28f63299235734d5a69f7004b",
+        "slideCount": 3,
+        "storedEmfSha256": "5f6b07dfc66fc8986658e28dbb957a77aaf3b750a2ea1b9d2901a809b271a66e",
+        "member": "ppt/media/image1.emf"
+      }
+    }
+  },
+  "frozenRasters": {
+    "pdfs": 7,
+    "pdfPages": 14,
+    "expectedFooterFixes": [
+      "handouts-3",
+      "handouts-6"
+    ],
+    "exactMetafiles": {
+      "wmf_original": "224d490d3bb534372bb1e56bc48a63824def6d955fc9644622662804f9e43ba6",
+      "emf_original": "a725d3bd5e6e39080a0d06af217e7d353025bd8c744083328ea34511c36718d6",
+      "wmf_vector": "c25ecad7949e81d9985fca3208732ad6bb4c454d9c2fd876f43674c431f3e95d",
+      "emf_vector": "e8677d4f7c2f7262843814178c2cc229e7c7e20f88cac3caed72bcbdae9908e3",
+      "emfplus": "b57f332aa696a41ea062b9f9b3c585462807bfbedb3c40754fecd1ea2a7e1cf7",
+      "codepages": "67fcaf03a2ab69362eff315fd0d1a9bf8679ec584a413fa473719b2da0cebc0b"
+    },
+    "gradientAndBaselines": {
+      "same-baseline": {
+        "emfSha256": "9778ebe607edb435d35a26bb0181210dc789ec4c2d8e69c1bf7969d9a6618823",
+        "render": {
+          "frozen": {
+            "size": [
+              960,
+              540
+            ],
+            "sha256": "77573853d336e880d48b581b776fa7664e50c6372ace5991889c04c34e68e71f",
+            "redShapePixels": 12800,
+            "blueTextPixels": 56,
+            "blueHeight": 8,
+            "gradientColors": 9,
+            "gradientPixels": 2821
+          },
+          "candidate": {
+            "size": [
+              960,
+              540
+            ],
+            "sha256": "bc0fe1b9e164496529d64e754507efc21a669bfdb2bcc6289763ac0e4e1a8c31",
+            "redShapePixels": 12800,
+            "blueTextPixels": 56,
+            "blueHeight": 8,
+            "gradientColors": 236,
+            "gradientPixels": 2400
+          }
+        },
+        "sampledShade": {
+          "changedBounds": [
+            363,
+            261,
+            460,
+            293
+          ],
+          "changedPixels": 3064,
+          "frozenGradientSamples": [
+            [
+              117,
+              170,
+              42
+            ],
+            [
+              117,
+              170,
+              42
+            ],
+            [
+              117,
+              170,
+              42
+            ]
+          ],
+          "candidateGradientSamples": [
+            [
+              192,
+              170,
+              29
+            ],
+            [
+              121,
+              170,
+              42
+            ],
+            [
+              46,
+              170,
+              56
+            ]
+          ]
+        }
+      },
+      "explicit-baselines": {
+        "emfSha256": "e1dfd794b1b83b0f40167fbf943e74c5062e43ae1f9a25a2d6f83a68c1eefc15",
+        "render": {
+          "frozen": {
+            "size": [
+              960,
+              540
+            ],
+            "sha256": "77573853d336e880d48b581b776fa7664e50c6372ace5991889c04c34e68e71f",
+            "redShapePixels": 12800,
+            "blueTextPixels": 56,
+            "blueHeight": 8,
+            "gradientColors": 9,
+            "gradientPixels": 2821
+          },
+          "candidate": {
+            "size": [
+              960,
+              540
+            ],
+            "sha256": "7e457afb0d438804ebb9ab7aa27bed9842a665145a6c81d38335247d67a77f89",
+            "redShapePixels": 12862,
+            "blueTextPixels": 64,
+            "blueHeight": 51,
+            "gradientColors": 263,
+            "gradientPixels": 2353
+          }
+        }
+      }
+    }
+  },
+  "productionAudit": {
+    "buildEntries": {
+      "joydeck": 114,
+      "joydeck-cli": 113
+    },
+    "countsByCrate": {
+      "joydeck-anim": {
+        "joydeck": 12,
+        "joydeck-cli": 12
+      },
+      "joydeck-color": {
+        "joydeck": 1,
+        "joydeck-cli": 1
+      },
+      "joydeck-fonts": {
+        "joydeck": 5,
+        "joydeck-cli": 5
+      },
+      "joydeck-format": {
+        "joydeck": 2,
+        "joydeck-cli": 2
+      },
+      "joydeck-geom": {
+        "joydeck": 9,
+        "joydeck-cli": 9
+      },
+      "joydeck-metafile": {
+        "joydeck": 9,
+        "joydeck-cli": 9
+      },
+      "joydeck-model": {
+        "joydeck": 15,
+        "joydeck-cli": 15
+      },
+      "joydeck-pdf": {
+        "joydeck": 1,
+        "joydeck-cli": 1
+      },
+      "joydeck-pptx": {
+        "joydeck": 17,
+        "joydeck-cli": 17
+      },
+      "joydeck-render": {
+        "joydeck": 31,
+        "joydeck-cli": 31
+      },
+      "joydeck-text": {
+        "joydeck": 10,
+        "joydeck-cli": 10
+      },
+      "joydeck-ui-gpui": {
+        "joydeck": 1,
+        "joydeck-cli": 0
+      },
+      "joyoffice-metafile": {
+        "joydeck": 1,
+        "joydeck-cli": 1
+      }
+    },
+    "buildScripts": [
+      "crates/joydeck-fonts/build.rs"
+    ],
+    "retiredDeckPaths": 13,
+    "cargoGraphs": [
+      {
+        "entry": "joydeck",
+        "target": "x86_64-pc-windows-msvc",
+        "total": 490,
+        "craftDependencyNames": []
+      },
+      {
+        "entry": "joydeck",
+        "target": "aarch64-apple-darwin",
+        "total": 497,
+        "craftDependencyNames": []
+      },
+      {
+        "entry": "joydeck",
+        "target": "x86_64-unknown-linux-gnu",
+        "total": 574,
+        "craftDependencyNames": []
+      },
+      {
+        "entry": "joydeck",
+        "target": "aarch64-unknown-linux-gnu",
+        "total": 573,
+        "craftDependencyNames": []
+      },
+      {
+        "entry": "joydeck-cli",
+        "target": "x86_64-pc-windows-msvc",
+        "total": 168,
+        "craftDependencyNames": []
+      },
+      {
+        "entry": "joydeck-cli",
+        "target": "aarch64-apple-darwin",
+        "total": 167,
+        "craftDependencyNames": []
+      },
+      {
+        "entry": "joydeck-cli",
+        "target": "x86_64-unknown-linux-gnu",
+        "total": 166,
+        "craftDependencyNames": []
+      },
+      {
+        "entry": "joydeck-cli",
+        "target": "aarch64-unknown-linux-gnu",
+        "total": 165,
+        "craftDependencyNames": []
+      }
+    ],
+    "mappedRustPathsByCrate": {
+      "joydeck-anim": [
+        "easing.rs",
+        "effects.rs",
+        "interact.rs",
+        "lib.rs",
+        "mesh.rs",
+        "morph.rs",
+        "path.rs",
+        "show.rs",
+        "timeline.rs",
+        "transition.rs",
+        "transition_fx.rs",
+        "transition_geom.rs"
+      ],
+      "joydeck-color": [
+        "lib.rs"
+      ],
+      "joydeck-fonts": [
+        "fallback.rs",
+        "fontdb.rs",
+        "lib.rs",
+        "script.rs",
+        "shape.rs"
+      ],
+      "joydeck-format": [
+        "lib.rs",
+        "rtf.rs"
+      ],
+      "joydeck-geom": [
+        "lib.rs",
+        "morph.rs",
+        "preset.rs",
+        "preset/build.rs",
+        "preset/builder.rs",
+        "preset/catalog.rs",
+        "preset/shapes.rs",
+        "squircle.rs",
+        "warp.rs"
+      ],
+      "joydeck-metafile": [
+        "bytes.rs",
+        "canvas.rs",
+        "cliprect.rs",
+        "emf.rs",
+        "emfplus.rs",
+        "lib.rs",
+        "place.rs",
+        "text.rs",
+        "wmf.rs"
+      ],
+      "joydeck-model": [
+        "anim.rs",
+        "bidi.rs",
+        "chart.rs",
+        "defaults.rs",
+        "edit.rs",
+        "lib.rs",
+        "numfmt.rs",
+        "resolve.rs",
+        "shape.rs",
+        "style.rs",
+        "table.rs",
+        "text.rs",
+        "theme.rs",
+        "trendline.rs",
+        "words.rs"
+      ],
+      "joydeck-pdf": [
+        "lib.rs"
+      ],
+      "joydeck-pptx": [
+        "cfb.rs",
+        "custgeom.rs",
+        "dgm.rs",
+        "lib.rs",
+        "maps.rs",
+        "opc.rs",
+        "png.rs",
+        "read.rs",
+        "read/chart.rs",
+        "read/dml.rs",
+        "read/shapes.rs",
+        "read/timing.rs",
+        "write.rs",
+        "write/chart.rs",
+        "write/dml.rs",
+        "write/shapes.rs",
+        "write/timing.rs"
+      ],
+      "joydeck-render": [
+        "bevel.rs",
+        "camera.rs",
+        "chart.rs",
+        "chartex.rs",
+        "colr.rs",
+        "compound.rs",
+        "extent.rs",
+        "extrude.rs",
+        "geometry.rs",
+        "images.rs",
+        "lib.rs",
+        "light.rs",
+        "metafile.rs",
+        "morph_path.rs",
+        "morph_text.rs",
+        "opts.rs",
+        "paint.rs",
+        "pathgrad.rs",
+        "pattern.rs",
+        "placed.rs",
+        "radar.rs",
+        "ramp.rs",
+        "raster.rs",
+        "renderer.rs",
+        "scene.rs",
+        "slide.rs",
+        "stroke.rs",
+        "table.rs",
+        "text_draw.rs",
+        "transition.rs",
+        "warp.rs"
+      ],
+      "joydeck-text": [
+        "autonum.rs",
+        "bidi.rs",
+        "breaking.rs",
+        "datetime.rs",
+        "layout.rs",
+        "lib.rs",
+        "run.rs",
+        "shape.rs",
+        "style.rs",
+        "symbol.rs"
+      ],
+      "joydeck-ui-gpui": [
+        "chrome.rs"
+      ],
+      "joyoffice-metafile": [
+        "lib.rs"
+      ]
+    }
+  }
+}
