@@ -48,6 +48,70 @@ fn sheet(archive: &Package, owner: &str) -> Doc {
 }
 
 #[test]
+fn preserving_extended_value_keeps_chart_sidecars_and_workbook_ranges()
+-> Result<(), crate::PptxError> {
+    let mut chart = Chart::sample(ChartType::Treemap);
+    chart.series[0].values[0] = Some(7.0);
+    let source = crate::export(&chart_document(chart))?;
+    let base = crate::import(&source)?;
+    let slide = &base.slides[0];
+    let bindings = [crate::SlideBinding {
+        slide: slide.id,
+        source: slide.id,
+        shapes: slide
+            .shapes
+            .iter()
+            .map(|shape| (shape.id, shape.id))
+            .collect(),
+    }];
+    let mut changed = base.clone();
+    only_chart(&mut changed).series[0].values[0] = Some(31.0);
+    let output = crate::export_preserving(&source, &base, &changed, &bindings)?;
+    let archive = Package::open(&output)?;
+    let original = Package::open(&source)?;
+    let owner = "ppt/slides/slide1.xml";
+    let original_chart = resolve(&original, owner, "chartEx");
+    let rewritten = archive
+        .rels(owner)
+        .all_of("chartEx")
+        .map(|edge| edge.target.clone())
+        .find(|target| *target != original_chart.target);
+    assert!(rewritten.is_some());
+    if let Some(rewritten) = rewritten {
+        assert_eq!(
+            archive.get(&original_chart.target),
+            original.get(&original_chart.target)
+        );
+        assert_eq!(
+            resolve(&archive, &rewritten, STYLE_REL).target,
+            resolve(&original, &original_chart.target, STYLE_REL).target
+        );
+        let cell = archive.xml(&rewritten).and_then(|doc| {
+            let formula = doc.root.find("numDim")?.child("f")?.text();
+            let (_, range) = formula.rsplit_once('!')?;
+            Some(range.split(':').next()?.replace('$', ""))
+        });
+        assert!(cell.is_some());
+        let workbook = sheet(&archive, &rewritten);
+        assert_eq!(
+            workbook.root.find("sheetData").and_then(|data| {
+                let mut cells = Vec::new();
+                data.find_all("c", &mut cells);
+                cells
+                    .into_iter()
+                    .find(|node| node.attr("r") == cell.as_deref())
+                    .and_then(|cell| cell.child("v"))
+                    .map(El::text)
+            }),
+            Some("31".into())
+        );
+    }
+    let mut reopened = crate::import(&output)?;
+    assert_eq!(only_chart(&mut reopened).series[0].values[0], Some(31.0));
+    Ok(())
+}
+
+#[test]
 fn rebuilt_classic_combo_preserves_series_order_and_secondary_axis() {
     let series = |name: &str, kind, secondary_axis| Series {
         name: name.into(),

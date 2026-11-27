@@ -1,0 +1,250 @@
+{
+  "date": "2026-11-27",
+  "base": "5792b869",
+  "binaries": {
+    "frozen": "f8fd32a31570e241f17ced00dbce66f7e2ae53739b18e3c70bea03c2e78794f7",
+    "candidate": "199add3471cb170b542cb967b2db097ee30d7213befbf54ea0d04e2d09488ae7"
+  },
+  "tests": {
+    "rustPassed": 1080,
+    "rustFailed": 0,
+    "rustIgnored": 0,
+    "cliChecks": {
+      "r1": 28,
+      "r2": 20,
+      "r3": 20,
+      "r4-r5": 23,
+      "r6-r7": 35
+    },
+    "focusedRustTests": [
+      "chart_exchange_tests::preserving_extended_value_keeps_chart_sidecars_and_workbook_ranges",
+      "footer_tests::preserve_rebind_uses_undeclared_layout_relationships_and_keeps_placeholder_inheritance",
+      "tests::emfplus_object_split_across_records_is_joined",
+      "tests::emfplus_convex_clip_path_cuts_to_the_shape_not_its_box",
+      "tests::character_sets_decode_bytes"
+    ]
+  },
+  "exchange": {
+    "samples": 17,
+    "reads": 234,
+    "outputs": 100,
+    "knownChartPercentLabelComparisons": 12,
+    "catalogRejectedInputs": [
+      "bad-member-crc",
+      "broken-pptx",
+      "future-native",
+      "symlink-metadata",
+      "unbound-source",
+      "unknown-capability",
+      "utf16-dtd"
+    ],
+    "preservingWriteRefusals": [
+      "signed",
+      "macro-enabled"
+    ],
+    "retainedMarkup": [
+      "ppt/slides/Slide2.xml"
+    ]
+  },
+  "preservingEdits": {
+    "charts": {
+      "chart-edited": {
+        "sha256": "fc0459e6477fb8af6090f4453002607aa0aa657f48f0f8ab2ea4a2aae070a728",
+        "chart": "ppt/charts/joydeck-1-chart1.xml",
+        "workbook": "ppt/embeddings/joydeck-1-Microsoft_Excel____.xlsx",
+        "sheet": "xl/worksheets/sheet1.xml",
+        "cell": "B3",
+        "value": 65.25
+      },
+      "chart-marked-edited": {
+        "sha256": "37d5d667ac22332cdfb6c68cd0ba0579d0a4aa32d751988006d1bdbc25d77081",
+        "chart": "ppt/charts/joydeck-1-chart1.xml",
+        "workbook": "ppt/embeddings/joydeck-1-Microsoft_Excel____.xlsx",
+        "sheet": "xl/worksheets/sheet1.xml",
+        "cell": "B3",
+        "value": 65.25
+      }
+    },
+    "layout": {
+      "frozen": {
+        "layout": "ppt/slideLayouts/slideLayout2.xml",
+        "placeholderCount": 2
+      },
+      "candidate": {
+        "layout": "ppt/slideLayouts/slideLayout2.xml",
+        "placeholderCount": 2
+      }
+    }
+  },
+  "powerPoint": {
+    "version": "16.0.20625.20108",
+    "cases": [
+      {
+        "input": "preserved/chart-edited.pptx",
+        "inputSha256": "fc0459e6477fb8af6090f4453002607aa0aa657f48f0f8ab2ea4a2aae070a728",
+        "output": "01-chart-edited-powerpoint.pptx",
+        "outputSha256": "c7ed9996bb63a58344fa7aebd6550b5a8ff523c530b7263fd1f761af128070de",
+        "slideCount": 7,
+        "firstSlideChartTypes": [
+          51
+        ]
+      },
+      {
+        "input": "preserved/layout-candidate.pptx",
+        "inputSha256": "e4a5f05547ee59c5728bc5748f0a779898e285393f4b7b8a751408bb9f3b601c",
+        "output": "02-layout-candidate-powerpoint.pptx",
+        "outputSha256": "10680e1e257e0ef62384f8482fccb51af363b60f43a80e91e62d858b3dc92744",
+        "slideCount": 1,
+        "firstSlideChartTypes": []
+      },
+      {
+        "input": "verified/treemap-preserved.pptx",
+        "inputSha256": "fe6f4f5554c3f164de36caa6c8a02cff65a7b7e191d04d26f868ff136fc925da",
+        "output": "03-treemap-preserved-powerpoint.pptx",
+        "outputSha256": "d31f1aa88dd6a6977bddd6dbedad8beb8e18a097876bb50272f20a60e203c1f0",
+        "slideCount": 1,
+        "firstSlideChartTypes": [
+          117
+        ]
+      }
+    ],
+    "independentReadback": {
+      "chart": {
+        "chartPart": "ppt/charts/chart1.xml",
+        "workbook": "ppt/embeddings/Microsoft_Excel_Worksheet.xlsx",
+        "sheet": "xl/worksheets/sheet1.xml",
+        "cell": "B3",
+        "value": 65.25,
+        "title": "JoyDeck 原位标题"
+      },
+      "layout": {
+        "input": {
+          "layout": "ppt/slideLayouts/slideLayout2.xml",
+          "master": "ppt/slideMasters/slideMaster1.xml",
+          "type": "obj",
+          "layoutName": "标题和内容",
+          "placeholders": [
+            [
+              "ctrTitle",
+              "0"
+            ],
+            [
+              "subTitle",
+              "1"
+            ]
+          ]
+        },
+        "officeSaved": {
+          "layout": "ppt/slideLayouts/slideLayout2.xml",
+          "master": "ppt/slideMasters/slideMaster1.xml",
+          "type": "obj",
+          "layoutName": "标题和内容",
+          "placeholders": [
+            [
+              "ctrTitle",
+              "0"
+            ],
+            [
+              "subTitle",
+              "1"
+            ]
+          ]
+        }
+      }
+    }
+  },
+  "raster": {
+    "pdfs": 7,
+    "pdfPages": 14,
+    "unexpectedDiffs": [],
+    "knownFooterFixes": [
+      "handouts-3",
+      "handouts-6"
+    ],
+    "originalMetafiles": {
+      "wmf": {
+        "size": [
+          960,
+          540
+        ],
+        "sha256": "224d490d3bb534372bb1e56bc48a63824def6d955fc9644622662804f9e43ba6"
+      },
+      "emf": {
+        "size": [
+          960,
+          540
+        ],
+        "sha256": "a725d3bd5e6e39080a0d06af217e7d353025bd8c744083328ea34511c36718d6"
+      }
+    },
+    "vectorAndText": {
+      "wmf": {
+        "metafileSha256": "7df93285d5224a688f0a09fa1b8d35264e9f16f72833cd96736af4132884dec4",
+        "raster": {
+          "size": [
+            960,
+            540
+          ],
+          "sha256": "c25ecad7949e81d9985fca3208732ad6bb4c454d9c2fd876f43674c431f3e95d",
+          "redShapePixels": 9222,
+          "blueTextPixels": 205
+        }
+      },
+      "emf": {
+        "metafileSha256": "ac606b10aa0e7a5a2e378adfeaf8ea725853cd19469566b8a5aff08a3248f17f",
+        "raster": {
+          "size": [
+            960,
+            540
+          ],
+          "sha256": "e8677d4f7c2f7262843814178c2cc229e7c7e20f88cac3caed72bcbdae9908e3",
+          "redShapePixels": 9506,
+          "blueTextPixels": 134
+        }
+      }
+    },
+    "plusAndCodePages": {
+      "emfplus": {
+        "metafileSha256": "1b8677b12542ea872931634f9d60f4ffb38fd2319f17858ac3c5b40ea686e58a",
+        "scene": {
+          "size": [
+            960,
+            540
+          ],
+          "sha256": "b57f332aa696a41ea062b9f9b3c585462807bfbedb3c40754fecd1ea2a7e1cf7",
+          "redShapePixels": 6727,
+          "blueTextPixels": 126,
+          "greenImagePixels": 28765
+        }
+      },
+      "codepages": {
+        "metafileSha256": "a0f041a4c081307987e5b8f127c31964ffc8a628b3c9bede97af9a070a662587",
+        "scene": {
+          "size": [
+            960,
+            540
+          ],
+          "sha256": "67fcaf03a2ab69362eff315fd0d1a9bf8679ec584a413fa473719b2da0cebc0b",
+          "redShapePixels": 13348,
+          "blueTextPixels": 180
+        }
+      }
+    }
+  },
+  "mappings": {
+    "CP1250.TXT": "e6535e3c81f4aff1a4b369c46e588a2423d6a75da341e01a6cea108c7542c19a",
+    "CP1251.TXT": "d9d491808bd7956c26ef8ed07fa63015bfab32860720e07d5bf3a64a609927ee",
+    "CP1252.TXT": "f607ae328b4dff5e9bfef725f5fff0ae23f38797f8a5b95998a0d2735c0e8fad"
+  },
+  "sourceLedger": {
+    "compiledPathsWithProvenance": {
+      "joydeck": 115,
+      "joydeck-cli": 114
+    },
+    "mappedBuildScripts": 1,
+    "retired": 12,
+    "retiredInThisChange": [
+      "crates/joydeck-metafile/src/geom.rs"
+    ]
+  }
+}

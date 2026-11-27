@@ -32,7 +32,11 @@ use crate::canvas::{
     BS_NULL, BS_SOLID, Brush, Canvas, LogFont, PS_NULL, Pen, RawTile, Xform, hatch_tile, mul,
 };
 use crate::cliprect::{clip_polygon, convex, flatten, ops_bbox, pts_bbox, rect_poly};
-use crate::geom::{Op, P};
+use crate::geom::{
+    Op, P, cardinal as curve_ops, plus_arc as arc_ops, plus_ellipse as ellipse_ops,
+    polygon as poly_ops,
+};
+use crate::plus_image::{ImageData, image};
 use crate::text::{ETO_CLIPPED, Font};
 use crate::{Item, Picture, Seg};
 
@@ -48,8 +52,6 @@ const MAX_POINTS: usize = 100_000;
 const MAX_STOPS: usize = 256;
 /// Characters per string.
 const MAX_CHARS: usize = 32_768;
-/// Bytes gathered for one object split across records.
-const MAX_OBJECT_BYTES: usize = 64 * 1024 * 1024;
 /// Nesting depth of region nodes.
 const MAX_REGION_DEPTH: usize = 32;
 /// Region nodes and path points parsed together, including nodes in sibling branches.
@@ -216,20 +218,6 @@ struct Format {
 /// A clip area: a convex polygon (empty clips everything), or None for infinite.
 type Area = Option<Vec<P>>;
 
-enum ImageData {
-    Bitmap(Rgba),
-    /// A nested WMF or EMF (EMF+) picture.
-    Meta(Picture),
-}
-
-thread_local! {
-    /// Nesting depth of metafile images being parsed, so a file of nested metafiles cannot run
-    /// the stack out.
-    static NESTING: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
-}
-/// Metafile images inside metafile images, at most.
-const MAX_NESTING: usize = 3;
-
 #[derive(Clone)]
 enum Obj {
     Brush(Fill),
@@ -243,14 +231,6 @@ enum Obj {
     Format(Format),
     /// A region's bounding rectangle `[l, t, r, b]` in world units; None is infinite.
     Region(Area),
-}
-
-/// An object arriving in several records: its id, type, total size and the bytes so far.
-struct Partial {
-    id: usize,
-    kind: u16,
-    total: usize,
-    data: Vec<u8>,
 }
 
 struct Saved {
@@ -271,7 +251,7 @@ pub(crate) struct Plus {
     objects: Vec<Option<Obj>>,
     object_bytes: usize,
     stack: Vec<Saved>,
-    partial: Option<Partial>,
+    objects_pending: crate::plus_objects::Assembly,
     /// The picture frame in device units (`[x, y, w, h]`), what Clear paints.
     pub frame: Option<[f64; 4]>,
 }
@@ -287,7 +267,7 @@ impl Plus {
             objects: vec![None; MAX_OBJECTS],
             object_bytes: 0,
             stack: Vec::new(),
-            partial: None,
+            objects_pending: Default::default(),
             frame: None,
         }
     }
@@ -545,89 +525,49 @@ impl Plus {
 
     /// Save / restore, transform and clip records.
     fn record_state(&mut self, cv: &mut Canvas, typ: u16, flags: u16, r: Bytes) -> Option<()> {
-        let id = usize::from(flags & 0xFF);
-        match typ {
-            0x4025 | 0x4028 => r.u32(0).map(|i| self.push(i)),
-            0x4027 => r.u32(24).map(|i| self.push(i)),
-            0x4026 | 0x4029 => r.u32(0).map(|i| self.pop(i)),
-            0x402A => matrix(r, 0).map(|m| self.world = m),
-            0x402B => {
-                self.world = IDENTITY;
-                Some(())
-            }
-            0x402C => matrix(r, 0).and_then(|m| self.apply(m, flags)),
-            0x402D => self.apply(
-                [
-                    1.0,
-                    0.0,
-                    0.0,
-                    1.0,
-                    f64::from(r.f32(0)?),
-                    f64::from(r.f32(4)?),
-                ],
-                flags,
-            ),
-            0x402E => self.apply(
-                [
-                    f64::from(r.f32(0)?),
-                    0.0,
-                    0.0,
-                    f64::from(r.f32(4)?),
-                    0.0,
-                    0.0,
-                ],
-                flags,
-            ),
-            0x402F => {
-                let a = f64::from(r.f32(0)?).to_radians();
-                self.apply([a.cos(), a.sin(), -a.sin(), a.cos(), 0.0, 0.0], flags)
-            }
-            0x4030 => {
-                let page = f64::from(r.f32(0)?) * unit_px(u32::from(flags & 0xFF), self.dpi);
-                if page.is_finite() && page > 0.0 && page < 1.0e6 {
+        use crate::plus_commands::{State, state};
+        match state(typ, flags, r)? {
+            State::Save(id) => self.push(id),
+            State::Restore(id) => self.pop(id),
+            State::Transform(matrix) => self.world = matrix,
+            State::Concat(matrix) => return self.apply(matrix, flags),
+            State::Page(scale) => {
+                let page = scale * unit_px(u32::from(flags & 0xff), self.dpi);
+                if (0.0..1.0e6).contains(&page) && page > 0.0 {
                     self.page = page;
                 }
-                Some(())
             }
-            0x4031 => {
-                self.clip = None;
-                Some(())
+            State::ClearClip => self.clip = None,
+            State::ClipRectangle(bounds) => {
+                let area = self.map_clip(cv, Some(rect_poly(bounds)));
+                return self.combine(flags, area);
             }
-            0x4032 => {
-                let [x, y, w, h] = floats::<4>(r, 0)?;
-                let area = map_area(
-                    Some(rect_poly([x, y, x + w, y + h])),
-                    mul(self.xf(), cv.device_affine()),
-                );
-                self.combine(flags, area)
+            State::ClipPath(id) => {
+                let area = self.map_clip(cv, Some(area_of_ops(&self.path(id)?)));
+                return self.combine(flags, area);
             }
-            0x4033 => {
-                let area = map_area(
-                    Some(area_of_ops(&self.path(id)?)),
-                    mul(self.xf(), cv.device_affine()),
-                );
-                self.combine(flags, area)
-            }
-            0x4034 => {
-                let Some(Some(Obj::Region(reg))) = self.objects.get(id).cloned() else {
+            State::ClipRegion(id) => {
+                let Some(Some(Obj::Region(region))) = self.objects.get(id) else {
                     return None;
                 };
-                let area = map_area(reg, mul(self.xf(), cv.device_affine()));
-                self.combine(flags, area)
+                let area = self.map_clip(cv, region.clone());
+                return self.combine(flags, area);
             }
-            0x4035 => {
-                let [dx, dy] = floats::<2>(r, 0)?;
-                let a = mul(self.xf(), cv.device_affine());
-                let (ox, oy) = (dx * a[0] + dy * a[2], dx * a[1] + dy * a[3]);
-                if let Some(c) = self.clip.as_mut() {
-                    for p in c.iter_mut() {
-                        *p = (p.0 + ox, p.1 + oy);
+            State::ClipOffset((dx, dy)) => {
+                let [a, b, c, d, ..] = mul(self.xf(), cv.device_affine());
+                if let Some(clip) = self.clip.as_mut() {
+                    let (x, y) = (dx * a + dy * c, dx * b + dy * d);
+                    for point in clip {
+                        *point = (point.0 + x, point.1 + y);
                     }
                 }
-                Some(())
             }
-            _ => None,
         }
+        Some(())
+    }
+
+    fn map_clip(&self, canvas: &Canvas, area: Area) -> Area {
+        map_area(area, mul(self.xf(), canvas.device_affine()))
     }
 
     /// Without the `A` flag a transform is applied before the world transform (prepended).
@@ -673,45 +613,9 @@ impl Plus {
     }
 
     fn object(&mut self, flags: u16, r: Bytes) -> Option<()> {
-        let id = usize::from(flags & 0xFF);
-        let kind = (flags >> 8) & 0x7F;
-        if flags & 0x8000 != 0 {
-            // A continued object: the total size, then this record's share of the bytes.
-            let total = (r.u32(0)? as usize).min(MAX_OBJECT_BYTES);
-            let chunk = r.tail(4)?.0;
-            let p = match self.partial.take() {
-                Some(p) if p.id == id && p.kind == kind && p.total == total => p,
-                _ => Partial {
-                    id,
-                    kind,
-                    total,
-                    data: Vec::new(),
-                },
-            };
-            let mut p = p;
-            let room = p.total.saturating_sub(p.data.len());
-            p.data.extend_from_slice(&chunk[..chunk.len().min(room)]);
-            if p.data.len() >= p.total {
-                let obj = parse_object(p.kind, Bytes(&p.data));
-                self.store(p.id, obj);
-            } else {
-                self.partial = Some(p);
-            }
-            return Some(());
-        }
-        // The last piece of a continued object comes without the continue flag.
-        if let Some(mut p) = self.partial.take()
-            && p.id == id
-            && p.kind == kind
-        {
-            let room = p.total.saturating_sub(p.data.len());
-            p.data.extend_from_slice(&r.0[..r.0.len().min(room)]);
-            let obj = parse_object(kind, Bytes(&p.data));
-            self.store(id, obj);
-            return Some(());
-        }
-        let obj = parse_object(kind, r);
-        self.store(id, obj);
+        let decoded = self.objects_pending.push(flags, r)?;
+        let object = parse_object(decoded.kind, Bytes(decoded.payload.as_ref()));
+        self.store(decoded.slot, object);
         Some(())
     }
 
@@ -1509,54 +1413,6 @@ fn map_area(a: Area, m: Xform) -> Area {
     })
 }
 
-/// An elliptical arc in `rect` from `start` sweeping `sweep` degrees (clockwise on screen), as
-/// cubics; a pie adds the lines to and from the centre.
-fn arc_ops([l, t, r, b]: [f64; 4], start: f64, sweep: f64, pie: bool) -> Vec<Op> {
-    let (cx, cy, rx, ry) = ((l + r) / 2.0, (t + b) / 2.0, (r - l) / 2.0, (b - t) / 2.0);
-    let sweep = sweep.clamp(-360.0, 360.0);
-    // GDI+ angles are along rays from the centre; turn them into the ellipse's parameter.
-    let param = |deg: f64| {
-        let a = deg.to_radians();
-        (rx * a.sin()).atan2(ry * a.cos())
-    };
-    let t0 = param(start);
-    let mut dt = if sweep.abs() >= 360.0 {
-        sweep.signum() * std::f64::consts::TAU
-    } else {
-        param(start + sweep) - t0
-    };
-    if sweep.abs() < 360.0 {
-        while sweep > 0.0 && dt < 0.0 {
-            dt += std::f64::consts::TAU;
-        }
-        while sweep < 0.0 && dt > 0.0 {
-            dt -= std::f64::consts::TAU;
-        }
-    }
-    let at = |t: f64| (cx + rx * t.cos(), cy + ry * t.sin());
-    let mut ops = Vec::with_capacity(8);
-    if pie {
-        ops.push(Op::M((cx, cy)));
-        ops.push(Op::L(at(t0)));
-    } else {
-        ops.push(Op::M(at(t0)));
-    }
-    let n = ((dt.abs() / std::f64::consts::FRAC_PI_2).ceil() as usize).clamp(1, 4);
-    let step = dt / n as f64;
-    let k = 4.0 / 3.0 * (step / 4.0).tan();
-    for i in 0..n {
-        let (a, e) = (t0 + step * i as f64, t0 + step * (i + 1) as f64);
-        let (p0, p3) = (at(a), at(e));
-        let c1 = (p0.0 - k * rx * a.sin(), p0.1 + k * ry * a.cos());
-        let c2 = (p3.0 + k * rx * e.sin(), p3.1 - k * ry * e.cos());
-        ops.push(Op::C(c1, c2, p3));
-    }
-    if pie {
-        ops.push(Op::Z);
-    }
-    ops
-}
-
 /// A font object: em size, unit, style flags, then the family name in UTF-16.
 fn font(r: Bytes) -> Option<Obj> {
     let em = f64::from(r.f32(4)?);
@@ -1571,150 +1427,6 @@ fn font(r: Bytes) -> Option<Obj> {
         style: r.u32(12)?,
         family,
     }))
-}
-
-/// An image object: a bitmap of raw pixels or a compressed (PNG, JPEG, GIF…) file, or a nested
-/// metafile.
-fn image(r: Bytes) -> Option<ImageData> {
-    match r.u32(4)? {
-        1 => bitmap(r).map(ImageData::Bitmap),
-        2 => metafile(r).map(ImageData::Meta),
-        _ => None,
-    }
-}
-
-/// A metafile image: type, size, then a WMF (placeable or not) or EMF file, parsed as a picture.
-fn metafile(r: Bytes) -> Option<Picture> {
-    let size = r.u32(12)? as usize;
-    let data = r.slice(16, size).or_else(|| r.tail(16).map(|t| t.0))?;
-    let depth = NESTING.with(std::cell::Cell::get);
-    if depth >= MAX_NESTING {
-        return None;
-    }
-    NESTING.with(|n| n.set(depth + 1));
-    let pic = crate::parse(data).ok();
-    NESTING.with(|n| n.set(depth));
-    pic.filter(|p| p.width > 0.0 && p.height > 0.0)
-}
-
-fn bitmap(r: Bytes) -> Option<Rgba> {
-    let (w, h, stride) = (r.u32(8)? as i32, r.u32(12)? as i32, r.u32(16)? as i32);
-    let format = r.u32(20)?;
-    let data = r.tail(28)?;
-    if r.u32(24)? == 1 {
-        return decode_compressed(data.0);
-    }
-    let (w, h) = (usize::try_from(w).ok()?, usize::try_from(h).ok()?);
-    if w == 0 || h == 0 || w.checked_mul(h)? > crate::MAX_PIXELS {
-        return None;
-    }
-    let bpp = ((format >> 8) & 0xFF) as usize;
-    let (pal, pixels) = if format & 0x0001_0000 != 0 {
-        // Indexed formats carry a palette first: flags, count, ARGB entries.
-        let n = (data.u32(4)? as usize).min(256);
-        let pal: Vec<[u8; 4]> = (0..n)
-            .map(|i| data.u32(8 + i * 4).map(argb))
-            .collect::<Option<_>>()?;
-        (pal, data.tail(8 + n * 4)?)
-    } else {
-        (Vec::new(), data)
-    };
-    let row = (w.checked_mul(bpp)?).div_ceil(8);
-    let stride_abs = (stride.unsigned_abs() as usize).max(row);
-    let mut px = Vec::with_capacity(w * h * 4);
-    for y in 0..h {
-        let line = pixels.slice(y.checked_mul(stride_abs)?, row)?;
-        for x in 0..w {
-            let c = match (format, bpp) {
-                (_, 1 | 4 | 8) if !pal.is_empty() => {
-                    let bit = x * bpp;
-                    let byte = *line.get(bit / 8)?;
-                    let i = (byte >> (8 - bpp - bit % 8)) & ((1u16 << bpp) - 1) as u8;
-                    pal.get(usize::from(i)).copied().unwrap_or([0, 0, 0, 255])
-                }
-                (_, 24) => {
-                    let p = line.get(x * 3..x * 3 + 3)?;
-                    [p[2], p[1], p[0], 255]
-                }
-                (0x0002_2009, 32) => {
-                    let p = line.get(x * 4..x * 4 + 4)?;
-                    [p[2], p[1], p[0], 255]
-                }
-                (0x000E_200B, 32) => {
-                    let p = line.get(x * 4..x * 4 + 4)?;
-                    let a = u32::from(p[3]);
-                    let un = |v: u8| {
-                        (u32::from(v) * 255 + a / 2)
-                            .checked_div(a)
-                            .map_or(v, |c| c.min(255) as u8)
-                    };
-                    [un(p[2]), un(p[1]), un(p[0]), p[3]]
-                }
-                (_, 32) => {
-                    let p = line.get(x * 4..x * 4 + 4)?;
-                    [p[2], p[1], p[0], p[3]]
-                }
-                (0x0002_1006, 16) => {
-                    let v = u16::from_le_bytes([*line.get(x * 2)?, *line.get(x * 2 + 1)?]);
-                    let s = |v: u16, bits: u32| ((u32::from(v) * 255) / ((1 << bits) - 1)) as u8;
-                    [s(v >> 11, 5), s((v >> 5) & 0x3F, 6), s(v & 0x1F, 5), 255]
-                }
-                (_, 16) => {
-                    let v = u16::from_le_bytes([*line.get(x * 2)?, *line.get(x * 2 + 1)?]);
-                    let s = |v: u16| ((u32::from(v & 0x1F) * 255) / 31) as u8;
-                    [s(v >> 10), s(v >> 5), s(v), 255]
-                }
-                _ => return None,
-            };
-            px.extend_from_slice(&c);
-        }
-    }
-    // A negative stride stores the rows bottom-up.
-    Some(top_down(Rgba {
-        w,
-        h,
-        bottom_up: stride < 0,
-        px,
-    }))
-}
-
-fn top_down(mut img: Rgba) -> Rgba {
-    if img.bottom_up {
-        crate::bitmap::flip(&mut img, false, true);
-        img.bottom_up = false;
-    }
-    img
-}
-
-fn decode_compressed(bytes: &[u8]) -> Option<Rgba> {
-    let mut reader = image::ImageReader::new(std::io::Cursor::new(bytes))
-        .with_guessed_format()
-        .ok()?;
-    let mut limits = image::Limits::default();
-    limits.max_image_width = Some(1 << 15);
-    limits.max_image_height = Some(1 << 15);
-    limits.max_alloc = Some((crate::MAX_PIXELS * 4) as u64);
-    reader.limits(limits);
-    let (w, h) = reader.into_dimensions().ok()?;
-    let (w, h) = (w as usize, h as usize);
-    if w == 0 || h == 0 || w.checked_mul(h)? > crate::MAX_PIXELS {
-        return None;
-    }
-    let mut reader = image::ImageReader::new(std::io::Cursor::new(bytes))
-        .with_guessed_format()
-        .ok()?;
-    let mut limits = image::Limits::default();
-    limits.max_image_width = Some(1 << 15);
-    limits.max_image_height = Some(1 << 15);
-    limits.max_alloc = Some((crate::MAX_PIXELS * 4) as u64);
-    reader.limits(limits);
-    let img = reader.decode().ok()?.to_rgba8();
-    Some(Rgba {
-        w,
-        h,
-        bottom_up: false,
-        px: img.into_raw(),
-    })
 }
 
 /// `n` points at `off`: 16-bit integers when compressed, else 32-bit floats.
@@ -1759,69 +1471,6 @@ fn rect_ops([l, t, r, b]: [f64; 4]) -> Vec<Op> {
 
 fn finite(v: f32) -> Option<f64> {
     v.is_finite().then_some(f64::from(v))
-}
-
-/// A GDI+ cardinal spline through `pts` as cubic Béziers: each segment's control points lie a
-/// third of `tension` (GDI+'s default 0.5) along the neighbouring chords. `closed` joins the
-/// last point back to the first; an open curve draws `segments` segments from point `offset`.
-fn curve_ops(pts: &[P], tension: f64, closed: bool, offset: usize, segments: usize) -> Vec<Op> {
-    let n = pts.len();
-    if n < 2 {
-        return Vec::new();
-    }
-    let k = tension.clamp(0.0, 10.0) / 3.0;
-    let at = |i: isize| -> P {
-        let i = if closed {
-            i.rem_euclid(n as isize) as usize
-        } else {
-            i.clamp(0, n as isize - 1) as usize
-        };
-        pts.get(i).copied().unwrap_or((0.0, 0.0))
-    };
-    let (first, count) = if closed {
-        (0, n)
-    } else {
-        (offset.min(n - 1), segments.min(n - 1 - offset.min(n - 1)))
-    };
-    let mut ops = vec![Op::M(at(first as isize))];
-    for s in first..first + count {
-        let i = s as isize;
-        let (p0, p1, p2, p3) = (at(i - 1), at(i), at(i + 1), at(i + 2));
-        let c1 = (p1.0 + (p2.0 - p0.0) * k, p1.1 + (p2.1 - p0.1) * k);
-        let c2 = (p2.0 - (p3.0 - p1.0) * k, p2.1 - (p3.1 - p1.1) * k);
-        ops.push(Op::C(c1, c2, p2));
-    }
-    if closed {
-        ops.push(Op::Z);
-    }
-    ops
-}
-
-fn poly_ops(pts: &[P], close: bool) -> Vec<Op> {
-    let mut ops: Vec<Op> = pts
-        .iter()
-        .enumerate()
-        .map(|(i, p)| if i == 0 { Op::M(*p) } else { Op::L(*p) })
-        .collect();
-    if close {
-        ops.push(Op::Z);
-    }
-    ops
-}
-
-/// An ellipse in its bounding box, as four cubic arcs.
-fn ellipse_ops([l, t, r, b]: [f64; 4]) -> Vec<Op> {
-    let (cx, cy, rx, ry) = ((l + r) / 2.0, (t + b) / 2.0, (r - l) / 2.0, (b - t) / 2.0);
-    let k = 0.552_284_75;
-    let (ox, oy) = (rx * k, ry * k);
-    vec![
-        Op::M((cx + rx, cy)),
-        Op::C((cx + rx, cy + oy), (cx + ox, cy + ry), (cx, cy + ry)),
-        Op::C((cx - ox, cy + ry), (cx - rx, cy + oy), (cx - rx, cy)),
-        Op::C((cx - rx, cy - oy), (cx - ox, cy - ry), (cx, cy - ry)),
-        Op::C((cx + ox, cy - ry), (cx + rx, cy - oy), (cx + rx, cy)),
-        Op::Z,
-    ]
 }
 
 /// Core fonts whose first glyphs follow the standard Macintosh order (glyph 3 is the space,

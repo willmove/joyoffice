@@ -46,6 +46,8 @@ JoyDeck 阶段 5 后续通过 Windows 打印保存窗实际写盘，完成 PPTX 
 
 JoyDeck 阶段 5 再切换 PPTX 通用 XML 与生成关系写出，及 WMF／EMF 向量记录、设备映射、矩形区域和文字定位。以冻结版复核未知 XML、图元像素和 3D 回退，并用 PowerPoint 16 回存。后续优先处理 PPTX 图表及占位符保留分支、EMF+ 和多边形裁剪以及其余来源审计项。[XML 与图元回归](validation/20261127-craft-stage5-deck-xml-vector/README.md)
 
+JoyDeck 阶段 5 已推进图表及占位符保留编辑、EMF+ 状态与图像、凸多边形裁剪、路径几何及 Windows 码页。沿用冻结版对照并补验 PowerPoint 16 回存。PPTX 表格、媒体、包写出及剩余图元和其他来源分支继续跟踪。[保留编辑与图元回归](validation/20261127-craft-stage5-deck-preserve-emfplus/README.md)
+
 | 剩余范围 | 人周 | 估算依据 |
 | --- | ---: | --- |
 | 阶段 0 其余路径的调用登记与专项基线 | 2–4 | 六个二进制及首批语料已集中冻结。复杂分页、放映与长尾文件需各补调用点、固定输入及预期结果。 |

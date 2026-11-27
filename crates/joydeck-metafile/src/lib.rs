@@ -28,13 +28,19 @@ mod canvas;
 #[path = "region.rs"]
 mod clip;
 mod cliprect;
+mod convex_clip;
 mod device;
 mod emf;
 mod emfplus;
+#[path = "path_geometry.rs"]
 mod geom;
 mod place;
+mod plus_commands;
+mod plus_image;
+mod plus_objects;
 mod records;
 mod text;
+mod text_encoding;
 mod text_records;
 mod vector_records;
 mod wmf;

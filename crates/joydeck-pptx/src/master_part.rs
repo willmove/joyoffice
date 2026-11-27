@@ -21,6 +21,26 @@ use crate::xml::{A, Doc, El, Node, W};
 
 const MAX_LAYOUTS_PER_MASTER: usize = 1000;
 
+pub(super) fn layout_paths<'a>(
+    root: &'a El,
+    relationships: &'a opc::Rels,
+) -> impl Iterator<Item = &'a str> {
+    let declared = root
+        .child("sldLayoutIdLst")
+        .into_iter()
+        .flat_map(|list| list.children_named("sldLayoutId"))
+        .filter_map(|node| presentation_parts::target(node, relationships, "slideLayout"));
+    let extras = relationships
+        .all_of("slideLayout")
+        .filter(|edge| !edge.external)
+        .map(|edge| edge.target.as_str());
+    let mut distinct = HashSet::new();
+    declared
+        .chain(extras)
+        .filter(move |path| distinct.insert(opc::norm(path)))
+        .take(MAX_LAYOUTS_PER_MASTER)
+}
+
 pub(super) fn read_graph(
     reader: &mut Imp,
     model: &mut Presentation,
@@ -61,23 +81,8 @@ pub(super) fn read_graph(
             other_style: style(reader, "otherStyle"),
             ..Default::default()
         };
-        let declared = root
-            .child("sldLayoutIdLst")
-            .into_iter()
-            .flat_map(|list| list.children_named("sldLayoutId"))
-            .filter_map(|node| presentation_parts::target(node, &part.rels, "slideLayout"));
-        let extras = part
-            .rels
-            .all_of("slideLayout")
-            .filter(|rel| !rel.external)
-            .map(|rel| rel.target.as_str());
-        let mut distinct = HashSet::new();
-        for (layout_path, key) in declared
-            .chain(extras)
-            .map(|path| (path, opc::norm(path)))
-            .filter(|(_, key)| distinct.insert(key.clone()))
-            .take(MAX_LAYOUTS_PER_MASTER)
-        {
+        for layout_path in layout_paths(root, &part.rels) {
+            let key = opc::norm(layout_path);
             if layouts.contains_key(&key) {
                 continue;
             }

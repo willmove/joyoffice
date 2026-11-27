@@ -7,12 +7,16 @@ use crate::{
 };
 use joydeck_model::{Presentation, Shape, ShapeId, ShapeKind, Slide, SlideId, TextBody};
 use std::collections::BTreeMap;
+#[path = "preserve_chart.rs"]
+mod charts;
 #[path = "preserve_content.rs"]
 mod content;
 #[path = "preserve_fields.rs"]
 mod fields;
 #[path = "preserve_links.rs"]
 mod links;
+#[path = "preserve_placeholders.rs"]
+mod placeholders;
 pub struct SlideBinding {
     pub slide: SlideId,
     pub source: SlideId,
@@ -829,7 +833,8 @@ pub fn export_preserving(
                 if let Some(nv) = find_mut(&mut e, "cNvPr") {
                     set(nv, "id", shape.id.0.to_string());
                 }
-                if shape.xfrm != old.xfrm {
+                placeholders::edit(&mut e, generated, old, shape)?;
+                if shape.xfrm != old.xfrm && (shape.ph.is_none() || shape.xfrm.is_some()) {
                     patch_transform(&mut e, generated)?;
                 }
                 patch_group_connectors(&mut e, generated, old, shape)?;
@@ -1036,6 +1041,21 @@ pub fn export_preserving(
                 .shapes
                 .get(&shape.id)
                 .and_then(|id| source_slide.shapes.iter().find(|s| s.id == *id));
+            let preserved_chart = if let (Some(ShapeKind::Chart(before)), ShapeKind::Chart(after)) =
+                (old.map(|shape| &shape.kind), &shape.kind)
+            {
+                charts::apply(
+                    &mut e,
+                    before,
+                    after,
+                    &pkg,
+                    &mut parts,
+                    &mut ct,
+                    &mut link_relationships,
+                )?
+            } else {
+                false
+            };
             content::shape(
                 &mut e,
                 generated,
@@ -1048,6 +1068,7 @@ pub fn export_preserving(
                 &mut ct,
                 &mut added_rels,
                 &mut pictures,
+                preserved_chart,
             )?;
             if let Some(nv) = find_mut(&mut e, "cNvPr") {
                 set(nv, "id", shape.id.0.to_string());
@@ -1158,12 +1179,7 @@ pub fn export_preserving(
             };
             append_relationships(&mut relationships, added_rels);
             if slide.layout != source_slide.layout {
-                let target = content::layout_target(&pkg, base, slide.layout)?;
-                let rel = relationships
-                    .elements_mut()
-                    .find(|r| r.attr("Type").is_some_and(|t| t.ends_with("/slideLayout")))
-                    .ok_or_else(|| error("layout relationship missing"))?;
-                set(rel, "Target", opc::relative(part, &target));
+                placeholders::rebind(&mut relationships, part, &pkg, base, slide.layout)?;
             }
             parts.insert(path, relationships.to_xml().into_bytes());
         }

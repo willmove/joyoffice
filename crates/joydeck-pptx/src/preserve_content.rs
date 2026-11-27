@@ -1,62 +1,11 @@
 //! Targeted R5 XML updates. Unknown surrounding XML and untouched parts are retained.
 use super::*;
-use joydeck_model::{LayoutId, Shape, ShapeKind};
+use joydeck_model::{Shape, ShapeKind};
 use std::{
     collections::HashMap,
     hash::{BuildHasher, RandomState},
 };
 
-fn master_targets(pkg: &opc::Package) -> Result<Vec<String>, PptxError> {
-    let pres_path = pkg.presentation_path()?;
-    let root = pkg
-        .xml(&pres_path)
-        .ok_or_else(|| error("presentation missing"))?
-        .root;
-    let rels = pkg.rels(&pres_path);
-    root.child("sldMasterIdLst")
-        .ok_or_else(|| error("masters missing"))?
-        .elements()
-        .map(|e| {
-            rels.target(
-                e.attr("r:id")
-                    .ok_or_else(|| error("master relationship missing"))?,
-            )
-            .map(str::to_owned)
-            .ok_or_else(|| error("master target missing"))
-        })
-        .collect()
-}
-pub(super) fn layout_target(
-    pkg: &opc::Package,
-    base: &Presentation,
-    id: LayoutId,
-) -> Result<String, PptxError> {
-    let masters = master_targets(pkg)?;
-    for (i, m) in base.masters.iter().enumerate() {
-        if let Some(index) = m.layouts.iter().position(|l| l.id == id) {
-            let part = masters
-                .get(i)
-                .ok_or_else(|| error("master binding missing"))?;
-            let root = pkg
-                .xml(part)
-                .ok_or_else(|| error("master XML missing"))?
-                .root;
-            let e = root
-                .child("sldLayoutIdLst")
-                .and_then(|e| e.elements().nth(index))
-                .ok_or_else(|| error("layout binding missing"))?;
-            return pkg
-                .rels(part)
-                .target(
-                    e.attr("r:id")
-                        .ok_or_else(|| error("layout relationship missing"))?,
-                )
-                .map(str::to_owned)
-                .ok_or_else(|| error("layout target missing"));
-        }
-    }
-    Err(error("new layouts require .joydeck Save As"))
-}
 pub(super) fn globals(
     pkg: &opc::Package,
     generated: &opc::Package,
@@ -77,7 +26,7 @@ pub(super) fn globals(
     }
     // Minimal public PPTX files may have no master parts. Do not require them when unchanged.
     let masters = if base.masters != current.masters {
-        master_targets(pkg)?
+        placeholders::master_paths(pkg)?
     } else {
         vec![]
     };
@@ -233,7 +182,7 @@ pub(super) fn globals(
     }
     Ok(())
 }
-fn new_name(parts: &PartEdits<'_>, source: &str) -> String {
+pub(super) fn new_name(parts: &PartEdits<'_>, source: &str) -> String {
     let (folder, file) = source.rsplit_once('/').unwrap_or(("ppt/media", source));
     let mut n = 1;
     loop {
@@ -484,6 +433,7 @@ pub(super) fn shape(
     ct: &mut El,
     rels: &mut Vec<El>,
     pictures: &mut Pictures<'_>,
+    preserved_chart: bool,
 ) -> Result<(), PptxError> {
     if let Some(old) = old
         && (new.fill != old.fill || new.line != old.line || new.geom != old.geom)
@@ -532,7 +482,7 @@ pub(super) fn shape(
         });
     }
     let changed = old.is_none_or(|old| old.kind != new.kind);
-    if !changed {
+    if !changed || preserved_chart {
         return Ok(());
     }
     if let Some(Shape {
@@ -600,7 +550,22 @@ pub(super) fn shape(
         id.push('x');
     }
     set(node, attr, id.clone());
-    replace(target, resource, Some(replacement));
+    if resource == "graphic"
+        && old.is_some()
+        && let Some(data) =
+            child_mut(target, "graphic").and_then(|graphic| child_mut(graphic, "graphicData"))
+        && data.attr("uri") == Some(opc::NS_C)
+        && let Some(chart) = child_mut(data, "chart")
+    {
+        if let Some((_, previous_id)) = chart.attrs.iter_mut().find(|(key, _)| key.ends_with(":id"))
+        {
+            *previous_id = id.clone();
+        } else {
+            return Err(error("original chart relationship missing"));
+        }
+    } else {
+        replace(target, resource, Some(replacement));
+    }
     rels.push(rel_element(
         &id,
         &relationship.kind,

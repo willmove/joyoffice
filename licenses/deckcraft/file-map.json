@@ -517,13 +517,14 @@
       "source_path": "crates/metafile/src/cliprect.rs",
       "source_sha256": "f815bcf5109caab9700eb37f7e33592440b5ee7cc66bbe2a1da8d3cfcebea23d",
       "target_path": "crates/joydeck-metafile/src/cliprect.rs",
-      "adapted_sha256": "3e3213f92942b7d358d294ce83240ee0a75d24918c036f7f2e1142a3aef0ce98",
+      "adapted_sha256": "3ab9c6fce2d42ea1b8d195abad891d8b3cdc93fc1c37c0a9eb2b7dff129864fd",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
-        "Connect region bitmap clipping to the independently implemented GDI bitmap representation."
+        "Connect region bitmap clipping to the independently implemented GDI bitmap representation.",
+        "Use independent oriented half-planes for polygon and segment clipping; retain the raster/item adapter."
       ]
     },
     {
@@ -560,14 +561,15 @@
       "source_path": "crates/metafile/src/emfplus.rs",
       "source_sha256": "183b0be47ee2467ef8824b768709a57a83dc243f15195c066ccef601a933d15e",
       "target_path": "crates/joydeck-metafile/src/emfplus.rs",
-      "adapted_sha256": "de344e96efcaf76c3d82ccedec74fbf89708accbd8e13061ae39dcf97a3fbca8",
+      "adapted_sha256": "f3935017b0886f86904d113da1b7556da186409230c0e116d0bfe0cfdeb6dd9a",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
         "Replay EMF+ comments with validated payload sizes and alignment.",
-        "Use the independent bitmap cropping and mirroring path for EMF+."
+        "Use the independent bitmap cropping and mirroring path for EMF+.",
+        "Use independent state decoding, object assembly, image unpacking, and path construction."
       ]
     },
     {
@@ -579,14 +581,17 @@
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
-      ]
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "Retire inherited path geometry in favor of path_geometry.rs, shared by GDI and GDI+."
+      ],
+      "retired": true,
+      "last_verified_in": "5792b869"
     },
     {
       "source_path": "crates/metafile/src/lib.rs",
       "source_sha256": "3adccd030b589e5f091cbc791f814929f62221850853b6932cca5d9a22014a1d",
       "target_path": "crates/joydeck-metafile/src/lib.rs",
-      "adapted_sha256": "527cdf7cb8ed2346437453b17ac7e32782f09b5dd33a531899daeffa1638a7c4",
+      "adapted_sha256": "b80772d7723b74f7e322a73c455fff8119458af31392c1fae1dbe37b5f133fc5",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -594,7 +599,8 @@
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
         "Register the bounded metafile record stream.",
         "Replace the original DIB decoder and pixel preparation with the independent bitmap module.",
-        "Route prepared WMF and EMF record payloads to first-party vector, mapping, rectangle region and text modules."
+        "Route prepared WMF and EMF record payloads to first-party vector, mapping, rectangle region and text modules.",
+        "Register independent EMF+ state, image, object, polygon clipping, path and code-page implementations."
       ]
     },
     {
@@ -626,13 +632,14 @@
       "source_path": "crates/metafile/src/text.rs",
       "source_sha256": "46765423734cb08cb0f4b1fe534a428e54ec713a1b78c09aeff06f8b558974ad",
       "target_path": "crates/joydeck-metafile/src/text.rs",
-      "adapted_sha256": "15e36d641ebbd858bee57fc354815d3cee47193304282d4f69bb66c195edc4f5",
+      "adapted_sha256": "e5bb099a7fb991fde920f3481e2be7bccc9bd424e50c08cac46d210e0d5fe17f",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
-        "Route GDI alignment and placement through the independent text record module; retain the charset and neutral text contracts."
+        "Route GDI alignment and placement through the independent text record module; retain the charset and neutral text contracts.",
+        "Delegate Windows code-page and UTF-16 decoding to independently generated mapping tables and run projection."
       ]
     },
     {
