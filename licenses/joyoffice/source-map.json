@@ -591,8 +591,8 @@
     "source_path": "crates/joydeck-platform/native/print-macos.swift",
     "target_path": "crates/joydeck-shell/native/print-windows.cs",
     "source_sha256": "0de16dca6d1fef77c14678ede2236e90942ddd9d5b52b4a6f90fc33ebab65c7b",
-    "local_changes": "Owned snapshot/print-dialog helper boundary reused; Windows WinForms implementation uses system APIs, no Swift code compiled. Own the per-job page enumerator and reset it for each BeginPrint.",
-    "adapted_sha256": "07d82601c3059786aa118184a1d90eaa59dbcc02d174843074d6e242864b4180"
+    "local_changes": "Owned snapshot/print-dialog helper boundary reused; Windows WinForms implementation uses system APIs, no Swift code compiled. Own the per-job page enumerator and reset it for each BeginPrint. Propagate cancellation reported by PrintDocument.EndPrint.",
+    "adapted_sha256": "f123c70f8cf1ad3e4e45946abb44817f725c10bdd399d7fc8ed4f9398f2213bc"
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",

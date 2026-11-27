@@ -1,0 +1,67 @@
+{
+  "candidateArchiveSha256": "b8ab1ff27656e19520cb1a9fd7d2149083af15f2dd61ce5fec6168e627e2e005",
+  "frozenExecutables": {
+    "joydeck": "58ca28ebada8d5e737ad788c78f74e402771379a2fb4c5cb19fbd98125033e93",
+    "joydeck-cli": "f8fd32a31570e241f17ced00dbce66f7e2ae53739b18e3c70bea03c2e78794f7"
+  },
+  "inputSha256": "416c35f31d98fcae5fdee1a18b33b2e2c9f7ffa4d1d70b2b86a98b4e661d4312",
+  "stages": {
+    "upgrade": {
+      "file": "upgrade.joydeck",
+      "sha256": "a74becf2b8b96473c4187abd73e07ff948f1865bd9369a2aea533d9ae7d8fcdd",
+      "slides": 3,
+      "readers": [
+        "frozen",
+        "candidate"
+      ]
+    },
+    "downgrade": {
+      "file": "downgrade.pptx",
+      "sha256": "ddc73cc23a9eaa39e9efa27773509362231c469416265fa503ceaeeebd20ddba",
+      "slides": 3,
+      "readers": [
+        "frozen",
+        "candidate"
+      ]
+    },
+    "reupgrade": {
+      "file": "reupgrade.joydeck",
+      "sha256": "b1b8080037e9d768ed4f5876fbd274ad634ae215e344125b900606ff76208cf4",
+      "slides": 3,
+      "readers": [
+        "frozen",
+        "candidate"
+      ]
+    }
+  },
+  "percentageLabels": {
+    "sourceSha256": "fb186510d923be988f8e721b8e66c8915b4bbc0eb3c6515f8e380af3eb577631",
+    "candidateSource": [
+      false,
+      false,
+      false,
+      true,
+      false
+    ],
+    "frozenWriter": {
+      "preserve": [
+        false,
+        false,
+        false,
+        true,
+        false
+      ],
+      "regenerate": [
+        false,
+        false,
+        false,
+        true,
+        false
+      ]
+    }
+  },
+  "desktopProbe": {
+    "frozenAndPackagedOpenedSlides": 3,
+    "unchangedInputSha256": "6e3aa914dd5f40cd261ab35ceff2f1b584f100fa0ffb0569f6cb9af53bed6933"
+  }
+}

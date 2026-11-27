@@ -35,7 +35,12 @@ public static class JoyDeckPrint {
             using(var document=PrepareDocument(files)) using(var dialog=new PrintDialog()) {
                 dialog.Document=document;dialog.UseEXDialog=true;dialog.AllowPrintToFile=true;
                 if(dialog.ShowDialog()!=DialogResult.OK) {Console.WriteLine("cancelled");return 2;}
-                document.Print();Console.WriteLine("submitted");return 0;
+                bool cancelled = false;
+                document.EndPrint += (sender, e) => { cancelled = e.Cancel; };
+                document.Print();
+                if (cancelled) { Console.WriteLine("cancelled"); return 2; }
+                Console.WriteLine("submitted");
+                return 0;
             }
         } catch(Exception e) {Console.Error.WriteLine(e.Message);return 1;}
     }

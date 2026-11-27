@@ -38,7 +38,9 @@ JoyDeck 阶段 4 已切换文本字体选择、字形整形、断行、自适应
 
 JoyDeck 已切换 CPU 转场合成、WMF／EMF 记录回放与绘制、PDF 分页与文字层、Windows 打印快照与逐页输出。重复选页的讲义页脚按实际纸张编号。[渲染与输出验收](validation/20261126-craft-stage4-deck-output/README.md)
 
-JoyDeck 阶段 4 的开发清单已收口。功能区按固定命令标识、上下文选区和文件页状态生成标签与命令组，沿用 GPUI 组件的焦点、可用性和动作路由。Windows 验收已记录，macOS Metal、UOS Vulkan 实机回归继续单列。[阶段 4 收尾](validation/20261126-craft-stage4-deck-close/README.md)
+JoyDeck 阶段 4 的开发清单已收口。功能区按固定命令标识、上下文选区和文件页状态生成标签与命令组，沿用 GPUI 组件的焦点、可用性和动作路由。Windows 已补验独立打印选择和取消，macOS Metal、UOS Vulkan 实机回归继续单列。[阶段 4 收尾](validation/20261126-craft-stage4-deck-close/README.md) · [Windows 打印补验](validation/20261127-craft-stage5-deck/README.md)
+
+JoyDeck 阶段 5 首轮已核对生产来源、八张依赖图和 Windows 包的 SPDX 与许可，完成冻结兼容性回归和包内二进制回退。编译输入仍含带 DeckCraft 来源的运行时文件，部分含实际保留实现。Windows 包有两项以发行声明与标准正文补充的许可记录，独立上游正文继续追溯。回退对含 3D 的文稿使用保留另存，冻结版重新生成会丢失 GLB。阶段 5 的旧实现清零条件继续跟踪。[阶段 5 审计与回退](validation/20261127-craft-stage5-deck/README.md)
 
 | 剩余范围 | 人周 | 估算依据 |
 | --- | ---: | --- |
@@ -103,7 +105,7 @@ WordCraft 0.15.0 的文档模型、编辑会话和完整分页仍在桌面与 CL
 
 ## JoyDeck · 阶段 4 开发余量 0 人周
 
-DeckCraft 0.14.1 的文件来源保留在账本中。现行编辑路径的 183 项预设形状、5 种文件连接线及 49 类 PresentationML 转场生成器继续参加回归。阶段 4 平台待验及阶段 5 生产调用核查与回退演练仍需分别跟踪。[逐文件来源](../../licenses/deckcraft/file-map.json) · [产品移植说明](../../THIRD_PARTY-JOYDECK.md) · [已替换的生成器](validation/20261123-uos-refactor/README.md)
+DeckCraft 0.14.1 的文件来源保留在账本中。现行编辑路径的 183 项预设形状、5 种文件连接线及 49 类 PresentationML 转场生成器继续参加回归。平台待验和阶段 5 的剩余生产路径见本轮记录。[逐文件来源](../../licenses/deckcraft/file-map.json) · [产品移植说明](../../THIRD_PARTY-JOYDECK.md) · [已替换的生成器](validation/20261123-uos-refactor/README.md) · [阶段 5](validation/20261127-craft-stage5-deck/README.md)
 
 | 阶段与优先级 | 仍在用的派生代码及替换内容 | 人周 | 兼容性验收标准 |
 | --- | --- | ---: | --- |
