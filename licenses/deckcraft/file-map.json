@@ -487,7 +487,7 @@
       "source_path": "crates/metafile/src/canvas.rs",
       "source_sha256": "782c90dd2b0b64f738f3a24cad125abe97d3315f0642bb62169a1fff5370b855",
       "target_path": "crates/joydeck-metafile/src/canvas.rs",
-      "adapted_sha256": "aa337cc7475f6fcbfc3a63f532eadd5314f3b18786babac3b558176d2bb1315e",
+      "adapted_sha256": "4c1435ca07032b02af20ddd61a91cc12805a40fcda5c604c60a990282503ca02",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -497,7 +497,8 @@
         "Use the independent bitmap mirror path for GDI placement.",
         "Use independent coordinate mapping, rectangular regions and GDI text placement.",
         "Carry a bounded EMF+ clip outline and physical glyph record through the device canvas.",
-        "Preserve affine bitmap geometry, nested canvases, hatch origins, and exact outline masks for EMF+ text."
+        "Preserve affine bitmap geometry, nested canvases, hatch origins, and exact outline masks for EMF+ text.",
+        "Route masked transfers and brush ROPs through the independent raster scene."
       ]
     },
     {
@@ -519,7 +520,7 @@
       "source_path": "crates/metafile/src/cliprect.rs",
       "source_sha256": "f815bcf5109caab9700eb37f7e33592440b5ee7cc66bbe2a1da8d3cfcebea23d",
       "target_path": "crates/joydeck-metafile/src/cliprect.rs",
-      "adapted_sha256": "37ee8d3c3d19864b240e2302235c33f0de2555263c7c02a90cd7b3439726c778",
+      "adapted_sha256": "46dbe49074a1f29fe9d5a95879ddb918eeb6f628f386306bab67dfe914f35d10",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -527,7 +528,8 @@
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
         "Connect region bitmap clipping to the independently implemented GDI bitmap representation.",
         "Use independent oriented half-planes for polygon and segment clipping; retain the raster/item adapter.",
-        "Keep geometric fast paths for convex fills and pass text and affine drawings to the exact device mask."
+        "Keep geometric fast paths for convex fills and pass text and affine drawings to the exact device mask.",
+        "Carry raster transfers through the scene's exact device clip."
       ]
     },
     {
@@ -549,7 +551,7 @@
       "source_path": "crates/metafile/src/emf.rs",
       "source_sha256": "ecfde13c6cea9cb5603a8961d0cb85231a645e6541e458a243c2facbbe0bc91c",
       "target_path": "crates/joydeck-metafile/src/emf.rs",
-      "adapted_sha256": "6faca7cb50bedc69151a13a16d3f85bdaf995a5d86bf0186854a6e18379ce2c7",
+      "adapted_sha256": "c2a7675b814d5da12b049d498feea276aa82743347c7b5147650ca17b62032db",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -558,14 +560,15 @@
         "Interpret complete EMF records from the bounded stream and route embedded EMF+ comments.",
         "Route EMF DIB input and raster/alpha preparation through the independent bitmap implementation.",
         "Route EMF vector records, clip regions and text payloads to first-party interpreters.",
-        "Honor signed source extents in DIB transfers through the affine bitmap mapping."
+        "Honor signed source extents in DIB transfers through the affine bitmap mapping.",
+        "Dispatch masked and color-keyed transfers and evaluate legacy DIB ROP3 on the destination."
       ]
     },
     {
       "source_path": "crates/metafile/src/emfplus.rs",
       "source_sha256": "183b0be47ee2467ef8824b768709a57a83dc243f15195c066ccef601a933d15e",
       "target_path": "crates/joydeck-metafile/src/emfplus.rs",
-      "adapted_sha256": "5b1d4ed30d2739eae4e930060fd81f8e62712741281b544550719317be319a87",
+      "adapted_sha256": "983840a91d75ce22fb28cb6e7857e0c7c3660294ff2ea8cf7714d2ba84111a14",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -576,7 +579,8 @@
         "Use independent state decoding, object assembly, image unpacking, and path construction.",
         "Route brush/pen decoding, region evaluation, drawing commands and positioned glyphs through first-party codecs.",
         "Use independent region algebra, brush-backed pen outlines and physical glyph placements.",
-        "Replay native custom caps, all GDI+ hatch styles, source-window affine draws, and nested projected scenes."
+        "Replay native custom caps, all GDI+ hatch styles, source-window affine draws, and nested projected scenes.",
+        "Resolve image attributes and serialized effects for EMF+ bitmap draws, with bounded processing."
       ]
     },
     {
@@ -598,7 +602,7 @@
       "source_path": "crates/metafile/src/lib.rs",
       "source_sha256": "3adccd030b589e5f091cbc791f814929f62221850853b6932cca5d9a22014a1d",
       "target_path": "crates/joydeck-metafile/src/lib.rs",
-      "adapted_sha256": "bdfe8ed77ffeba9f57df456eeb944802f86a4a3251aab31069fb06c65036f996",
+      "adapted_sha256": "7417dc971fbb15ff1b2fb2012ac2a93d3ff33ec082a8cd2035414ed33959a035",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -610,7 +614,8 @@
         "Register independent EMF+ state, image, object, polygon clipping, path and code-page implementations.",
         "Register the first-party EMF+ drawing, brush, region and text codecs.",
         "Register the EMF+ pen codec and preserve sampled shades and outline clips during normalization.",
-        "Register first-party scene projection and retain source sampling and nested clip geometry in the picture model."
+        "Register first-party scene projection and retain source sampling and nested clip geometry in the picture model.",
+        "Retain image composition and GDI raster transfers in the normalized scene."
       ]
     },
     {
@@ -633,7 +638,7 @@
       "source_path": "crates/metafile/src/tests.rs",
       "source_sha256": "2eb389346a6d6e3590aeee7c47a111c7c6dda6e00237e6b2ea9a6ff2bce1e3c6",
       "target_path": "crates/joydeck-metafile/src/tests.rs",
-      "adapted_sha256": "8146e822a7827734424470a3b13c53784c51338d5306b11c0dd0c44b70a2e77f",
+      "adapted_sha256": "6f8e2ff01aaacc036aa7d22e4b625a81c3ec4f1a50b8291a970ea37d145ec4d8",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -641,7 +646,8 @@
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
         "Exercise the independent bitmap backend, including top-down RGB565 channel masks and padding.",
         "Assert that EMF+ glyph indices survive reading without a character or font substitution.",
-        "Verify nested picture projection through the production scene commands."
+        "Verify nested picture projection through the production scene commands.",
+        "Check destination-aware ROP results and no-op identity colors."
       ]
     },
     {
@@ -663,7 +669,7 @@
       "source_path": "crates/metafile/src/wmf.rs",
       "source_sha256": "d2d13b7ecda9f62c3ee15e715d7cbda75417aabbc225efd9e75d9bd981ba78b5",
       "target_path": "crates/joydeck-metafile/src/wmf.rs",
-      "adapted_sha256": "a47fa55bbd4e4242d2852024bac6c379587a2699b64b449a825708ace8d60a38",
+      "adapted_sha256": "fb019f7b6805dc03fcddc7aa22a08fe63b73ba7b9657278f740cf0c093d5a713",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -671,7 +677,8 @@
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
         "Interpret whole WMF records from checked word framing in playback order.",
         "Route WMF DIB layout, decoding and raster preparation through the independent bitmap implementation.",
-        "Route WMF vector and text payloads to first-party interpreters."
+        "Route WMF vector and text payloads to first-party interpreters.",
+        "Use the independent raster transfer path for DIB ROP3 and destination operations."
       ]
     },
     {

@@ -8,6 +8,9 @@ use crate::bytes::Bytes;
 use crate::canvas::{
     BS_HATCHED, BS_NULL, Brush, Canvas, LogFont, Obj, PS_NULL, PS_STYLE_MASK, Pen, Xform, colorref,
 };
+use crate::gdi_transfer;
+use crate::image_placement::rectangle;
+use crate::raster_transfer::{Logic, RasterTransfer, TransferSource};
 use crate::records::{self, Format};
 use crate::text::{Font, decode_utf16};
 use crate::text_records;
@@ -132,6 +135,7 @@ fn record(cv: &mut Canvas, typ: u32, r: Bytes) {
         30 => rect32(r, 8).map(|rect| cv.intersect_clip_rect(rect)),
         75 => crate::clip::play_emf(cv, r),
         76 | 77 => bitblt(cv, r, typ == 77),
+        78 | 79 | 116 => gdi_transfer::play(cv, typ, r),
         80 => set_dibits(cv, r),
         81 => stretch_dibits(cv, r),
         114 => alphablend(cv, r),
@@ -276,6 +280,12 @@ fn bitblt(cv: &mut Canvas, r: Bytes, stretch: bool) -> Option<()> {
         (dst[2], dst[3])
     };
     let src = [i32s(r, 44), i32s(r, 48), sw, sh];
+    let logic = Logic::single(rop);
+    if logic.foreground != Logic::SOURCE {
+        let source = gdi_transfer::dc_source(r, src, 84)?;
+        cv.raster_transfer(RasterTransfer::new(rectangle(dst), logic, Some(source)));
+        return Some(());
+    }
     blit(cv, r, dst, src, (84, 92), Blend::Rop(rop))
 }
 
@@ -305,6 +315,10 @@ fn stretch_dibits(cv: &mut Canvas, r: Bytes) -> Option<()> {
     let dst = [i32s(r, 24), i32s(r, 28), i32s(r, 72), i32s(r, 76)];
     let src = [i32s(r, 32), i32s(r, 36), i32s(r, 40), i32s(r, 44)];
     let rop = r.u32(68)?;
+    if Canvas::sourceless(rop) {
+        cv.fill_rop(dst, rop);
+        return Some(());
+    }
     blit(cv, r, dst, src, (48, 56), Blend::Rop(rop))
 }
 
@@ -340,6 +354,14 @@ fn blit(
     let info = Bytes(r.slice(bo, bl)?);
     let pixels = Bytes(r.slice(po, pl)?);
     let mut img = bitmap::decode(info, pixels, blend.per_pixel())?;
+    if let Blend::Rop(rop) = blend {
+        let logic = Logic::single(rop);
+        if logic.foreground != Logic::SOURCE {
+            let source = TransferSource::dib(img, src)?;
+            cv.raster_transfer(RasterTransfer::new(rectangle(dst), logic, Some(source)));
+            return Some(());
+        }
+    }
     bitmap::prepare(&mut img, blend);
     if src[2] != 0.0 && src[3] != 0.0 && (src[2] < 0.0 || src[3] < 0.0) {
         return cv.affine_bitmap(crate::image_placement::rectangle(dst), src, img);

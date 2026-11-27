@@ -229,25 +229,21 @@ pub(crate) fn clip_blit(
 }
 
 pub(crate) fn prepare(image: &mut Rgba, blend: Blend) {
+    let Blend::Alpha {
+        constant,
+        per_pixel,
+    } = blend
+    else {
+        return;
+    };
     for [r, g, b, a] in image.px.as_chunks_mut::<4>().0 {
-        match blend {
-            Blend::Rop(0x0088_00c6) if [*r, *g, *b] == [255; 3] => *a = 0,
-            Blend::Rop(0x00ee_0086 | 0x0066_0046) if [*r, *g, *b] == [0; 3] => *a = 0,
-            Blend::Alpha {
-                constant,
-                per_pixel,
-            } => {
-                let alpha = u32::from(*a);
-                if per_pixel && (1..255).contains(&alpha) {
-                    for component in [r, g, b] {
-                        *component =
-                            ((u32::from(*component) * 255 + alpha / 2) / alpha).min(255) as u8;
-                    }
-                }
-                *a = (alpha * u32::from(constant) / 255) as u8;
+        let alpha = u32::from(*a);
+        if per_pixel && (1..255).contains(&alpha) {
+            for component in [r, g, b] {
+                *component = ((u32::from(*component) * 255 + alpha / 2) / alpha).min(255) as u8;
             }
-            Blend::Rop(_) => (),
         }
+        *a = (alpha * u32::from(constant) / 255) as u8;
     }
 }
 

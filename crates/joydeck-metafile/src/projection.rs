@@ -31,6 +31,11 @@ pub enum PlacedItem {
         placement: ImagePlacement,
         region: Masks,
     },
+    Transfer {
+        index: usize,
+        transform: Affine,
+        region: Masks,
+    },
     Pattern {
         index: usize,
         path: BezPath,
@@ -261,6 +266,17 @@ impl Projector {
                         placement,
                         region,
                     }
+                }
+            }
+            Item::Transfer { transfer, region } => {
+                let placement = transfer.placement.map(transform);
+                if !placement.valid() || !visible(placement.bounds()) {
+                    return None;
+                }
+                PlacedItem::Transfer {
+                    index,
+                    transform,
+                    region: self.masks(region.as_ref())?,
                 }
             }
         })

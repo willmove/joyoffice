@@ -9,11 +9,12 @@ use crate::clip::{self, MAX_CLIP_RECTS};
 use crate::device::Mapping;
 pub(crate) use crate::device::{Xform, mul};
 use crate::geom::{Op, P};
+use crate::raster_transfer::{Logic, RasterTransfer, TransferBrush};
 use crate::text::{ETO_CLIPPED, ETO_OPAQUE, Font, Text};
 use crate::text_records::Placement;
 use crate::{
-    ClipRegion, GlyphPlacement, ImagePlacement, IndexedGlyphs, MAX_BYTES, MAX_ITEMS, MAX_OBJECTS,
-    MAX_PATH_OPS, MAX_STACK, Picture,
+    ClipRegion, GlyphPlacement, ImageComposition, ImagePlacement, IndexedGlyphs, MAX_BYTES,
+    MAX_ITEMS, MAX_OBJECTS, MAX_PATH_OPS, MAX_STACK, Picture,
 };
 
 const STOCK: u32 = 0x8000_0000;
@@ -182,6 +183,11 @@ pub(crate) enum Raw {
         placement: ImagePlacement,
         img: Rgba,
         region: Option<ClipRegion<f64>>,
+        composition: ImageComposition,
+    },
+    Transfer {
+        transfer: Box<RasterTransfer>,
+        region: Option<ClipRegion<f64>>,
     },
     Nested {
         placement: ImagePlacement,
@@ -203,6 +209,7 @@ impl Raw {
             | Raw::Pattern { region: slot, .. }
             | Raw::Bitmap { region: slot, .. }
             | Raw::AffineBitmap { region: slot, .. }
+            | Raw::Transfer { region: slot, .. }
             | Raw::Nested { region: slot, .. }
             | Raw::Text { region: slot, .. } => {
                 if let Some(next) = region {
@@ -341,7 +348,10 @@ impl Canvas {
             Some(PlusClip::Convex { vertices, outline })
                 if matches!(
                     raw,
-                    Raw::Text { .. } | Raw::AffineBitmap { .. } | Raw::Nested { .. }
+                    Raw::Text { .. }
+                        | Raw::AffineBitmap { .. }
+                        | Raw::Nested { .. }
+                        | Raw::Transfer { .. }
                 ) =>
             {
                 if vertices.len() >= 3 {
@@ -387,6 +397,7 @@ impl Canvas {
                 ops.len() * std::mem::size_of::<Op>() + 64 + own
             }
             Raw::Bitmap { img, .. } | Raw::AffineBitmap { img, .. } => img.px.len(),
+            Raw::Transfer { transfer, .. } => transfer.footprint(),
             Raw::Nested { bytes, .. } => *bytes,
             Raw::Text { text: t, .. } => {
                 let glyphs = t.indexed.as_ref().map_or(0, |run| {
@@ -1046,19 +1057,25 @@ impl Canvas {
         });
     }
 
-    /// Whether a raster operation draws without a source bitmap (PATCOPY, BLACKNESS, WHITENESS).
+    /// Whether the ROP truth table is independent of a source bitmap.
     pub fn sourceless(rop: u32) -> bool {
-        matches!(rop, PATCOPY | BLACKNESS | WHITENESS)
+        !Logic::single(rop).uses_source()
     }
 
-    /// Fills a logical rectangle `[x, y, w, h]` for a source-less raster operation. PATCOPY uses the
-    /// brush (when solid); the others fill black or white. Other operations are not handled here.
+    /// Fills or composites a logical rectangle for a source-less raster operation.
     pub fn fill_rop(&mut self, [x, y, w, h]: [f64; 4], rop: u32) {
         let rect = [x, y, x + w, y + h];
         match rop {
             PATCOPY => self.fill_brush_rect(rect),
             BLACKNESS => self.fill_rect_with(rect, [0, 0, 0, 255]),
             WHITENESS => self.fill_rect_with(rect, [255, 255, 255, 255]),
+            _ if Self::sourceless(rop) => {
+                self.raster_transfer(RasterTransfer::new(
+                    crate::image_placement::rectangle([x, y, w, h]),
+                    Logic::single(rop),
+                    None,
+                ));
+            }
             _ => {}
         }
     }
@@ -1195,8 +1212,42 @@ impl Canvas {
     pub fn affine_bitmap(
         &mut self,
         destination: kurbo::Affine,
+        source: [f64; 4],
+        img: Rgba,
+    ) -> Option<()> {
+        self.composited_bitmap(destination, source, img, ImageComposition::SourceOver)
+    }
+
+    pub fn raster_transfer(&mut self, mut transfer: RasterTransfer) {
+        use kurbo::Affine;
+        transfer.map(Affine::new(self.device_affine()));
+        if !transfer.placement.valid() {
+            return;
+        }
+        if transfer.logic.uses_pattern() {
+            let Some(paint) = self.fill_paint() else {
+                return;
+            };
+            transfer.brush = match paint {
+                Paint::Solid([r, g, b, _]) => TransferBrush::Solid([r, g, b]),
+                Paint::Tile(tile) => TransferBrush::Tile {
+                    pixels_to_target: Affine::translate(tile.origin) * Affine::scale(tile.cell),
+                    tile,
+                },
+            };
+        }
+        self.push(Raw::Transfer {
+            transfer: Box::new(transfer),
+            region: None,
+        });
+    }
+
+    pub fn composited_bitmap(
+        &mut self,
+        destination: kurbo::Affine,
         mut source: [f64; 4],
         img: Rgba,
+        composition: ImageComposition,
     ) -> Option<()> {
         let (w, h) = (img.w as f64, img.h as f64);
         if img.bottom_up {
@@ -1208,6 +1259,7 @@ impl Canvas {
             placement,
             img,
             region: None,
+            composition,
         });
         Some(())
     }
