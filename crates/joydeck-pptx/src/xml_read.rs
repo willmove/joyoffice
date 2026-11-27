@@ -62,6 +62,8 @@ pub fn parse(bytes: &[u8]) -> Result<Doc, PptxError> {
     reader.config_mut().allow_unmatched_ends = true;
     let mut parents = Vec::new();
     let mut root = None;
+    let mut before_root = Vec::new();
+    let mut after_root = Vec::new();
     let mut element_count = 0;
     let mut event_count = 0;
     loop {
@@ -75,7 +77,7 @@ pub fn parse(bytes: &[u8]) -> Result<Doc, PptxError> {
         if event_count > MAX_NODES * 8 {
             return Err(PptxError::Xml("document has too many XML events".into()));
         }
-        if root.is_some() {
+        if root.is_some() && !matches!(event, Event::Comment(_) | Event::PI(_)) {
             continue;
         }
         match event {
@@ -126,17 +128,28 @@ pub fn parse(bytes: &[u8]) -> Result<Doc, PptxError> {
                 }
             }
             Event::Comment(comment) => {
-                if let (Some(parent), Ok(text)) = (parents.last_mut(), comment.decode()) {
-                    parent.children.push(Node::Markup(format!("<!--{text}-->")));
+                if let Ok(text) = comment.decode() {
+                    append_markup(
+                        &mut parents,
+                        if root.is_some() {
+                            &mut after_root
+                        } else {
+                            &mut before_root
+                        },
+                        format!("<!--{text}-->"),
+                    );
                 }
             }
             Event::PI(instruction) => {
-                if let Some(parent) = parents.last_mut() {
-                    parent.children.push(Node::Markup(format!(
-                        "<?{}?>",
-                        String::from_utf8_lossy(&instruction)
-                    )));
-                }
+                append_markup(
+                    &mut parents,
+                    if root.is_some() {
+                        &mut after_root
+                    } else {
+                        &mut before_root
+                    },
+                    format!("<?{}?>", String::from_utf8_lossy(&instruction)),
+                );
             }
             Event::DocType(_) => return Err(PptxError::Xml("DTDs are unsupported".into())),
             _ => {}
@@ -147,7 +160,17 @@ pub fn parse(bytes: &[u8]) -> Result<Doc, PptxError> {
     }
     Ok(Doc {
         root: root.ok_or_else(|| PptxError::Xml("no root element".into()))?,
+        before_root,
+        after_root,
     })
+}
+
+fn append_markup(parents: &mut [El], outside: &mut Vec<String>, markup: String) {
+    if let Some(parent) = parents.last_mut() {
+        parent.children.push(Node::Markup(markup));
+    } else {
+        outside.push(markup);
+    }
 }
 
 fn element(start: &BytesStart, reader: &Reader<&[u8]>) -> El {

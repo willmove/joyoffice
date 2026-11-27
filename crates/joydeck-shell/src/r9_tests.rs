@@ -115,6 +115,84 @@ fn r9_custom_part_paths_survive_edit_undo_redo_and_slide_duplication() -> Result
 }
 
 #[test]
+fn cloned_pptx_slide_retains_opaque_part_and_relationship_fragment() -> Result<(), String> {
+    use std::io::Write as _;
+
+    let original = zip::ZipArchive::new(Cursor::new(OLD_PUBLIC)).map_err(|e| e.to_string())?;
+    let mut archive = zip::ZipWriter::new(Cursor::new(Vec::new()));
+    let options = zip::write::SimpleFileOptions::default();
+    for name in original.file_names() {
+        let name = name.map_err(|e| e.to_string())?;
+        archive
+            .start_file(name.as_ref(), options)
+            .map_err(|e| e.to_string())?;
+        archive
+            .write_all(&part(OLD_PUBLIC, &name)?)
+            .map_err(|e| e.to_string())?;
+    }
+    let opaque = "vendor/文件 #1%.xml";
+    let body = b"<opaque anchor=\"section 2\"/>";
+    let original_rels = "slideset/pages/_rels/p20.xml.rels";
+    archive
+        .start_file(opaque, options)
+        .map_err(|e| e.to_string())?;
+    archive.write_all(body).map_err(|e| e.to_string())?;
+    archive
+        .start_file(original_rels, options)
+        .map_err(|e| e.to_string())?;
+    archive.write_all(br#"<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="opaque" Type="urn:vendor:link" Target="/vendor/%E6%96%87%E4%BB%B6%20%231%25.xml#section%202"/><Relationship Id="external" Type="urn:vendor:external" Target="https://example.org/f?q=x#top" TargetMode="External"/></Relationships>"#)
+        .map_err(|e| e.to_string())?;
+    let original = archive.finish().map_err(|e| e.to_string())?.into_inner();
+    let doc = Document::from_bytes(
+        "opaque.pptx".into(),
+        original.clone(),
+        &Cancellation::default(),
+    )?;
+    let mut session = Session::new(
+        doc.presentation.clone(),
+        original_bindings(&doc.presentation),
+        true,
+    );
+    session.execute(
+        serde_json::from_str(r#"{"command":"duplicate-slide"}"#).map_err(|e| e.to_string())?,
+    )?;
+    let snapshot = session.snapshot();
+    let bindings = snapshot
+        .origins
+        .iter()
+        .map(|(slide, origin)| joydeck_pptx::SlideBinding {
+            slide: *slide,
+            source: origin.slide,
+            shapes: origin.shapes.clone(),
+        })
+        .collect::<Vec<_>>();
+    let output =
+        joydeck_pptx::export_preserving(&original, &doc.presentation, &snapshot.model, &bindings)
+            .map_err(|e| e.to_string())?;
+    assert_eq!(part(&output, opaque)?, body);
+    assert_eq!(
+        part(&output, original_rels)?,
+        part(&original, original_rels)?
+    );
+    let archive = zip::ZipArchive::new(Cursor::new(&output)).map_err(|e| e.to_string())?;
+    let clone_rels = archive
+        .file_names()
+        .filter_map(Result::ok)
+        .find(|name| name.starts_with("ppt/slides/_rels/joydeck-") && name.ends_with(".xml.rels"))
+        .ok_or("missing cloned slide relationships")?;
+    let rels = String::from_utf8(part(&output, &clone_rels)?).map_err(|e| e.to_string())?;
+    assert!(
+        rels.contains("Target=\"../../vendor/文件%20%231%25.xml#section%202\""),
+        "{rels}"
+    );
+    assert!(rels.contains("Target=\"https://example.org/f?q=x#top\" TargetMode=\"External\""));
+    let reopened =
+        Document::from_bytes("opaque-copy.pptx".into(), output, &Cancellation::default())?;
+    assert_eq!(reopened.presentation.slides.len(), 21);
+    Ok(())
+}
+
+#[test]
 #[allow(clippy::unwrap_used, reason = "Test assertions")]
 fn clear_character_format_preserves_links_in_native_and_preserving_pptx_save() {
     use joydeck_engine::{TextEdit, TextTarget, formatting::clear_character_format};

@@ -27,7 +27,6 @@ crates/joydeck-engine/src/content.rs:479:assert!(s.execute(Command::Undo).unwrap
 crates/joydeck-engine/src/content.rs:482:assert!(s.execute(Command::Redo).unwrap());
 crates/joydeck-engine/src/content.rs:505:.unwrap();
 crates/joydeck-engine/src/content.rs:513:.unwrap();
-crates/joydeck-engine/src/media_refs.rs:426:let mut s = (**p.slides.first().expect("slide")).clone();
 crates/joydeck-fonts/build.rs:281:std::fs::create_dir(&path).unwrap();
 crates/joydeck-fonts/build.rs:282:std::fs::create_dir(path.join("fonts")).unwrap();
 crates/joydeck-fonts/build.rs:283:std::fs::write(path.join("fonts/fixture.ttf"), b"build-input path fixture").unwrap();
@@ -140,10 +139,6 @@ crates/joydeck-geom/src/preset/extra.rs:1003:let g = build(n, 100.0, 100.0, &[])
 crates/joydeck-geom/src/preset/extra.rs:1026:.unwrap_or_else(|| panic!("accentBorderCallout3"));
 crates/joydeck-geom/src/preset/extra.rs:1146:.unwrap_or_else(|| panic!("curvedRightArrow"));
 crates/joydeck-geom/src/preset/extra.rs:1270:let g = build("funnel", 480.0, 300.0, &[]).unwrap_or_else(|| panic!("funnel"));
-crates/joydeck-metafile/src/clip.rs:208:let or = combine(a.clone(), vec![[200.0, 0.0, 210.0, 10.0]], RGN_OR, None).unwrap();
-crates/joydeck-metafile/src/clip.rs:210:let diff = combine(a.clone(), vec![[20.0, 0.0, 40.0, 40.0]], RGN_DIFF, None).unwrap();
-crates/joydeck-metafile/src/clip.rs:212:let xor = combine(a, vec![[80.0, 0.0, 120.0, 40.0]], RGN_XOR, None).unwrap();
-crates/joydeck-metafile/src/clip.rs:219:let r = exclude(None, [10.0, 0.0, 20.0, 40.0], Some([0.0, 0.0, 40.0, 40.0])).unwrap();
 crates/joydeck-model/src/chart.rs:1205:let (lo, hi) = e.range(&vals, 0, 3.0).unwrap();
 crates/joydeck-model/src/chart.rs:1965:.expect("a bin holds 2.1");
 crates/joydeck-model/src/chart.rs:1990:let b = box_stats(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 100.0]).unwrap();
@@ -259,8 +254,6 @@ crates/joydeck-pptx/src/read/dml.rs:970:let d = parse(br#"<a:bodyPr><a:normAutof
 crates/joydeck-pptx/src/read/dml.rs:978:let d = parse(br#"<a:bodyPr spcFirstLastPara="1"/>"#).unwrap();
 crates/joydeck-pptx/src/read/dml.rs:982:let d = parse(br#"<a:bodyPr vert="mongolianVert"/>"#).unwrap();
 crates/joydeck-pptx/src/read/dml.rs:986:let d = parse(br#"<a:bodyPr vert="wordArtVertRtl"/>"#).unwrap();
-crates/joydeck-pptx/src/tables.rs:410:let d = crate::xml::parse(&table_styles_xml(&used, &[])).unwrap();
-crates/joydeck-pptx/src/tables.rs:416:.map(|e| ORDER.iter().position(|o| *o == e.local()).unwrap())
 crates/joydeck-pptx/src/write/chart.rs:1281:let c = crate::read::read_chartex_xml(MAP.as_bytes()).expect("a region map is read");
 crates/joydeck-pptx/src/write/chart.rs:1307:let back = crate::read::read_chartex_xml(built.as_bytes()).expect("the rebuilt part reads");
 crates/joydeck-pptx/src/write/chart.rs:1342:let xml = String::from_utf8(super::chart_xml(&c).0).unwrap();
@@ -272,11 +265,6 @@ crates/joydeck-pptx/src/write/chart.rs:1384:let c = crate::read::chart::read_cha
 crates/joydeck-pptx/src/write/chart.rs:1397:let back = crate::read::chart::read_chart_xml(&out).unwrap();
 crates/joydeck-pptx/src/write/chart.rs:1410:.unwrap()
 crates/joydeck-pptx/src/write/chart.rs:1416:.unwrap()
-crates/joydeck-pptx/src/xml.rs:574:.expect("parse");
-crates/joydeck-pptx/src/xml.rs:587:let d = parse(w.s.as_bytes()).expect("parse");
-crates/joydeck-pptx/src/xml.rs:594:.unwrap();
-crates/joydeck-pptx/src/xml.rs:600:let x = d.root.child("x").unwrap();
-crates/joydeck-pptx/src/xml.rs:622:let d = parse(b"<p:sp a=\"1\"><p:t>x &amp; y</p:t><e/></p:sp>").unwrap();
 crates/joydeck-render/src/bevel.rs:248:let b = from_raw(raw).unwrap();
 crates/joydeck-render/src/camera.rs:252:let c = from_raw(r#"<a:scene3d><a:camera prst="orthographicFront"><a:rot lat="0" lon="3600000" rev="0"/></a:camera><a:lightRig rig="threePt" dir="t"><a:rot lat="0" lon="0" rev="1200000"/></a:lightRig></a:scene3d>"#).unwrap();
 crates/joydeck-render/src/camera.rs:253:let m = affine(&c, 100.0, 75.0).unwrap();

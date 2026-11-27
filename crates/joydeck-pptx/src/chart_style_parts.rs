@@ -29,10 +29,7 @@ pub(super) fn ensure(
             colors,
         ),
     ] {
-        relationships
-            .items
-            .retain(|(_, content, _, external)| content != kind || !external);
-        if relationships.items.iter().any(|(_, ty, ..)| ty == kind) {
+        if relationships.retain_internal_kind(kind) {
             continue;
         }
         let path = format!("ppt/charts/joydeck-{stem}-{index}.xml");

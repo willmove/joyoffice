@@ -178,19 +178,29 @@ def compare_extended_style_additions(frozen, candidate):
     assert_equal(frozen, candidate, "extended chart model apart from its generated style pair")
 
 
-def compare_legacy_review(frozen, candidate):
-    # Stage 2 began preserving the picture fallback of this unattached legacy audio object.
-    # The frozen file has no poster, and neither output can invent the missing audio bytes.
+def compare_legacy_review(frozen, candidate, source, preserved):
+    # Stage 5 resolves both audio relationships to the retained WAV in the native archive.
+    # The earlier preserving writer emitted a picture fallback with dangling audio IDs.
     before = frozen["slides"][0]["shapes"][1]
     after = candidate["slides"][0]["shapes"][1]
     assert before["kind"] == {"type": "shape"}
-    assert after["kind"]["type"] == "picture"
-    assert after["kind"]["fill"]["media"] == 13
+    assert after["kind"]["type"] == "media"
+    assert (after["kind"]["media"], after["kind"]["poster"], after["kind"]["video"]) == (14, 13, False)
+    assert after["kind"]["trimEndMs"] == 5000
+    assert after["kind"]["volume"] == 1.0
     assert frozen["media"] == []
-    assert candidate["media"] == [{
-        "id": 13, "name": "joydeck-1-image1.png", "contentType": "image/png", "link": None,
-    }]
-    assert candidate["nextId"] == frozen["nextId"] + 1 == 13
+    assert candidate["media"] == [
+        {"id": 13, "name": "joydeck-1-image1.png", "contentType": "image/png", "link": None},
+        {"id": 14, "name": "joydeck-1-media1.wav", "contentType": "audio/wav", "link": None},
+    ]
+    assert candidate["nextId"] == frozen["nextId"] + 2 == 14
+    original_audio = [part for part in unpack(source).values()
+                      if part.startswith(b"RIFF") and part[8:12] == b"WAVE"]
+    assert len(original_audio) == 1
+    restored = unpack(preserved)
+    assert restored["ppt/media/joydeck-1-media1.wav"] == original_audio[0]
+    graph = relationship_graph(preserved, "pptx")
+    assert not graph["missingRelationships"]
     after["kind"] = before["kind"]
     candidate["media"] = []
     candidate["nextId"] = frozen["nextId"]
@@ -333,8 +343,9 @@ def compile_inventory(exes, work, report):
                 assert_equal(record["frozen"]["diagnostic"], record["candidate"]["diagnostic"], (label, mode))
             else:
                 if (label, mode) == (LEGACY_REVIEW, "preserve"):
-                    compare_legacy_review(writer_models["frozen"], writer_models["candidate"])
-                    row["existingDifference"] = "picture placeholder for legacy audio, introduced in phase 2"
+                    compare_legacy_review(writer_models["frozen"], writer_models["candidate"],
+                                          source, target / "preserve-candidate.pptx")
+                    row["existingDifference"] = "legacy WAV restored byte-for-byte with closed media relationships"
                 elif source == chart_source and mode == "regenerate":
                     compare_extended_style_additions(writer_models["frozen"], writer_models["candidate"])
                     row["expectedDifference"] = "ChartEx regeneration includes the PowerPoint style pair"

@@ -7,7 +7,10 @@ use std::io::{Cursor, Read};
 use std::sync::Arc;
 
 use crate::PptxError;
-use crate::xml::{self, A, W};
+pub use crate::package_writer::PackageOut;
+pub use crate::relationships::RelsOut;
+pub use crate::relationships::{Rel, Rels, dir_of, file_of, relative, rels_path, resolve};
+use crate::xml;
 
 /// Largest single part we decompress (media included).
 pub const MAX_PART: u64 = 512 * 1024 * 1024;
@@ -217,7 +220,7 @@ impl Package {
         let Some(doc) = self.xml(&rp) else {
             return Rels::default();
         };
-        rels_of(&doc, part)
+        crate::relationships::read(&doc.root, part)
     }
     /// The root relationship, rather than a conventional directory, identifies the main part.
     pub(crate) fn presentation_path(&self) -> Result<String, PptxError> {
@@ -267,78 +270,14 @@ impl Package {
     }
 }
 
-/// The relationships in a parsed rels part, with internal targets resolved against `part`'s folder.
-fn rels_of(doc: &xml::Doc, part: &str) -> Rels {
-    let base = dir_of(part);
-    let mut out = Rels::default();
-    for r in doc.root.children_named("Relationship") {
-        let (Some(id), Some(ty), Some(target)) = (r.attr("Id"), r.attr("Type"), r.attr("Target"))
-        else {
-            continue;
-        };
-        let external = r
-            .attr("TargetMode")
-            .is_some_and(|m| m.eq_ignore_ascii_case("external"));
-        let target_raw = target.to_string();
-        let target = if external {
-            target_raw.clone()
-        } else {
-            resolve(&base, target)
-        };
-        out.items.push(Rel {
-            id: id.to_string(),
-            kind: ty.rsplit('/').next().unwrap_or(ty).to_string(),
-            ty: ty.to_string(),
-            target_raw,
-            target,
-            external,
-        });
-    }
-    out
-}
-
 /// The relationships of `part` from the bytes of its rels part (kept parts carried by a chart).
 pub fn rels_from_bytes(bytes: &[u8], part: &str) -> Rels {
     match xml::parse(bytes) {
-        Ok(doc) => rels_of(&doc, part),
+        Ok(doc) => crate::relationships::read(&doc.root, part),
         Err(e) => {
             log::warn!("pptx: relationships of {part}: {e}");
             Rels::default()
         }
-    }
-}
-
-#[derive(Clone, Debug, Default)]
-pub struct Rel {
-    pub id: String,
-    /// Last segment of the relationship type (`slide`, `image`, `media`…).
-    pub kind: String,
-    /// Full relationship type URI.
-    pub ty: String,
-    /// `Target` as written in the rels part (relative path or URL).
-    pub target_raw: String,
-    /// Absolute part name for internal targets; the URL for external ones.
-    pub target: String,
-    pub external: bool,
-}
-
-#[derive(Clone, Debug, Default)]
-pub struct Rels {
-    pub items: Vec<Rel>,
-}
-
-impl Rels {
-    pub fn get(&self, id: &str) -> Option<&Rel> {
-        self.items.iter().find(|r| r.id == id)
-    }
-    pub fn target(&self, id: &str) -> Option<&str> {
-        self.get(id).map(|r| r.target.as_str())
-    }
-    pub fn first_of(&self, kind: &str) -> Option<&Rel> {
-        self.items.iter().find(|r| r.kind == kind)
-    }
-    pub fn all_of<'a>(&'a self, kind: &'a str) -> impl Iterator<Item = &'a Rel> + 'a {
-        self.items.iter().filter(move |r| r.kind == kind)
     }
 }
 
@@ -373,271 +312,6 @@ pub fn sidecar_part(name: &str) -> bool {
         return false;
     }
     true
-}
-
-pub fn dir_of(part: &str) -> String {
-    let p = part.trim_start_matches('/');
-    match p.rfind('/') {
-        Some(i) => p.get(..i).unwrap_or("").to_string(),
-        None => String::new(),
-    }
-}
-
-pub fn file_of(part: &str) -> &str {
-    part.rsplit('/').next().unwrap_or(part)
-}
-
-pub fn rels_path(part: &str) -> String {
-    let p = part.trim_start_matches('/');
-    let dir = dir_of(p);
-    let file = file_of(p);
-    if dir.is_empty() {
-        format!("_rels/{file}.rels")
-    } else {
-        format!("{dir}/_rels/{file}.rels")
-    }
-}
-
-fn percent_decode(s: &str) -> String {
-    let b = s.as_bytes();
-    let mut out = Vec::with_capacity(b.len());
-    let mut i = 0;
-    while i < b.len() {
-        let c = b.get(i).copied().unwrap_or(0);
-        if c == b'%'
-            && let Some(h) = b
-                .get(i + 1..i + 3)
-                .filter(|h| h.iter().all(u8::is_ascii_hexdigit))
-                .and_then(|h| std::str::from_utf8(h).ok())
-                .and_then(|h| u8::from_str_radix(h, 16).ok())
-        {
-            out.push(h);
-            i += 3;
-            continue;
-        }
-        out.push(c);
-        i += 1;
-    }
-    String::from_utf8_lossy(&out).into_owned()
-}
-
-/// Resolve a relative target against a base directory into a part name.
-pub fn resolve(base: &str, target: &str) -> String {
-    let target = percent_decode(target.split('#').next().unwrap_or("")).replace('\\', "/");
-    let target = target.as_str();
-    let mut segs: Vec<&str> = if target.starts_with('/') {
-        vec![]
-    } else {
-        base.split('/').filter(|s| !s.is_empty()).collect()
-    };
-    for s in target.split('/') {
-        match s {
-            "" | "." => {}
-            ".." => {
-                segs.pop();
-            }
-            s => segs.push(s),
-        }
-    }
-    segs.join("/")
-}
-
-/// Relative target from the directory of `from` to part `to` (both absolute part names).
-pub fn relative(from: &str, to: &str) -> String {
-    let fd_s = dir_of(from);
-    let fd: Vec<&str> = fd_s.split('/').filter(|s| !s.is_empty()).collect();
-    let td_s = dir_of(to);
-    let td: Vec<&str> = td_s.split('/').filter(|s| !s.is_empty()).collect();
-    let common = fd.iter().zip(td.iter()).take_while(|(a, b)| a == b).count();
-    let mut out = String::new();
-    for _ in common..fd.len() {
-        out.push_str("../");
-    }
-    for s in td.iter().skip(common) {
-        out.push_str(s);
-        out.push('/');
-    }
-    out.push_str(file_of(to));
-    out
-}
-
-// ---------------------------------------------------------------------------------------------
-// Writing
-
-/// Relationships being built for one part.
-#[derive(Default)]
-pub struct RelsOut {
-    pub items: Vec<(String, String, String, bool)>,
-}
-
-impl RelsOut {
-    /// Add (or reuse) a relationship; `kind` is a full type URI or a suffix of the standard base.
-    pub fn add(&mut self, kind: &str, target: &str, external: bool) -> String {
-        let ty = if kind.starts_with("http") {
-            kind.to_string()
-        } else {
-            format!("{RT_BASE}{kind}")
-        };
-        if let Some((id, ..)) = self
-            .items
-            .iter()
-            .find(|(_, t, tg, e)| *t == ty && tg == target && *e == external)
-        {
-            return id.clone();
-        }
-        let id = format!("rId{}", self.items.len() + 1);
-        self.items
-            .push((id.clone(), ty, target.to_string(), external));
-        id
-    }
-    /// Always add a new relationship even if an identical one exists.
-    pub fn add_new(&mut self, kind: &str, target: &str, external: bool) -> String {
-        let ty = if kind.starts_with("http") {
-            kind.to_string()
-        } else {
-            format!("{RT_BASE}{kind}")
-        };
-        let id = format!("rId{}", self.items.len() + 1);
-        self.items
-            .push((id.clone(), ty, target.to_string(), external));
-        id
-    }
-    pub fn to_xml(&self) -> Vec<u8> {
-        let mut w = W::new();
-        w.open(
-            "Relationships",
-            A::new().a(
-                "xmlns",
-                "http://schemas.openxmlformats.org/package/2006/relationships",
-            ),
-        );
-        for (id, ty, target, ext) in &self.items {
-            let mut a = A::new().a("Id", id).a("Type", ty).a("Target", target);
-            if *ext {
-                a = a.a("TargetMode", "External");
-            }
-            w.empty("Relationship", a);
-        }
-        w.close("Relationships");
-        w.finish()
-    }
-}
-
-/// A package being written.
-pub struct PackageOut {
-    files: Vec<(String, Vec<u8>, bool)>,
-    defaults: Vec<(String, String)>,
-    overrides: Vec<(String, String)>,
-}
-
-impl Default for PackageOut {
-    fn default() -> Self {
-        PackageOut {
-            files: vec![],
-            defaults: vec![
-                (
-                    "rels".into(),
-                    "application/vnd.openxmlformats-package.relationships+xml".into(),
-                ),
-                ("xml".into(), "application/xml".into()),
-            ],
-            overrides: vec![],
-        }
-    }
-}
-
-impl PackageOut {
-    /// Add an XML part with its content type override.
-    pub fn xml_part(&mut self, name: &str, content_type: &str, data: Vec<u8>) {
-        self.overrides
-            .push((format!("/{name}"), content_type.to_string()));
-        self.files.push((name.to_string(), data, true));
-    }
-    pub fn rels(&mut self, part: &str, rels: &RelsOut) {
-        if rels.items.is_empty() {
-            return;
-        }
-        let path = rels_path(part);
-        if let Some(existing) = self.files.iter_mut().find(|(name, ..)| *name == path) {
-            existing.1 = rels.to_xml();
-        } else {
-            self.files.push((path, rels.to_xml(), true));
-        }
-    }
-    /// Add a part with no content type of its own (a relationships part).
-    pub fn raw(&mut self, name: &str, data: Vec<u8>) {
-        self.files.push((name.to_string(), data, true));
-    }
-    /// Add a binary part; its extension gets a Default content type.
-    pub fn binary(&mut self, name: &str, content_type: &str, data: Vec<u8>) {
-        let ext = name
-            .rsplit('.')
-            .next()
-            .unwrap_or("bin")
-            .to_ascii_lowercase();
-        if !self.defaults.iter().any(|(e, _)| *e == ext) {
-            self.defaults.push((ext, content_type.to_string()));
-        } else if !self
-            .defaults
-            .iter()
-            .any(|(e, c)| *e == ext && c == content_type)
-        {
-            self.overrides
-                .push((format!("/{name}"), content_type.to_string()));
-        }
-        self.files.push((name.to_string(), data, false));
-    }
-    fn into_inventory(self) -> Vec<(String, Vec<u8>, bool)> {
-        let mut ct = W::new();
-        ct.open(
-            "Types",
-            A::new().a("xmlns", joyoffice_opc::CONTENT_TYPES_NAMESPACE),
-        );
-        for (ext, value) in &self.defaults {
-            ct.empty(
-                "Default",
-                A::new().a("Extension", ext).a("ContentType", value),
-            );
-        }
-        for (part, value) in &self.overrides {
-            ct.empty(
-                "Override",
-                A::new().a("PartName", part).a("ContentType", value),
-            );
-        }
-        ct.close("Types");
-        let mut seen = std::collections::HashSet::new();
-        let mut files = Vec::with_capacity(self.files.len() + 1);
-        let types = "[Content_Types].xml";
-        files.push((types.into(), ct.finish(), true));
-        seen.insert(norm(types));
-        for (name, bytes, compress) in self.files {
-            if seen.insert(norm(&name)) {
-                files.push((name, bytes, compress));
-            } else {
-                log::warn!("pptx: part {name} written twice; keeping the first");
-            }
-        }
-        files
-    }
-
-    pub(super) fn editable_parts(self) -> Result<Package, PptxError> {
-        Package::from_parts(
-            self.into_inventory()
-                .into_iter()
-                .map(|(name, bytes, _)| (name, bytes))
-                .collect(),
-        )
-    }
-
-    pub fn finish(self) -> Result<Vec<u8>, PptxError> {
-        let entries = self.into_inventory();
-        crate::archive::write(
-            entries
-                .iter()
-                .map(|(name, bytes, compress)| (name.as_str(), bytes.as_slice(), *compress)),
-        )
-    }
 }
 
 #[cfg(test)]

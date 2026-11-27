@@ -14,9 +14,13 @@ pub(super) struct Relationships<'a> {
 }
 
 impl Relationships<'_> {
-    fn add(&mut self, kind: &str, absolute: &str, external: bool) -> String {
+    pub(super) fn add(&mut self, kind: &str, absolute: &str, external: bool) -> String {
+        self.add_typed(&format!("{}{kind}", opc::RT_BASE), absolute, external)
+    }
+
+    pub(super) fn add_typed(&mut self, ty: &str, absolute: &str, external: bool) -> String {
         if let Some(existing) = self.source.items.iter().find(|r| {
-            r.kind == kind
+            r.ty == ty
                 && r.external == external
                 && if external {
                     r.target == absolute
@@ -31,12 +35,11 @@ impl Relationships<'_> {
         } else {
             opc::relative(self.part, absolute)
         };
-        let ty = format!("{}{kind}", opc::RT_BASE);
         if let Some(existing) = self
             .added
             .iter()
             .find(|r| {
-                r.attr("Type") == Some(&ty)
+                r.attr("Type") == Some(ty)
                     && r.attr("Target") == Some(&target)
                     && (r.attr("TargetMode") == Some("External")) == external
             })
@@ -48,7 +51,8 @@ impl Relationships<'_> {
         while self.occupied.contains(&id) || self.added.iter().any(|r| r.attr("Id") == Some(&id)) {
             id.push('x');
         }
-        let mut relationship = rel_element(&id, kind, &target);
+        let mut relationship = rel_element(&id, "", &target);
+        relationship.set_attr("Type", ty);
         if external {
             relationship.set_attr("TargetMode", "External");
         }
@@ -104,31 +108,6 @@ impl Relationships<'_> {
 
     /// A new object can refer to images at any depth, including a picture
     /// bullet, a group member, or the original behind an artistic effect.
-    pub(super) fn rebind_generated_images(
-        &mut self,
-        element: &mut El,
-        import: &mut impl FnMut(&str) -> Result<String, PptxError>,
-    ) -> Result<(), PptxError> {
-        if matches!(element.name.as_str(), "a:blip" | "a14:imgLayer") {
-            if element.attr("r:link").is_some_and(|id| !id.is_empty()) {
-                return Err(error("edited linked resources need .joydeck Save As"));
-            }
-            if let Some(id) = element.attr("r:embed") {
-                let relationship = self
-                    .generated
-                    .get(id)
-                    .filter(|rel| rel.kind == "image" && !rel.external)
-                    .ok_or_else(|| error("missing generated embedded image relationship"))?;
-                let target = import(&relationship.target)?;
-                element.set_attr("r:embed", &self.add("image", &target, false));
-            }
-        }
-        for child in element.elements_mut() {
-            self.rebind_generated_images(child, import)?;
-        }
-        Ok(())
-    }
-
     fn set_click(
         &mut self,
         run: &mut El,

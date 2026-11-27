@@ -38,7 +38,29 @@ JoyDeck 阶段 4 已切换文本字体选择、字形整形、断行、自适应
 
 JoyDeck 已切换 CPU 转场合成、WMF／EMF 记录回放与绘制、PDF 分页与文字层、Windows 打印快照与逐页输出。重复选页的讲义页脚按实际纸张编号。[渲染与输出验收](validation/20261126-craft-stage4-deck-output/README.md)
 
-JoyDeck 阶段 4 的开发清单已收口。功能区按固定命令标识、上下文选区和文件页状态生成标签与命令组，沿用 GPUI 组件的焦点、可用性和动作路由。Windows 验收已记录，macOS Metal、UOS Vulkan 实机回归继续单列。[阶段 4 收尾](validation/20261126-craft-stage4-deck-close/README.md)
+JoyDeck 阶段 4 的开发清单已收口。功能区按固定命令标识、上下文选区和文件页状态生成标签与命令组，沿用 GPUI 组件的焦点、可用性和动作路由。Windows 已补验独立打印选择和取消，macOS Metal、UOS Vulkan 实机回归继续单列。[阶段 4 收尾](validation/20261126-craft-stage4-deck-close/README.md) · [Windows 打印补验](validation/20261127-craft-stage5-deck/README.md)
+
+JoyDeck 阶段 5 首轮已核对生产来源、八张依赖图和 Windows 包的 SPDX 与许可，完成冻结兼容性回归和包内二进制回退。编译输入仍含带 DeckCraft 来源的运行时文件，部分含实际保留实现。Windows 包有两项以发行声明与标准正文补充的许可记录，独立上游正文继续追溯。回退对含 3D 的文稿使用保留另存，冻结版重新生成会丢失 GLB。阶段 5 的旧实现清零条件继续跟踪。[阶段 5 审计与回退](validation/20261127-craft-stage5-deck/README.md)
+
+JoyDeck 阶段 5 后续通过 Windows 打印保存窗实际写盘，完成 PPTX 关系目标解析与重定位、WMF／EMF 位图解码和相关处理的替换。复跑冻结互读、图元光栅及 3D 保留另存。许可追溯补入 SeaHash 精确发布树和 Pathfinder 发布源文件对应的上游许可，已确认的原件限制和两条生产路径的剩余分支继续跟踪。[打印补验与生产替换](validation/20261127-craft-stage5-deck-followup/README.md)
+
+JoyDeck 阶段 5 再切换 PPTX 通用 XML 与生成关系写出，及 WMF／EMF 向量记录、设备映射、矩形区域和文字定位。以冻结版复核未知 XML、图元像素和 3D 回退，并用 PowerPoint 16 回存。后续优先处理 PPTX 图表及占位符保留分支、EMF+ 和多边形裁剪以及其余来源审计项。[XML 与图元回归](validation/20261127-craft-stage5-deck-xml-vector/README.md)
+
+JoyDeck 阶段 5 已推进图表及占位符保留编辑、EMF+ 状态与图像、凸多边形裁剪、路径几何及 Windows 码页。沿用冻结版对照并补验 PowerPoint 16 回存。PPTX 表格、媒体、包写出及剩余图元和其他来源分支继续跟踪。[保留编辑与图元回归](validation/20261127-craft-stage5-deck-preserve-emfplus/README.md)
+
+JoyDeck 阶段 5 已切换 PPTX 表格、媒体及包写出，EMF+ 基本画笔、区域解码、绘图记录与多基线字形通过冻结对照。以 PowerPoint 16 回存核对表格及音视频，旧稿嵌入 WAV 按原始字节恢复。复杂区域和字体索引、其他生产来源、许可原件及平台实机继续跟踪。[表格、媒体与图元回归](validation/20261127-craft-stage5-deck-table-media-emfplus/README.md)
+
+JoyDeck 阶段 5 已接入 EMF+ 非凸和布尔裁剪、复杂笔刷描边及物理字形索引。定向样本、冻结兼容回归和 PowerPoint 16 回存通过。活跃来源账本继续跟踪图元场景适配、PPTX、原生容器、编辑与渲染等分支，保留许可和平台实机待验事项。[EMF+ 回归与生产来源复核](validation/20261127-craft-stage5-deck-complex-emfplus/README.md)
+
+JoyDeck 阶段 5 已完成 EMF+ 自定义路径端帽、余下网纹、凸区精确文字裁剪、位图仿射及嵌套场景适配的切换。冻结回归和 6 份 PowerPoint 16 回存件读回均通过。原图元放置适配器已退役，剩余图元效果、GDI 合成及其他生产来源仍开放。[端帽、网纹和图元场景验证](validation/20261127-craft-stage5-deck-metafile-scene/README.md)
+
+JoyDeck 阶段 5 已接入 EMF+ 图像属性、序列化效果与位图 SourceCopy，并替换传统 GDI 掩码、色键和 DIB 按位合成。冻结回归、PPTX 保留另存及 PowerPoint 16 回存重开通过。余项包含空间和色调滤镜的精细原生对照、矢量 ROP2、设备相关位图以及生产来源与平台收尾。[图像效果和位图合成验证](validation/20261127-craft-stage5-deck-image-composite/README.md)
+
+JoyDeck 阶段 5 已修正 EMF+ 模糊轴向，切换矢量 ROP2、常见 WMF Bitmap16 和矢量／嵌套 SourceCopy。原生像素、冻结基线及 PowerPoint 16 回存均通过当次范围。剩余精细图元兼容包含旧调色板设备、更多原生滤镜样本及复杂字形和画笔组合。[矢量合成与原生模糊](validation/20261127-craft-stage5-deck-vector-copy/README.md)
+
+JoyDeck 阶段 5 已复核大半径模糊与低 Alpha 取整，补齐 WMF 4／8 位 Bitmap16 和透明画笔字形。冻结回归及 9 份 PowerPoint 16 回存重开通过。待补验旧调色板设备、其余滤镜与字形样本、剩余生产来源与平台实机。[滤镜、调色板与字形验证](validation/20261127-craft-stage5-deck-filter-palette/README.md)
+
+JoyDeck 阶段 5 已校对模糊扩展和缩小采样，并切换色调滤镜、红眼、锐化和物理字形纹理路径。冻结回归及 7 份 PowerPoint 16 回存通过。双三次边缘、复杂调色和红眼样本、余下生产来源、许可与平台实机继续跟踪。[图像和纹理验收](validation/20261127-craft-stage5-deck-effects-texture/README.md)
 
 | 剩余范围 | 人周 | 估算依据 |
 | --- | ---: | --- |
@@ -103,7 +125,7 @@ WordCraft 0.15.0 的文档模型、编辑会话和完整分页仍在桌面与 CL
 
 ## JoyDeck · 阶段 4 开发余量 0 人周
 
-DeckCraft 0.14.1 的文件来源保留在账本中。现行编辑路径的 183 项预设形状、5 种文件连接线及 49 类 PresentationML 转场生成器继续参加回归。阶段 4 平台待验及阶段 5 生产调用核查与回退演练仍需分别跟踪。[逐文件来源](../../licenses/deckcraft/file-map.json) · [产品移植说明](../../THIRD_PARTY-JOYDECK.md) · [已替换的生成器](validation/20261123-uos-refactor/README.md)
+DeckCraft 0.14.1 的文件来源保留在账本中。现行编辑路径的 183 项预设形状、5 种文件连接线及 49 类 PresentationML 转场生成器继续参加回归。平台待验和阶段 5 的剩余生产路径见本轮记录。[逐文件来源](../../licenses/deckcraft/file-map.json) · [产品移植说明](../../THIRD_PARTY-JOYDECK.md) · [已替换的生成器](validation/20261123-uos-refactor/README.md) · [阶段 5](validation/20261127-craft-stage5-deck/README.md)
 
 | 阶段与优先级 | 仍在用的派生代码及替换内容 | 人周 | 兼容性验收标准 |
 | --- | --- | ---: | --- |

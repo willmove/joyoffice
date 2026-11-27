@@ -4,8 +4,38 @@
 )]
 //! Hand-built WMF and EMF buffers: each test writes the records it needs and checks the parsed model.
 
+use crate::bitmap::Rgba;
+
+#[test]
+fn dib_top_down_bitfields_ignores_padding_and_keeps_row_order() {
+    let mut info = info_header(3, -2, 16, 16);
+    info[16..20].copy_from_slice(&3u32.to_le_bytes());
+    for mask in [0xf800u32, 0x07e0, 0x001f] {
+        info.extend(mask.to_le_bytes());
+    }
+    let bits: Vec<_> = [
+        0xf800u16, 0x07e0, 0x001f, 0xffff, 0x001f, 0x07e0, 0xf800, 0xffff,
+    ]
+    .into_iter()
+    .flat_map(u16::to_le_bytes)
+    .collect();
+    let image = crate::bitmap::decode(
+        crate::bytes::Bytes(&info),
+        crate::bytes::Bytes(&bits),
+        false,
+    )
+    .expect("uncompressed RGB565 bitmap");
+    assert!(!image.bottom_up);
+    assert_eq!((image.w, image.h), (3, 2));
+    assert_eq!(
+        image.px,
+        [
+            255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255, 0, 0, 255, 255, 0, 255, 0, 255, 255, 0,
+            0, 255,
+        ]
+    );
+}
 use crate::canvas::Canvas;
-use crate::dib::Rgba;
 use crate::{Error, Item, MAX_BYTES, MAX_ITEMS, Seg, is_metafile, parse};
 
 fn h16(v: i32) -> Vec<u8> {
@@ -1281,25 +1311,28 @@ fn emf_alphablend_uses_constant_and_per_pixel_alpha() {
 }
 
 #[test]
-fn emf_srcand_mask_draws_all_but_its_white_pixels() {
-    // SRCAND over white paper is the source itself; white keeps the destination, so it is transparent.
+fn emf_srcand_uses_the_existing_destination_and_white_is_an_identity() {
     let dib = dib24_bottom_up();
     let rec = bitblt_rec(0x0088_00C6, [0, 0, 2, 2], &dib[..40], &dib[40..]);
     let p = parse(&emf(&[rec], [0; 4], [0; 4])).unwrap();
-    let Item::Bitmap { rgba, .. } = &p.items[0] else {
-        panic!("expected a bitmap")
+    let Item::Transfer { transfer, .. } = &p.items[0] else {
+        panic!("expected raster transfer")
+    };
+    let paint = |x, y, background| {
+        let unit = kurbo::Point::new(x, y);
+        transfer.paint(unit, unit, background)
     };
     assert_eq!(
-        rgba.as_slice(),
-        [
-            255, 0, 0, 255, 255, 255, 255, 0, 0, 0, 255, 255, 0, 255, 0, 255
-        ]
+        paint(0.25, 0.25, [165, 97, 82, 255]),
+        Some([165, 0, 0, 255])
     );
+    assert_eq!(paint(0.75, 0.25, [165, 97, 82, 255]), None);
+    assert_eq!(paint(0.75, 0.75, [0; 4]), Some([0, 255, 0, 255]));
 }
 
 #[test]
-fn emf_srcpaint_makes_black_pixels_transparent() {
-    // A 2 x 1 DIB: black, then red. SRCPAINT leaves black transparent; SRCCOPY keeps it opaque.
+fn emf_srcpaint_ors_the_source_and_leaves_black_unchanged() {
+    // A 2 x 1 DIB: black, then red. SRCCOPY still writes both pixels.
     let info = info_header(2, 1, 24, 8);
     let bits = [0u8, 0, 0, 0, 0, 255, 0, 0];
     let p = parse(&emf(
@@ -1308,10 +1341,15 @@ fn emf_srcpaint_makes_black_pixels_transparent() {
         [0; 4],
     ))
     .unwrap();
-    let Item::Bitmap { rgba, .. } = &p.items[0] else {
-        panic!("expected a bitmap")
+    let Item::Transfer { transfer, .. } = &p.items[0] else {
+        panic!("expected raster transfer")
     };
-    assert_eq!(rgba.as_slice(), [0, 0, 0, 0, 255, 0, 0, 255]);
+    let paint = |x| {
+        let unit = kurbo::Point::new(x, 0.5);
+        transfer.paint(unit, unit, [61, 123, 72, 255])
+    };
+    assert_eq!(paint(0.25), None);
+    assert_eq!(paint(0.75), Some([255, 123, 72, 255]));
     let p = parse(&emf(
         &[bitblt_rec(0x00CC_0020, [0, 0, 2, 1], &info, &bits)],
         [0; 4],
@@ -1429,7 +1467,7 @@ fn flip_tolerates_a_short_pixel_buffer() {
         bottom_up: false,
         px: vec![1u8; 7],
     };
-    crate::dib::flip(&mut img, true, true);
+    crate::bitmap::flip(&mut img, true, true);
     assert_eq!(img.px.len(), 7);
     // Three rows held of four: only the rows present swap (0 with 2).
     let mut img = Rgba {
@@ -1438,7 +1476,7 @@ fn flip_tolerates_a_short_pixel_buffer() {
         bottom_up: false,
         px: (0u8..12).collect(),
     };
-    crate::dib::flip(&mut img, false, true);
+    crate::bitmap::flip(&mut img, false, true);
     assert_eq!(img.px, [8, 9, 10, 11, 4, 5, 6, 7, 0, 1, 2, 3]);
 }
 
@@ -1453,6 +1491,7 @@ fn place_fits_the_frame_scales_strokes_and_drops_far_paths() {
                 fill: None,
                 stroke: Some(([0, 0, 0, 255], 4.0)),
                 even_odd: true,
+                mix: crate::VectorMix::SourceOver,
                 region: None,
             },
             Item::Path {
@@ -1460,6 +1499,7 @@ fn place_fits_the_frame_scales_strokes_and_drops_far_paths() {
                 fill: None,
                 stroke: None,
                 even_odd: true,
+                mix: crate::VectorMix::SourceOver,
                 region: None,
             },
         ],
@@ -1539,6 +1579,7 @@ fn take_pixels_returns_only_drawable_bitmaps() {
         fill: None,
         stroke: None,
         even_odd: false,
+        mix: crate::VectorMix::SourceOver,
         region: None,
     };
     assert_eq!(path.take_pixels(), None);
@@ -2174,7 +2215,7 @@ fn hatch_brushes_draw_lines_over_the_background_mode() {
 }
 
 #[test]
-fn xor_mask_xor_draws_the_pattern_in_the_xor_colour() {
+fn xor_mask_xor_keeps_three_ordered_operations_and_the_original_pattern() {
     // The see-through shadow: XOR a grey polygon, AND a checker pattern, XOR the polygon again.
     let square = wrec(
         0x0324,
@@ -2211,19 +2252,24 @@ fn xor_mask_xor_draws_the_pattern_in_the_xor_colour() {
         square,
     ];
     let p = wmf200(&recs);
+    assert_eq!(p.items.len(), 3);
+    let xor = crate::Rop2::read(7).unwrap();
+    let and = crate::Rop2::read(9).unwrap();
+    assert!(matches!(
+        p.items.as_slice(),
+        [Item::Path { mix: crate::VectorMix::Raster(a), .. },
+         Item::Pattern { mix: crate::VectorMix::Raster(b), .. },
+         Item::Path { mix: crate::VectorMix::Raster(c), .. }] if *a == xor && *b == and && *c == xor
+    ));
+    let t = pattern_of(&p.items[1]);
+    let backdrop = [170, 85, 51, 255];
+    let gray = [128, 128, 128, 255];
+    let first = xor.paint(gray, backdrop).unwrap();
+    assert_eq!(and.paint(tile_px(t, 0, 0), first), None);
+    assert_eq!(xor.paint(gray, first), Some(backdrop));
     assert_eq!(
-        p.items.len(),
-        2,
-        "only the AND pattern (and its outline) draw: {:?}",
-        p.items
-    );
-    let t = pattern_of(&p.items[0]);
-    // 0x55 = 0101 0101: white, black, …
-    assert_eq!(tile_px(t, 0, 0)[3], 0, "white keeps what is below");
-    assert_eq!(
-        tile_px(t, 1, 0),
-        [128, 128, 128, 255],
-        "black takes the XOR colour"
+        xor.paint(gray, and.paint(tile_px(t, 1, 0), first).unwrap()),
+        Some(gray)
     );
 }
 
@@ -2242,13 +2288,21 @@ fn patblt_fills_with_the_brush() {
         patblt(0x0055_0009),
     ];
     let p = wmf200(&recs);
-    assert_eq!(p.items.len(), 1, "DSTINVERT draws nothing: {:?}", p.items);
+    assert_eq!(p.items.len(), 2);
     let (x0, y0, x1, y1) = rect_extent(&p.items[0]);
     assert!(
         close(x0, 20.0) && close(y0, 10.0) && close(x1, 60.0) && close(y1, 40.0),
         "{x0} {y0} {x1} {y1}"
     );
     assert_eq!(path_segs(&p.items[0]).1, Some([0, 0, 255, 255]));
+    let Item::Transfer { transfer, .. } = &p.items[1] else {
+        panic!("expected destination invert")
+    };
+    let center = kurbo::Point::new(0.5, 0.5);
+    assert_eq!(
+        transfer.paint(center, center, [0, 0, 255, 255]),
+        Some([255, 255, 0, 255])
+    );
 }
 
 #[test]
@@ -2461,11 +2515,18 @@ fn pattern_brush_pixels_count_against_the_byte_budget() {
 }
 
 fn item_region(item: &Item) -> Option<&[[f32; 4]]> {
-    match item {
-        Item::Path { region, .. } | Item::Bitmap { region, .. } | Item::Pattern { region, .. } => {
-            region.as_deref()
-        }
-        Item::Text(t) => t.region.as_deref(),
+    let region = match item {
+        Item::Path { region, .. }
+        | Item::Bitmap { region, .. }
+        | Item::AffineBitmap { region, .. }
+        | Item::Transfer { region, .. }
+        | Item::Nested { region, .. }
+        | Item::Pattern { region, .. } => region.as_ref(),
+        Item::Text(t) => t.region.as_ref(),
+    };
+    match region? {
+        crate::ClipRegion::Rectangles(rectangles) => Some(rectangles),
+        crate::ClipRegion::Outline(_) | crate::ClipRegion::Intersection(_) => None,
     }
 }
 
@@ -3022,8 +3083,7 @@ fn emfplus_driver_string_uses_character_codes_and_positions() {
 }
 
 #[test]
-fn emfplus_glyph_index_driver_strings_map_back_in_core_fonts_only() {
-    // Glyph indices (no CmapLookup): 36, 69 are "Ab" in Arial's standard glyph order.
+fn emfplus_driver_strings_keep_physical_glyph_indices_and_positions() {
     let gi = || {
         prec(
             0x4036,
@@ -3034,29 +3094,29 @@ fn emfplus_glyph_index_driver_strings_map_back_in_core_fonts_only() {
                 h32(0),
                 h32(2),
                 h16(36),
-                h16(69),
-                f32s(&[0.0, 0.0, 6.0, 0.0]),
+                h16(1500),
+                f32s(&[0.0, 0.0, 6.0, 3.0]),
             ]),
         )
     };
-    let p = plus_pic(vec![
-        prec(0x4008, 0x0600, &font_obj("Arial", 10.0, 0, 0)),
-        gi(),
-    ]);
-    assert!(
-        matches!(&p.items[0], Item::Text(t) if t.text == "Ab"),
-        "{:?}",
-        p.items
-    );
-    // An unknown font's glyph indices cannot be mapped: nothing is drawn.
-    assert!(
-        plus_pic(vec![
-            prec(0x4008, 0x0600, &font_obj("Calibri", 10.0, 0, 0)),
-            gi()
-        ])
-        .items
-        .is_empty()
-    );
+    for family in ["Arial", "Calibri"] {
+        let p = plus_pic(vec![
+            prec(0x4008, 0x0600, &font_obj(family, 10.0, 0, 0)),
+            gi(),
+        ]);
+        let [Item::Text(t)] = p.items.as_slice() else {
+            panic!("missing indexed glyphs");
+        };
+        assert_eq!(t.font.family, family);
+        assert!(t.text.is_empty());
+        assert_eq!(
+            t.indexed,
+            Some(crate::IndexedGlyphs {
+                ids: vec![36, 1500],
+                placement: crate::GlyphPlacement::Explicit(vec![(0.0, 0.0), (6.0, 3.0)])
+            })
+        );
+    }
 }
 
 #[test]
@@ -3431,13 +3491,33 @@ fn emfplus_nested_metafile_image_draws_its_items_into_the_destination() {
     ]);
     let p = plus_pic(vec![
         prec(0x4008, 0x0500 | 3, &obj),
-        draw_image(3, [0.0, 0.0, 40.0, 20.0]),
+        prec(
+            0x401A,
+            3,
+            &cat(vec![
+                h32(0),
+                h32(2),
+                f32s(&[0.0, 0.0, 10.0, 10.0, 0.0, 0.0, 40.0, 20.0]),
+            ]),
+        ),
     ]);
     assert_eq!(p.items.len(), 1);
     assert_eq!((p.width, p.height), (40.0, 20.0));
-    let (segs, fill, ..) = path_segs(&p.items[0]);
-    assert_eq!(fill, Some([255, 255, 255, 255]));
-    assert!(segs.contains(&Seg::Line(40.0, 20.0)), "{segs:?}");
+    let Item::Nested {
+        picture, placement, ..
+    } = &p.items[0]
+    else {
+        panic!("missing embedded scene");
+    };
+    let items = picture.project(placement.transform);
+    let [crate::PlacedItem::Path { path, fill, .. }] = items.as_slice() else {
+        panic!("embedded path was lost");
+    };
+    assert_eq!(*fill, Some([255, 255, 255, 255]));
+    assert!(
+        path.elements()
+            .contains(&kurbo::PathEl::LineTo(kurbo::Point::new(40.0, 20.0)))
+    );
 }
 
 /// Curves and a region fill, as an EMF+ only file (also written to `$DECKCRAFT_EMF_OUT` to look at).
@@ -3610,7 +3690,7 @@ fn emfplus_curve_offsets_and_degenerate_input_are_safe() {
 }
 
 #[test]
-fn emfplus_clear_paints_the_whole_frame_and_transparent_clears_nothing() {
+fn emfplus_clear_ignores_world_transform_and_uses_the_clip_and_copy_mode() {
     let dot = prec(
         0x400A,
         0x8000,
@@ -3632,7 +3712,7 @@ fn emfplus_clear_paints_the_whole_frame_and_transparent_clears_nothing() {
         ))
         .unwrap()
     };
-    // A translated, clipped world doesn't move or cut the clear.
+    // The clear primitive spans the original device surface and uses the established device clip.
     let shift = prec(0x402D, 0, &f32s(&[30.0, 30.0]));
     let clip = prec(0x4032, 0, &f32s(&[0.0, 0.0, 5.0, 5.0]));
     let p = file(vec![
@@ -3644,6 +3724,13 @@ fn emfplus_clear_paints_the_whole_frame_and_transparent_clears_nothing() {
     ]);
     assert_eq!(p.items.len(), 2);
     let (segs, fill, ..) = path_segs(&p.items[0]);
+    assert!(matches!(
+        p.items[0],
+        Item::Path {
+            region: Some(_),
+            ..
+        }
+    ));
     assert_eq!(fill, Some([255, 255, 255, 255]));
     let xs: Vec<f32> = segs
         .iter()
@@ -3662,8 +3749,15 @@ fn emfplus_clear_paints_the_whole_frame_and_transparent_clears_nothing() {
         "clear spans {span} of {}",
         p.width
     );
-    // Transparent: only the dot.
-    assert_eq!(file(vec![clear(0x00FF_FFFF), dot.clone()]).items.len(), 1);
+    let p = file(vec![clear(0x00FF_FFFF), dot.clone()]);
+    assert!(matches!(
+        p.items[0],
+        Item::Path {
+            fill: Some([255, 255, 255, 0]),
+            mix: crate::VectorMix::SourceCopy,
+            ..
+        }
+    ));
     // No frame: nothing to clear.
     assert_eq!(plus_pic(vec![clear(0xFFFF_FFFF), dot]).items.len(), 1);
 }

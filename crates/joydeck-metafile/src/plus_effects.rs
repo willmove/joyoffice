@@ -1,0 +1,563 @@
+//! Bounded bitmap effects for MS-EMFPLUS SerializableObject records.
+
+use crate::plus_tone;
+use crate::{MAX_PIXELS, bitmap::Rgba, bytes::Bytes, plus_shapes::floats};
+
+const MAX_FILTER_PIXELS: usize = 8_000_000;
+pub const EFFECT_WORK: usize = 48_000_000;
+
+pub enum Effect {
+    Matrix(Box<[[f64; 5]; 4]>),
+    Lookup(Box<[[u8; 256]; 4]>),
+    Tone {
+        selected: usize,
+        curve: Box<[u8; 256]>,
+    },
+    Balance([i32; 3]),
+    Hsl([i32; 3]),
+    Tint(i32, i32),
+    RedEye(Vec<[i32; 4]>),
+    Blur(f64, bool),
+    Sharpen(f64, f64),
+}
+
+pub fn read(record: Bytes<'_>) -> Option<Effect> {
+    let size = record.u32(16)? as usize;
+    let data = Bytes(record.slice(20, size)?);
+    let guid = (
+        record.u32(0)?,
+        record.u16(4)?,
+        record.u16(6)?,
+        u64::from_be_bytes(*record.0.get(8..16)?.first_chunk()?),
+    );
+    let signed = |offset, low, high| data.i32(offset).map(|v| v.clamp(low, high));
+    let percentage = |offset| signed(offset, -100, 100);
+    let triple = || Some([percentage(0)?, percentage(4)?, percentage(8)?]);
+    Some(match guid {
+        (0x718F2615, 0x7933, 0x40E3, 0xA5115F68FE14DD74) => {
+            // This is a row-vector matrix. The last group supplies the constant offsets.
+            let mut matrix = [[0.0; 5]; 4];
+            let components = floats::<25>(data, 0)?;
+            for (target, row) in matrix.iter_mut().enumerate() {
+                for (input, component) in row.iter_mut().enumerate() {
+                    *component = components[input * 5 + target];
+                }
+            }
+            Effect::Matrix(Box::new(matrix))
+        }
+        (0xA7CE72A9, 0x0F7F, 0x40D7, 0xB3CCD0C02D5C3212) => {
+            let mut tables = [[0; 256]; 4];
+            for (target, encoded) in tables.iter_mut().zip([2, 1, 0, 3]) {
+                target.copy_from_slice(data.slice(encoded * 256, 256)?);
+            }
+            Effect::Lookup(Box::new(tables))
+        }
+        (0xD3A1DBE1, 0x8EC4, 0x4C17, 0x9F4CEA97AD1C343D) => {
+            let brightness = f64::from(signed(0, -255, 255)?) / 255.0;
+            let gain = plus_tone::contrast(f64::from(percentage(4)?) / 100.0);
+            tone(0, |x| {
+                (x - 0.5) * gain + 0.5 + brightness * (1.0 + gain) * 0.5
+            })
+        }
+        (0x537E597D, 0x251E, 0x48DA, 0x966429CA496B70F8) => Effect::Balance(triple()?),
+        (0xDD6A0022, 0x58E4, 0x4A67, 0x9D9BD48EB881A53D) => {
+            let mode = data.u32(0)?;
+            let channel = data.u32(4)? as usize;
+            if mode > 7 || channel > 3 {
+                return None;
+            }
+            let strength = data.i32(8)?;
+            plus_tone::curve(0.0, mode, strength)?;
+            tone(channel, |x| {
+                plus_tone::curve(x, mode, strength).unwrap_or(x)
+            })
+        }
+        (0x8B2DD6C3, 0xEB07, 0x4D87, 0xA5F07108E26A9C5F) => {
+            Effect::Hsl([signed(0, -180, 180)?, percentage(4)?, percentage(8)?])
+        }
+        (0x99C354EC, 0x2A31, 0x4F3A, 0x8C3417A803B33A25) => {
+            levels(signed(0, 0, 100)?, percentage(4)?, signed(8, 0, 100)?)
+        }
+        (0x74D29D05, 0x69A4, 0x4266, 0x95493CC52836B632) => {
+            let count = usize::try_from(data.i32(0)?).ok()?;
+            if count > 256 {
+                return None;
+            }
+            let mut regions = Vec::with_capacity(count);
+            for i in 0..count {
+                let at = 4 + i * 16;
+                regions.push([
+                    data.i32(at)?,
+                    data.i32(at + 4)?,
+                    data.i32(at + 8)?,
+                    data.i32(at + 12)?,
+                ]);
+            }
+            Effect::RedEye(regions)
+        }
+        (0x633C80A4, 0x1843, 0x482B, 0x9EF2BE2834C5FDD4) => {
+            let [radius] = floats(data, 0)?;
+            Effect::Blur(radius.clamp(0.0, 255.0), data.u32(4)? != 0)
+        }
+        (0x63CBF3EE, 0xC526, 0x402C, 0x8F7162C540BF5142) => {
+            let [radius, amount] = floats(data, 0)?;
+            Effect::Sharpen(radius.clamp(0.0, 255.0), amount.clamp(0.0, 100.0) / 100.0)
+        }
+        (0x1077AF00, 0x2848, 0x4441, 0x948944AD4C2D7A2C) => {
+            Effect::Tint(signed(0, -180, 180)?, percentage(4)?)
+        }
+        _ => return None,
+    })
+}
+
+fn tone(selected: usize, transform: impl Fn(f64) -> f64) -> Effect {
+    let curve = std::array::from_fn(|index| byte(transform(index as f64 / 255.0)));
+    Effect::Tone {
+        selected,
+        curve: Box::new(curve),
+    }
+}
+
+fn byte(value: f64) -> u8 {
+    (value.clamp(0.0, 1.0) * 255.0).round() as u8
+}
+
+fn levels(highlight: i32, midtone: i32, shadow: i32) -> Effect {
+    tone(0, |x| plus_tone::levels(x, highlight, midtone, shadow))
+}
+
+impl Effect {
+    /// The nonzero return value is the transparent padding added around an expanded blur.
+    pub fn apply(&self, image: &mut Rgba, work: &mut usize) -> Option<usize> {
+        let pixels = image.w.checked_mul(image.h)?;
+        *work = work.checked_sub(pixels)?;
+        match self {
+            Self::Blur(radius, expand) => {
+                if *radius == 0.0 {
+                    return Some(0);
+                }
+                let pad = if *expand { radius.ceil() as usize } else { 0 };
+                if *radius >= 20.0 {
+                    crate::plus_wide_blur::apply(image, *radius, pad, *expand, work)?;
+                } else {
+                    *image = blurred(image, *radius, pad, *expand, work)?;
+                }
+                return Some(pad);
+            }
+            Self::Sharpen(radius, amount) => {
+                if *radius >= 1.0 && *amount > 0.0 {
+                    let blurred = if *radius >= 20.0 {
+                        let mut working = image.clone();
+                        crate::plus_wide_blur::apply(&mut working, *radius, 0, true, work)?;
+                        working
+                    } else {
+                        blurred(image, *radius, 0, true, work)?
+                    };
+                    let gain = sharpen_gain(*amount);
+                    for (pixel, b) in image
+                        .px
+                        .as_chunks_mut::<4>()
+                        .0
+                        .iter_mut()
+                        .zip(blurred.px.as_chunks::<4>().0)
+                    {
+                        for index in 0..3 {
+                            let source = f64::from(pixel[index]);
+                            pixel[index] = (source + gain * (source - f64::from(b[index])))
+                                .round()
+                                .clamp(0.0, 255.0) as u8;
+                        }
+                    }
+                }
+            }
+            Self::RedEye(rects) => {
+                crate::plus_red_eye::apply(image, rects, work)?;
+            }
+            _ => {
+                for pixel in image.px.as_chunks_mut::<4>().0 {
+                    *pixel = self.color(*pixel);
+                }
+            }
+        }
+        Some(0)
+    }
+
+    fn color(&self, mut rgba: [u8; 4]) -> [u8; 4] {
+        match self {
+            Self::Matrix(matrix) => {
+                let [r, g, b, a] = rgba.map(|value| f64::from(value) / 255.0);
+                matrix
+                    .each_ref()
+                    .map(|row| byte(row[0] * r + row[1] * g + row[2] * b + row[3] * a + row[4]))
+            }
+            Self::Lookup(table) => std::array::from_fn(|i| table[i][usize::from(rgba[i])]),
+            Self::Tone { selected, curve } => {
+                for (i, color) in rgba[..3].iter_mut().enumerate() {
+                    if *selected == 0 || *selected == i + 1 {
+                        *color = curve[usize::from(*color)];
+                    }
+                }
+                rgba
+            }
+            Self::Balance(balance) => {
+                for (color, delta) in rgba[..3].iter_mut().zip(balance) {
+                    let x = f64::from(*color) / 255.0;
+                    *color = byte(x * (1.0 + f64::from(*delta) / 100.0));
+                }
+                rgba
+            }
+            Self::Hsl([angle, saturation, light]) => {
+                if *angle == 0 && *saturation == 0 && *light == 0 {
+                    return rgba;
+                }
+                let [h, s, l] = rgb_to_hsl(rgba);
+                rgba[..3].copy_from_slice(&hsl_to_rgb(
+                    h + f64::from(*angle) / 360.0,
+                    (s * (1.0 + f64::from(*saturation) / 100.0)).clamp(0.0, 1.0),
+                    (l + f64::from(*light) / 100.0).clamp(0.0, 1.0),
+                ));
+                rgba
+            }
+            Self::Tint(angle, amount) => {
+                let hue = f64::from(*angle) / 360.0;
+                let tint = hsl_to_rgb(hue, 1.0, 0.5).map(|v| f64::from(v) / 255.0);
+                let luminance = |[r, g, b]: [f64; 3]| 0.2126 * r + 0.7152 * g + 0.0722 * b;
+                let original = [rgba[0], rgba[1], rgba[2]].map(|value| f64::from(value) / 255.0);
+                let strength = luminance(original) * f64::from(*amount) / 100.0;
+                let neutral = luminance(tint);
+                for (i, value) in rgba[..3].iter_mut().enumerate() {
+                    *value = byte(original[i] + strength * (tint[i] - neutral));
+                }
+                rgba
+            }
+            _ => rgba,
+        }
+    }
+}
+
+fn rgb_to_hsl([r, g, b, _]: [u8; 4]) -> [f64; 3] {
+    let [r, g, b] = [r, g, b].map(|v| f64::from(v) / 255.0);
+    let hi = r.max(g).max(b);
+    let lo = r.min(g).min(b);
+    let light = (hi + lo) * 0.5;
+    let chroma = hi - lo;
+    if chroma == 0.0 {
+        return [0.0, 0.0, light];
+    }
+    let hue = if hi == r {
+        (g - b) / chroma
+    } else if hi == g {
+        (b - r) / chroma + 2.0
+    } else {
+        (r - g) / chroma + 4.0
+    };
+    [
+        hue.rem_euclid(6.0) / 6.0,
+        chroma / (1.0 - (2.0 * light - 1.0).abs()),
+        light,
+    ]
+}
+
+fn hsl_to_rgb(h: f64, s: f64, l: f64) -> [u8; 3] {
+    let spread = s * l.min(1.0 - l);
+    [0.0, 8.0, 4.0].map(|n| {
+        let k = (n + 12.0 * h).rem_euclid(12.0);
+        byte(l - spread * (k - 3.0).min(9.0 - k).clamp(-1.0, 1.0))
+    })
+}
+
+fn blurred(
+    image: &Rgba,
+    radius: f64,
+    pad: usize,
+    preserve_color: bool,
+    work: &mut usize,
+) -> Option<Rgba> {
+    let w = image.w.checked_add(pad * 2)?;
+    let h = image.h.checked_add(pad * 2)?;
+    let size = w.checked_mul(h)?;
+    if size > MAX_FILTER_PIXELS || size > MAX_PIXELS {
+        return None;
+    }
+    let support = radius.ceil() as usize;
+    let samples = 2 * support + 1;
+    *work = work.checked_sub(size.saturating_mul(samples + 1))?;
+    let sigma = radius * 0.505;
+    let weights: Vec<u32> = (0..samples)
+        .map(|i| {
+            let x = (i as f64 - support as f64) / sigma;
+            ((-0.5 * x * x).exp() * 4096.0).round() as u32
+        })
+        .collect();
+    let total = weights.iter().sum::<u32>();
+    let mut premultiplied = vec![0u8; size * 4];
+    for (y, row) in image.px.chunks_exact(image.w * 4).enumerate() {
+        let at = ((y + pad) * w + pad) * 4;
+        for (pixel, dest) in row
+            .as_chunks::<4>()
+            .0
+            .iter()
+            .zip(premultiplied[at..at + row.len()].as_chunks_mut::<4>().0)
+        {
+            *dest = if preserve_color {
+                *pixel
+            } else {
+                crate::bitmap::premultiplied(*pixel)
+            };
+        }
+    }
+    let mut temp = vec![0u8; size * 4];
+    for y in 0..h {
+        gaussian_line(&premultiplied, &mut temp, (y * w, w, 1), &weights, total);
+    }
+    if !preserve_color {
+        for pixel in temp.as_chunks_mut::<4>().0 {
+            *pixel = crate::bitmap::straight(*pixel);
+        }
+    }
+    Some(Rgba {
+        w,
+        h,
+        px: temp,
+        bottom_up: false,
+    })
+}
+
+fn sharpen_gain(amount: f64) -> f64 {
+    // Measured unsharp-mask response, expressed as a multiplier of the original minus the blur.
+    const GAIN: [f64; 12] = [
+        0.0, 0.045, 0.09, 0.15, 0.238, 0.328, 0.465, 0.64, 0.86, 1.24, 1.55, 2.0,
+    ];
+    let index = if amount <= 0.9 {
+        amount * 10.0
+    } else {
+        9.0 + (amount - 0.9) * 20.0
+    };
+    let lo = (index as usize).min(GAIN.len() - 2);
+    GAIN[lo] + (index - lo as f64) * (GAIN[lo + 1] - GAIN[lo])
+}
+
+fn gaussian_line(
+    input: &[u8],
+    output: &mut [u8],
+    (origin, count, step): (usize, usize, usize),
+    weights: &[u32],
+    total: u32,
+) {
+    let radius = weights.len() / 2;
+    let input = input.as_chunks::<4>().0;
+    let output = output.as_chunks_mut::<4>().0;
+    for position in 0..count {
+        let mut sum = [0u32; 4];
+        for (offset, &weight) in weights.iter().enumerate() {
+            let x = (position + offset).saturating_sub(radius).min(count - 1);
+            for (sum, channel) in sum.iter_mut().zip(input[origin + x * step]) {
+                *sum += u32::from(channel) * weight;
+            }
+        }
+        output[origin + position * step] = sum.map(|value| ((value + total / 2) / total) as u8);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn neutral_levels_and_inactive_curve_ranges_do_not_change_pixels() {
+        let neutral = levels(100, 0, 0);
+        for value in 0..=255 {
+            assert_eq!(neutral.color([value; 4]), [value; 4]);
+        }
+        assert_eq!(plus_tone::curve(0.25, 3, 100), Some(0.25));
+        assert_eq!(plus_tone::curve(0.75, 4, 100), Some(0.75));
+        assert!(plus_tone::curve(0.75, 3, 100) > Some(0.75));
+        assert!(plus_tone::curve(0.25, 4, -100) < Some(0.25));
+    }
+
+    #[test]
+    fn spatial_effects_preserve_transparent_color_boundaries_and_charge_for_work() {
+        let mut image = Rgba {
+            w: 1,
+            h: 1,
+            bottom_up: false,
+            px: vec![255, 0, 0, 255],
+        };
+        assert_eq!(Effect::Blur(1.0, true).apply(&mut image, &mut 10), None);
+        assert_eq!(image.px, [255, 0, 0, 255]);
+        assert_eq!(Effect::Blur(1.0, true).apply(&mut image, &mut 100), Some(1));
+        assert_eq!((image.w, image.h), (3, 3));
+        let pixels = image.px.as_chunks::<4>().0;
+        assert!(pixels[..3].iter().chain(&pixels[6..]).all(|p| *p == [0; 4]));
+        assert_eq!(&pixels[4][..3], &[pixels[4][3], 0, 0]);
+        assert!((197..=201).contains(&pixels[4][3]));
+        assert!((26..=30).contains(&pixels[3][3]));
+        assert_eq!(pixels[3], pixels[5]);
+    }
+
+    #[test]
+    fn gdi_plus_steps_switch_to_two_axes_at_twenty() {
+        // Native GDI+ ApplyEffect on the opaque step at texel 300. These probes have no resampling.
+        let cases = &[
+            (
+                19.5,
+                &[-18, -9, -3, -1, 0, 3, 9, 18],
+                &[5, 46, 101, 122, 133, 164, 216, 252],
+                0,
+                false,
+            ),
+            (
+                20.0,
+                &[-18, -9, -3, -1, 0, 3, 9, 18],
+                &[6, 48, 102, 122, 132, 163, 214, 251],
+                1,
+                true,
+            ),
+            (
+                32.0,
+                &[-27, -15, -4, -1, 0, 4, 15, 27],
+                &[8, 43, 104, 124, 130, 156, 216, 248],
+                1,
+                true,
+            ),
+            (
+                255.0,
+                &[-250, -150, -45, -1, 0, 45, 150, 250],
+                &[1, 27, 91, 126, 127, 164, 227, 253],
+                2,
+                true,
+            ),
+        ];
+        for &(radius, offsets, reference, tolerance, both) in cases {
+            for (w, h, vertical) in [(601, 1, false), (1, 601, true)] {
+                let px = (0..601)
+                    .flat_map(|i| [if i < 300 { 0 } else { 255 }, 0, 0, 255])
+                    .collect();
+                let mut image = Rgba {
+                    w,
+                    h,
+                    px,
+                    bottom_up: false,
+                };
+                let mut budget = EFFECT_WORK;
+                assert_eq!(
+                    Effect::Blur(radius, false).apply(&mut image, &mut budget),
+                    Some(0)
+                );
+                for (&i, &native) in offsets.iter().zip(reference) {
+                    let expected = if vertical && !both {
+                        if i < 0 { 0 } else { 255 }
+                    } else {
+                        native
+                    };
+                    let p = (300isize + i) as usize * 4;
+                    assert!(
+                        image.px[p].abs_diff(expected) <= tolerance,
+                        "{radius} {vertical} {i}: {} vs {expected}",
+                        image.px[p]
+                    );
+                    assert_eq!(image.px[p + 3], 255);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn filters_preserve_the_native_premultiplied_value_of_flat_color() {
+        for radius in [3.0, 20.0] {
+            let mut image = Rgba {
+                w: 76,
+                h: 76,
+                px: [250, 145, 73, 64].repeat(76 * 76),
+                bottom_up: false,
+            };
+            let mut budget = EFFECT_WORK;
+            assert_eq!(
+                Effect::Blur(radius, false).apply(&mut image, &mut budget),
+                Some(0)
+            );
+            for color in image.px.as_chunks::<4>().0 {
+                assert_eq!(crate::bitmap::premultiplied(*color), [63, 36, 18, 64]);
+            }
+        }
+    }
+
+    #[test]
+    fn sharpen_matches_native_impulse_and_switches_axes_at_twenty() {
+        let source = || {
+            let px = (0..61)
+                .flat_map(|y| {
+                    (0..61).flat_map(move |x| {
+                        [
+                            if x < 30 { 96 } else { 160 },
+                            if y < 30 { 64 } else { 164 },
+                            if (x, y) == (30, 30) { 220 } else { 128 },
+                            if x < 10 { 128 } else { 255 },
+                        ]
+                    })
+                })
+                .collect();
+            Rgba {
+                w: 61,
+                h: 61,
+                px,
+                bottom_up: false,
+            }
+        };
+        for (r, amount, expected) in [
+            (
+                3.0,
+                0.25,
+                [
+                    [163, 64, 128, 255],
+                    [163, 164, 228, 255],
+                    [93, 164, 126, 255],
+                ],
+            ),
+            (
+                3.0,
+                0.60,
+                [
+                    [171, 64, 128, 255],
+                    [171, 164, 251, 255],
+                    [85, 164, 119, 255],
+                ],
+            ),
+            (
+                3.0,
+                0.95,
+                [
+                    [196, 64, 128, 255],
+                    [196, 164, 255, 255],
+                    [60, 164, 96, 255],
+                ],
+            ),
+            (
+                20.0,
+                0.60,
+                [
+                    [175, 42, 128, 255],
+                    [175, 187, 255, 255],
+                    [82, 187, 128, 255],
+                ],
+            ),
+        ] {
+            let mut image = source();
+            let mut work = EFFECT_WORK;
+            assert_eq!(
+                Effect::Sharpen(r, amount).apply(&mut image, &mut work),
+                Some(0)
+            );
+            for ((x, y), color) in [(30, 29), (30, 30), (29, 30)].into_iter().zip(expected) {
+                let current = image.px.as_chunks::<4>().0[y * 61 + x];
+                assert!(
+                    current
+                        .into_iter()
+                        .zip(color)
+                        .all(|(a, b)| a.abs_diff(b) <= 2),
+                    "{r} {amount} ({x}, {y}): {current:?} vs {color:?}"
+                );
+            }
+        }
+    }
+}

@@ -34,6 +34,28 @@
 
 2026-11-06 复核剩余五项许可来源，仍未获得可补入的精确正文。已修复发布矩阵门禁接受越界路径与符号链接的缺口，ZIP/TAR 成员在内容读取前校验，三产品合法矩阵及恶意输入回归通过。[来源限制与归档评估](evidence/R9-LICENSE-INTEGRITY/README.md#剩余来源复核与下一发布验证项)
 
+2026-11-27 复验 Windows 独立打印对话框，修复打印驱动取消误报。核查 Windows 打包二进制、SPDX 491 项依赖与 Craft 来源记录，并用冻结版 `14cbb296` 完成文件互读和回退演练。macOS Metal、UOS Vulkan 待可用设备复测。阶段 5 的剩余来源路径及许可原件限制继续跟踪。[阶段 5 验收](../joyoffice/validation/20261127-craft-stage5-deck/README.md)
+
+2026-11-27 已在 Windows 打印保存窗录入中文文件名并验证三页 PDF 实际写盘。PPTX 保留另存切换关系目标重定位，WMF／EMF 切换自研位图模块。继续使用 `14cbb296` 验收，补验 PowerPoint 16 的 3D 保留另存和回退，并更新三项依赖的来源记录。[阶段 5 本轮验收](../joyoffice/validation/20261127-craft-stage5-deck-followup/README.md)
+
+2026-11-27 PPTX 通用 XML 与生成关系写出切换到独立实现。WMF／EMF 的向量记录、设备坐标、矩形裁剪与文字记录已切换并完成冻结渲染对照。阶段 5 剩余 PPTX 专用保留分支、EMF+ 及其他生产来源继续跟踪。[XML、关系与图元验证](../joyoffice/validation/20261127-craft-stage5-deck-xml-vector/README.md)
+
+2026-11-27 图表保留编辑沿原图表和嵌入工作簿的绑定更新，共用原部件继续保留。占位符换版使用与导入相同的母版、版式关系映射。EMF+ 对象、设备状态、路径几何、凸裁剪和 Windows 码页通过冻结对照。阶段 5 剩余来源与平台实机验证继续跟踪。[保留编辑与 EMF+](../joyoffice/validation/20261127-craft-stage5-deck-preserve-emfplus/README.md)
+
+2026-11-27 切换 PPTX 表格、媒体及包写出，并以 PowerPoint 16 回存验证表格格式、音视频关系及旧稿 WAV 恢复。EMF+ 基本画笔、区域解码、绘图记录与多基线字形已切换并完成冻结图元回归。复杂区域、物理字体索引及其他生产来源继续核查。[表格、媒体与 EMF+](../joyoffice/validation/20261127-craft-stage5-deck-table-media-emfplus/README.md)
+
+2026-11-27 EMF+ 接入非凸及布尔区域裁剪、复杂笔刷描边和物理字体字形索引。冻结回归和 PowerPoint 16 回存验证通过。逐文件核查剩余生产来源，后续继续处理高级端帽和网纹、图元场景适配、其他运行路径及平台实机。[裁剪、描边与物理字形](../joyoffice/validation/20261127-craft-stage5-deck-complex-emfplus/README.md)
+
+2026-11-27 EMF+ 自定义路径端帽、余下 47 种网纹和凸区文字轮廓裁剪通过定向验证。位图仿射及嵌套图元切换到自研场景投影，6 份 PPTX 保留另存与 PowerPoint 16 回存重开通过。图像属性、传统 GDI 合成和其余生产来源继续跟踪。[图元场景和回存证据](../joyoffice/validation/20261127-craft-stage5-deck-metafile-scene/README.md)
+
+2026-11-27 EMF+ 图像属性、序列化效果和位图透明合成已接入绘制。传统 GDI 的带掩码位图、色键和 DIB 位运算使用当前目标像素完成合成。冻结回归及 PowerPoint 16 回存重开通过。空间滤镜的原生差异、传统 GDI 矢量 ROP2 和其余生产来源仍继续跟踪。[图像效果与合成](../joyoffice/validation/20261127-craft-stage5-deck-image-composite/README.md)
+
+2026-11-27 已按原生 GDI+ 实测修正模糊轴向和最近邻采样。矢量 ROP2、WMF Bitmap16 和嵌套图元透明覆盖已接入，4 份 PPTX 保留另存及 PowerPoint 16 回存重开通过。旧式设备调色板、高半径滤镜、其余生产来源和平台实机继续跟踪。[矢量合成与原生模糊](../joyoffice/validation/20261127-craft-stage5-deck-vector-copy/README.md)
+
+2026-11-27 复核 GDI+ 大半径模糊和预乘 Alpha，补齐 WMF 4／8 位 Bitmap16 及字符／物理字形的透明画笔与覆盖。冻结回归和 9 份 PPTX 保留另存及 PowerPoint 16 回存重开通过。原生旧调色板设备、滤镜长尾和其他生产来源继续跟踪。[滤镜、调色板与字形验证](../joyoffice/validation/20261127-craft-stage5-deck-filter-palette/README.md)
+
+2026-11-27 以原生 GDI+ 复核模糊扩展和缩小采样，修正色调滤镜、红眼区域和锐化轴向，补齐物理字形的透明纹理。冻结回归及 7 份 PPTX 保留另存和 PowerPoint 16 回存通过。剩余双三次边缘、偏心红眼、生产来源及实机项目继续跟踪。[滤镜与纹理字形验证](../joyoffice/validation/20261127-craft-stage5-deck-effects-texture/README.md)
+
 2026-11-06 推进 JD-807/808。SBOM 生成现在核对补充许可来源清单的文件哈希及复制结果，拒绝被改动、缺失、越界或未登记文件。后续已按精确提交补入 6 项上游正文：Linux 559 包剩 3 项缺口，Windows 452 包剩 2 项，严格许可门禁均拒绝；macOS 跨目标 SBOM 的 host 构建依赖身份缺失已修复，Linux 主机盘点 463 包剩 5 项正文缺口。未作合规结论。[核查与回归](evidence/R9-LICENSE-INTEGRITY/README.md)
 
 2026-11-06 本地整合五个 R3 切片：剪贴板隐藏内容、字符输入优先、清除格式保留语义、页脚摘要与批量已有页脚命令。首轮组合核心 203 项、Linux 适配器 5 项及按键分流 3 项通过；随后合入最新 main `aac15f2f`，三产品定向回归 852 项通过，严格 Clippy 与工程门禁通过。新增缺失页脚与完整 UI 仍开放，尚未进行本批真实桌面验收；未发布 PR。[整合证据与接入边界](evidence/R3-LOCAL-INTEGRATION/README.md)

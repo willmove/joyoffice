@@ -38,17 +38,22 @@ mod master_part;
 mod media_part;
 mod model3d_part;
 mod opc;
+mod package_writer;
 mod png;
 mod presentation_parts;
 pub(crate) mod read;
+mod relationships;
 mod review_part;
 mod table_part;
+#[path = "table_styles.rs"]
 mod tables;
 mod theme_part;
 mod transition_part;
 mod write;
+#[path = "xml_tree.rs"]
 mod xml;
 mod xml_read;
+mod xml_write;
 
 /// The bounded XML reader the importer uses, for callers that read kept fragments (a shape's
 /// 3-D settings) instead of scanning strings.

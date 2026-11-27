@@ -7,7 +7,7 @@ use joydeck_color::SchemeSlot;
 use joydeck_geom::{Xfrm, preset};
 use joydeck_model::style::{ColorRef, Fill};
 use joydeck_model::text::TextDir;
-use joydeck_model::{Geom, MediaClip, PhType, Placeholder, Shape, ShapeId, ShapeKind, ShapeStyle};
+use joydeck_model::{Geom, PhType, Placeholder, Shape, ShapeId, ShapeKind, ShapeStyle};
 
 use super::{Imp, Part, dml};
 use crate::xml::El;
@@ -268,13 +268,6 @@ fn sp(imp: &mut Imp, part: &Part, ctx: &mut IdCtx, e: &El) -> Shape {
     s
 }
 
-fn ms(v: Option<&str>) -> u32 {
-    v.and_then(|v| v.trim().parse::<f64>().ok())
-        .filter(|v| v.is_finite())
-        .map(|v| v.clamp(0.0, u32::MAX as f64) as u32)
-        .unwrap_or(0)
-}
-
 fn content_part(imp: &mut Imp, part: &Part, ctx: &mut IdCtx, element: &El) -> Option<Shape> {
     let (media, poster, raw_ext) = crate::model3d_part::load_payload(imp, part, element)?;
     let metadata = if element.is("contentPart") {
@@ -326,45 +319,9 @@ fn pic(imp: &mut Imp, part: &Part, ctx: &mut IdCtx, e: &El) -> Shape {
     let pf = e
         .child("blipFill")
         .and_then(|b| dml::blip_fill(imp, part, b));
-    let nvpr = e.path(&["nvPicPr", "nvPr"]);
-    let vf = nvpr.and_then(|n| n.child("videoFile"));
-    let af = nvpr.and_then(|n| n.child("audioFile"));
-    let p14 = nvpr
-        .and_then(|n| n.child("extLst"))
-        .and_then(|x| x.find("media"));
-    if vf.is_some() || af.is_some() || p14.is_some() {
-        let media = p14
-            .and_then(|m| dml::media_ref(imp, part, m))
-            .or_else(|| vf.or(af).and_then(|f| dml::media_ref(imp, part, f)));
-        if let Some(media) = media {
-            let mut clip = MediaClip {
-                media,
-                video: vf.is_some() || af.is_none(),
-                poster: pf.as_ref().map(|p| p.media),
-                crop: pf.as_ref().map(|p| p.crop).unwrap_or_default(),
-                volume: 1.0,
-                ..Default::default()
-            };
-            if let Some(m) = p14 {
-                if let Some(t) = m.child("trim") {
-                    clip.trim_start_ms = ms(t.attr("st"));
-                    clip.trim_end_ms = ms(t.attr("end"));
-                }
-                if let Some(f) = m.child("fade") {
-                    clip.fade_in_ms = ms(f.attr("in"));
-                    clip.fade_out_ms = ms(f.attr("out"));
-                }
-                if let Some(l) = m.child("bmkLst") {
-                    clip.bookmarks = l
-                        .children_named("bmk")
-                        .take(1000)
-                        .map(|b| (b.attr("name").unwrap_or("").to_string(), ms(b.attr("time"))))
-                        .collect();
-                }
-            }
-            s.kind = ShapeKind::Media(clip);
-            return s;
-        }
+    if let Some(clip) = crate::media_part::clip(imp, part, e, pf.as_ref()) {
+        s.kind = ShapeKind::Media(clip);
+        return s;
     }
     match pf {
         Some(fill) => s.kind = ShapeKind::Picture { fill },

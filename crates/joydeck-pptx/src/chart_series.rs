@@ -65,7 +65,7 @@ pub(super) fn read_plot(
     Some(())
 }
 
-fn kind_from(group: &El) -> Option<ChartType> {
+pub(super) fn kind_from(group: &El) -> Option<ChartType> {
     use ChartType::*;
     let grouping = group.child_val("grouping");
     let stacked = matches!(grouping, Some("stacked" | "percentStacked"));

@@ -2,11 +2,139 @@
 
 use std::collections::HashMap;
 
-use joydeck_model::{MediaId, MediaItem, Presentation};
+use joydeck_model::{MediaClip, MediaId, MediaItem, Presentation, style::PictureFill};
 
 use crate::opc::{self, PackageOut};
-use crate::read::Imp;
-use crate::write::Out;
+use crate::read::{Imp, Part, dml};
+use crate::write::{Exp, Out};
+use crate::xml::{A, El, W};
+
+pub(super) fn clip(
+    imp: &mut Imp,
+    part: &Part,
+    source: &El,
+    poster: Option<&PictureFill>,
+) -> Option<MediaClip> {
+    let properties = source.path(&["nvPicPr", "nvPr"])?;
+    let video = properties.child("videoFile");
+    let audio = properties.child("audioFile");
+    let extension = properties
+        .child("extLst")
+        .and_then(|list| list.find("media"));
+    let media = extension
+        .and_then(|node| dml::media_ref(imp, part, node))
+        .or_else(|| {
+            video
+                .or(audio)
+                .and_then(|node| dml::media_ref(imp, part, node))
+        })?;
+    let time = |group, attr| {
+        extension
+            .and_then(|media| media.child(group))
+            .map_or(0, |node| milliseconds(node.attr(attr)))
+    };
+    let bookmarks = extension
+        .and_then(|media| media.child("bmkLst"))
+        .into_iter()
+        .flat_map(|list| list.children_named("bmk"))
+        .take(1000)
+        .map(|mark| {
+            (
+                mark.attr("name").unwrap_or_default().into(),
+                milliseconds(mark.attr("time")),
+            )
+        })
+        .collect();
+    Some(MediaClip {
+        media,
+        video: video.is_some() || audio.is_none(),
+        poster: poster.map(|poster| poster.media),
+        crop: poster.map(|poster| poster.crop).unwrap_or_default(),
+        trim_start_ms: time("trim", "st"),
+        trim_end_ms: time("trim", "end"),
+        fade_in_ms: time("fade", "in"),
+        fade_out_ms: time("fade", "out"),
+        bookmarks,
+        volume: 1.0,
+        ..Default::default()
+    })
+}
+
+fn milliseconds(value: Option<&str>) -> u32 {
+    value
+        .and_then(|value| value.trim().parse::<f64>().ok())
+        .filter(|number| number.is_finite())
+        .map_or(0, |number| number.clamp(0.0, f64::from(u32::MAX)) as u32)
+}
+
+pub(super) struct ClipRefs {
+    legacy: Option<String>,
+    embedded: Option<String>,
+}
+
+pub(super) fn clip_refs(export: &mut Exp<'_>, owner: &mut Out, clip: &MediaClip) -> ClipRefs {
+    ClipRefs {
+        legacy: export.media_rel(
+            owner,
+            clip.media,
+            if clip.video { "video" } else { "audio" },
+        ),
+        embedded: export.media_rel_new(owner, clip.media, opc::RT_MEDIA),
+    }
+}
+
+/// Write legacy audio/video and Office's embedded-media relationship from the same asset.
+pub(super) fn write_clip(xml: &mut W, clip: &MediaClip, refs: ClipRefs) {
+    let tag = if clip.video {
+        "a:videoFile"
+    } else {
+        "a:audioFile"
+    };
+    if let Some(id) = refs.legacy {
+        xml.empty(tag, A::new().a("r:link", id));
+    }
+    let Some(id) = refs.embedded else { return };
+    xml.open0("p:extLst");
+    xml.open(
+        "p:ext",
+        A::new().a("uri", "{DAA4B4D4-6D71-4841-9C94-3DE7FCFB9230}"),
+    );
+    xml.open(
+        "p14:media",
+        A::new().a("xmlns:p14", opc::NS_P14).a("r:embed", id),
+    );
+    for (tag, attrs) in [
+        (
+            "p14:trim",
+            [("st", clip.trim_start_ms), ("end", clip.trim_end_ms)],
+        ),
+        (
+            "p14:fade",
+            [("in", clip.fade_in_ms), ("out", clip.fade_out_ms)],
+        ),
+    ] {
+        if attrs.iter().any(|(_, value)| *value != 0) {
+            xml.empty(
+                tag,
+                attrs
+                    .into_iter()
+                    .fold(A::new(), |attributes, (key, value)| {
+                        attributes.o(key, (value != 0).then_some(value))
+                    }),
+            );
+        }
+    }
+    if !clip.bookmarks.is_empty() {
+        xml.open0("p14:bmkLst");
+        for (name, time) in clip.bookmarks.iter().take(1000) {
+            xml.empty("p14:bmk", A::new().a("name", name).a("time", time));
+        }
+        xml.close("p14:bmkLst");
+    }
+    xml.close("p14:media");
+    xml.close("p:ext");
+    xml.close("p:extLst");
+}
 
 impl Imp<'_> {
     pub fn media_for(&mut self, path: &str) -> Option<MediaId> {

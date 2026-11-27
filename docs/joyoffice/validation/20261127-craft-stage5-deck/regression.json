@@ -1,0 +1,440 @@
+{
+  "clientDate": "2026-11-27",
+  "candidateSourceBase": "5e2bfb86",
+  "engineeringTests": {
+    "passed": 1073,
+    "failed": 0,
+    "ignored": 0
+  },
+  "frozenCliSha256": "f8fd32a31570e241f17ced00dbce66f7e2ae53739b18e3c70bea03c2e78794f7",
+  "candidateCliSha256": "671b5d4e1470006fe3dfcf92fb0ae2606fdcacb060e45a6f90664c07d8e4ce88",
+  "stage3": {
+    "reads": 234,
+    "successfulFiles": 100,
+    "writeRefusals": [
+      "signed",
+      "macro-enabled"
+    ],
+    "invalidInputs": {
+      "broken-pptx": {
+        "frozen": {
+          "status": 1,
+          "diagnostic": "JoyDeck CLI: invalid package: NotZip"
+        },
+        "candidate": {
+          "status": 1,
+          "diagnostic": "JoyDeck CLI: invalid package: NotZip"
+        }
+      },
+      "future-native": {
+        "frozen": {
+          "status": 1,
+          "diagnostic": "JoyDeck CLI: unsupported JoyDeck version/required capability; file kept unchanged"
+        },
+        "candidate": {
+          "status": 1,
+          "diagnostic": "JoyDeck CLI: unsupported JoyDeck version/required capability; file kept unchanged"
+        }
+      },
+      "unknown-capability": {
+        "frozen": {
+          "status": 1,
+          "diagnostic": "JoyDeck CLI: unsupported JoyDeck version/required capability; file kept unchanged"
+        },
+        "candidate": {
+          "status": 1,
+          "diagnostic": "JoyDeck CLI: unsupported JoyDeck version/required capability; file kept unchanged"
+        }
+      },
+      "unbound-source": {
+        "frozen": {
+          "status": 1,
+          "diagnostic": "JoyDeck CLI: source format/binding mismatch"
+        },
+        "candidate": {
+          "status": 1,
+          "diagnostic": "JoyDeck CLI: source format/binding mismatch"
+        }
+      },
+      "utf16-dtd": {
+        "frozen": {
+          "status": 1,
+          "diagnostic": "JoyDeck CLI: extra/utf16.xml: unclosed XML element"
+        },
+        "candidate": {
+          "status": 1,
+          "diagnostic": "JoyDeck CLI: extra/utf16.xml: DTDs are unsupported"
+        }
+      },
+      "symlink-metadata": {
+        "frozen": {
+          "status": 1,
+          "diagnostic": "JoyDeck CLI: symlink package entries are unsupported"
+        },
+        "candidate": {
+          "status": 1,
+          "diagnostic": "JoyDeck CLI: symlink package entries are unsupported"
+        }
+      },
+      "bad-member-crc": {
+        "frozen": {
+          "status": 1,
+          "diagnostic": "JoyDeck CLI: extra/check.bin: Corrupt { name: \"extra/check.bin\" }"
+        },
+        "candidate": {
+          "status": 1,
+          "diagnostic": "JoyDeck CLI: extra/check.bin: Corrupt { name: \"extra/check.bin\" }"
+        }
+      }
+    },
+    "knownChartPercentLabelComparisons": [
+      "m9-powerpoint-edited-chart.pptx",
+      "native-candidate.joydeck",
+      "preserve-frozen.pptx",
+      "preserve-candidate.pptx",
+      "regenerate-frozen.pptx",
+      "regenerate-candidate.pptx",
+      "m9-powerpoint-stale-cache.pptx",
+      "native-candidate.joydeck",
+      "preserve-frozen.pptx",
+      "preserve-candidate.pptx",
+      "regenerate-frozen.pptx",
+      "regenerate-candidate.pptx"
+    ],
+    "samples": 17,
+    "replayedWithVerifiedPackage": true
+  },
+  "cliChecks": {
+    "r1": 28,
+    "r2": 20,
+    "r3": 20,
+    "r4-r5": 23,
+    "r6-r7": 35
+  },
+  "transition": {
+    "options": 48,
+    "readbacks": 192
+  },
+  "gpu": [
+    {
+      "adapter": "Intel(R) Arc(TM) 140T GPU (16GB)",
+      "backend": "Vulkan",
+      "size": [
+        64,
+        36
+      ],
+      "cpuManifestSha256": "04c43864d6760bbed4555acc00d5a869ccb7affd73fcdf4be1d2cb0e4af5ab0a",
+      "missingSources": {
+        "frames": 48,
+        "maximumChannelDifference": 0
+      },
+      "maxChannelDifference": 1,
+      "frames": 925,
+      "exactEndpoints": true
+    },
+    {
+      "adapter": "Intel(R) Arc(TM) 140T GPU (16GB)",
+      "backend": "Vulkan",
+      "size": [
+        193,
+        109
+      ],
+      "cpuManifestSha256": "a615c2f1ac5bf0b69f6d781660dc80964087ea79b4c32db7a2017e5ba11e6fab",
+      "missingSources": {
+        "frames": 48,
+        "maximumChannelDifference": 1
+      },
+      "maxChannelDifference": 1,
+      "frames": 925,
+      "exactEndpoints": true
+    }
+  ],
+  "pdf": {
+    "cases": 7,
+    "pages": 14,
+    "knownFooterFixes": {
+      "handouts-3": {
+        "firstPageBefore": 2,
+        "firstPageAfter": 1,
+        "changedPixelsWithin": [
+          540,
+          749,
+          545,
+          756
+        ]
+      },
+      "handouts-6": {
+        "firstPageBefore": 2,
+        "firstPageAfter": 1,
+        "changedPixelsWithin": [
+          540,
+          749,
+          545,
+          756
+        ]
+      }
+    },
+    "exactMetafileScenes": 2
+  },
+  "layout": {
+    "case": 60,
+    "line": 372,
+    "caret": 4904,
+    "hit": 4904,
+    "face": 436,
+    "glyph": 2038
+  },
+  "playback": {
+    "counts": {
+      "effect": 990,
+      "frame": 38,
+      "held": 198,
+      "office-timing": 1,
+      "stamps": 1,
+      "terminal": 1
+    },
+    "matchingFrames": 35,
+    "knownMorphStartCorrections": [
+      "characters/0",
+      "objects/0",
+      "words/0"
+    ]
+  },
+  "officePlayback": {
+    "counts": {
+      "effect": 990,
+      "frame": 38,
+      "held": 198,
+      "office-timing": 1,
+      "stamps": 1,
+      "terminal": 1
+    },
+    "matchingFrames": 35,
+    "knownMorphStartCorrections": [
+      "characters/0",
+      "objects/0",
+      "words/0"
+    ]
+  },
+  "print": {
+    "chooserCancel": "cancelled",
+    "driverSaveCancelBefore": "submitted",
+    "endPrintCancelBefore": "EndPrint.Cancel=True",
+    "driverSaveCancelAfter": "cancelled",
+    "exitCodes": {
+      "chooser": 2,
+      "driver": 2
+    },
+    "driverOutput": {
+      "pages": 3,
+      "producer": "Microsoft: Print To PDF",
+      "pdfSha256": "bd01438c826d78e8d14753bf88d4cd86e612e2fc0b7ccce12e475f8ec4ee75ca",
+      "matchedOrder": [
+        1,
+        2,
+        3
+      ],
+      "crossPageMeanAbsolutePixelErrors": [
+        [
+          13.668398,
+          0.0,
+          10.745326
+        ],
+        [
+          11.926508,
+          10.745326,
+          0.0
+        ],
+        [
+          0.0,
+          13.668398,
+          11.926508
+        ]
+      ],
+      "renderedSizes": [
+        [
+          562,
+          397
+        ],
+        [
+          562,
+          397
+        ],
+        [
+          562,
+          397
+        ]
+      ]
+    },
+    "inputPageSha256": {
+      "page-0001.png": "b747cf7d70c7a4912ba122f930c073a2bcc132dc3c6c03013adeb74b8d99bf00",
+      "page-0002.png": "0d8521300db8f0f8fde5af5238eebb4e90ca3519f9a6deb75dfedadcb5c76e7f",
+      "page-0003.png": "e5ae2de71f021f9a5feb72d435d7698c573cb7b2d509971ca22862319654e3ac"
+    },
+    "packagedCli": "cancelled",
+    "interactiveFilenameEntry": "driver dialog opened; output proved with explicit driver path"
+  },
+  "crossTargetLicenseGraphs": [
+    {
+      "target": "aarch64-apple-darwin",
+      "profile": "debug",
+      "packages": 498,
+      "lockSha256": "ce69e6ae10223a0c52f73908cd3846cfffeaa915857378fdb1d39307339a88d4",
+      "roots": [
+        "joydeck",
+        "joydeck-cli"
+      ],
+      "features": [],
+      "missingLicenseTexts": [],
+      "fallbackNoticesVerified": [
+        "mac@0.1.1",
+        "seahash@4.1.0",
+        "pathfinder_geometry@0.5.1"
+      ]
+    },
+    {
+      "target": "x86_64-unknown-linux-gnu",
+      "profile": "debug",
+      "packages": 575,
+      "lockSha256": "ce69e6ae10223a0c52f73908cd3846cfffeaa915857378fdb1d39307339a88d4",
+      "roots": [
+        "joydeck",
+        "joydeck-cli"
+      ],
+      "features": [],
+      "missingLicenseTexts": [],
+      "fallbackNoticesVerified": [
+        "mac@0.1.1",
+        "seahash@4.1.0",
+        "pathfinder_geometry@0.5.1"
+      ]
+    },
+    {
+      "target": "aarch64-unknown-linux-gnu",
+      "profile": "debug",
+      "packages": 574,
+      "lockSha256": "ce69e6ae10223a0c52f73908cd3846cfffeaa915857378fdb1d39307339a88d4",
+      "roots": [
+        "joydeck",
+        "joydeck-cli"
+      ],
+      "features": [],
+      "missingLicenseTexts": [],
+      "fallbackNoticesVerified": [
+        "mac@0.1.1",
+        "seahash@4.1.0",
+        "pathfinder_geometry@0.5.1"
+      ]
+    }
+  ],
+  "powerPoint": {
+    "powerPointVersion": "16.0.20625.20108",
+    "drawingsExact": "5f829ec2ee782d4cfd72673111dac262b39a412d72148c18de8b9a25504e5f9b",
+    "smartArt": {
+      "sha256": "04663fa86f32a34168498edb82d3ad32fb240a1d20a577c0580ce97170984563",
+      "frozenInsetR": 14.7,
+      "candidateInsetR": 14.700000000000028,
+      "absoluteInsetDelta": 2.842170943040401e-14,
+      "exactRasterSha256": "e6eaf33f9f9dd12e476e218427e689a91be777be667f505804b9de0ec4b63d3f"
+    },
+    "model3d": {
+      "sha256": "e55f7ad3ed10f831b985371d9dca8ba338cb6dbe5a4b4873b06b38c21a70ce6b",
+      "frozenShapeKind": "picture",
+      "candidateShapeKind": "model3d",
+      "frozenExchange": {
+        "preserve": {
+          "candidateShapeKind": "model3d",
+          "sha256": "322b9e3e2c84e7c2ccd5cff05359f62bdfa76b090e695eb9285487d66b9f0ba5",
+          "glbParts": [
+            "ppt/media/model3d1.glb"
+          ]
+        },
+        "regenerate": {
+          "candidateShapeKind": "picture",
+          "sha256": "2d668ad54729e0ad05e48b86d7e74e1dcf74bf295959e28d7002979988679881",
+          "glbParts": []
+        }
+      }
+    },
+    "animation": {
+      "input": "craft-stage3-deck-close-20261126/powerpoint16-animation.pptx",
+      "inputSha256": "908952738dcf9d4c2f084b742e381d67366d00181161880ad5f77a76481f50d1",
+      "output": "01-powerpoint16-animation-powerpoint.pptx",
+      "outputSha256": "ffbc3f4322eb51d79dc28a1c7d6b7ff5e044d7d8d255e5b0263bfc5dd9a780c2",
+      "slides": [
+        {
+          "id": 256,
+          "shapeTypes": [
+            1,
+            1,
+            1
+          ],
+          "effects": 3,
+          "notes": 3,
+          "mainSequence": [
+            {
+              "target": 2,
+              "effect": 10,
+              "start": 1,
+              "trigger": null,
+              "duration": 0.55,
+              "delay": 0.2,
+              "autoReverse": false
+            },
+            {
+              "target": 2,
+              "effect": 61,
+              "start": 2,
+              "trigger": null,
+              "duration": 0.8,
+              "delay": 0.0,
+              "autoReverse": true
+            },
+            {
+              "target": 3,
+              "effect": 148,
+              "start": 3,
+              "trigger": null,
+              "duration": 1.2,
+              "delay": 0.15,
+              "autoReverse": false
+            }
+          ],
+          "interactiveSequences": [
+            {
+              "effects": [
+                {
+                  "target": 3,
+                  "effect": 10,
+                  "start": 4,
+                  "trigger": 4,
+                  "duration": 0.6,
+                  "delay": 0.0,
+                  "autoReverse": false
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "seriesOrderDifference": false
+    }
+  },
+  "sharedPackaging": {
+    "tests": 213,
+    "passed": 200,
+    "skipped": 13,
+    "failures": 0
+  },
+  "joySheetPackaging": {
+    "tests": 10,
+    "passed": 10,
+    "failures": 0
+  },
+  "deviceValidation": {
+    "windows": "tested",
+    "macOSMetal": "device unavailable",
+    "UOSVulkan": "device unavailable"
+  },
+  "packageCliSha256": "7714ff2201827df392117aacb7a26144ec6f180db4e30c4bda328ec37c87e18b"
+}
