@@ -6,13 +6,13 @@ use std::sync::{Arc, OnceLock};
 
 use crate::bitmap::Rgba;
 use crate::clip::{self, MAX_CLIP_RECTS};
+use crate::device::Mapping;
+pub(crate) use crate::device::{Xform, mul};
 use crate::geom::{Op, P};
-use crate::text::{ETO_CLIPPED, ETO_OPAQUE, Font, TA_UPDATECP, Text, align};
+use crate::text::{ETO_CLIPPED, ETO_OPAQUE, Font, Text};
+use crate::text_records::Placement;
 use crate::{MAX_BYTES, MAX_ITEMS, MAX_OBJECTS, MAX_PATH_OPS, MAX_STACK};
 
-pub(crate) const MM_TEXT: u32 = 1;
-const MM_ISOTROPIC: u32 = 7;
-const MM_ANISOTROPIC: u32 = 8;
 const STOCK: u32 = 0x8000_0000;
 pub(crate) const PS_NULL: u32 = 5;
 /// Pen style bits; the rest of the style word holds end-cap, join and type flags.
@@ -39,25 +39,6 @@ const OPAQUE: u32 = 2;
 const PATCOPY: u32 = 0x00F0_0021;
 const BLACKNESS: u32 = 0x0000_0042;
 const WHITENESS: u32 = 0x00FF_0062;
-/// Device pixels per millimetre assumed for WMF (96 dpi), and for EMF files without a device size.
-const DEFAULT_PX_PER_MM: f64 = 96.0 / 25.4;
-
-/// Affine transform `[m11, m12, m21, m22, dx, dy]` in EMF XFORM order: `x' = x·m11 + y·m21 + dx`.
-pub(crate) type Xform = [f64; 6];
-const IDENTITY: Xform = [1.0, 0.0, 0.0, 1.0, 0.0, 0.0];
-
-/// `a` then `b` in EMF row-vector convention: the matrix product `a × b`.
-pub(crate) fn mul(a: Xform, b: Xform) -> Xform {
-    [
-        a[0] * b[0] + a[1] * b[2],
-        a[0] * b[1] + a[1] * b[3],
-        a[2] * b[0] + a[3] * b[2],
-        a[2] * b[1] + a[3] * b[3],
-        a[4] * b[0] + a[5] * b[2] + b[4],
-        a[4] * b[1] + a[5] * b[3] + b[5],
-    ]
-}
-
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub(crate) struct Pen {
     pub style: u32,
@@ -169,114 +150,6 @@ pub(crate) fn colorref(c: u32) -> [u8; 4] {
     ]
 }
 
-/// Millimetres per logical unit of the metric map modes (LOMETRIC, HIMETRIC, LOENGLISH, HIENGLISH, TWIPS).
-fn metric_mm(mode: u32) -> Option<f64> {
-    match mode {
-        2 => Some(0.1),
-        3 => Some(0.01),
-        4 => Some(25.4 / 100.0),
-        5 => Some(25.4 / 1000.0),
-        6 => Some(25.4 / 1440.0),
-        _ => None,
-    }
-}
-
-#[derive(Clone, Copy)]
-pub(crate) struct Mapping {
-    wo: P,
-    we: P,
-    vo: P,
-    ve: P,
-    mode: u32,
-    world: Xform,
-    /// Device pixels per millimetre on each axis (EMF: from szlDevice and szlMillimeters).
-    px_mm: P,
-}
-
-impl Mapping {
-    fn identity() -> Self {
-        Mapping {
-            wo: (0.0, 0.0),
-            we: (1.0, 1.0),
-            vo: (0.0, 0.0),
-            ve: (1.0, 1.0),
-            mode: MM_TEXT,
-            world: IDENTITY,
-            px_mm: (DEFAULT_PX_PER_MM, DEFAULT_PX_PER_MM),
-        }
-    }
-
-    /// Logical point to device point: world transform, then window to viewport.
-    pub fn device(&self, p: P) -> P {
-        let w = self.world;
-        let (x, y) = (
-            p.0 * w[0] + p.1 * w[2] + w[4],
-            p.0 * w[1] + p.1 * w[3] + w[5],
-        );
-        let (sx, sy) = self.ratios();
-        (
-            (x - self.wo.0) * sx + self.vo.0,
-            (y - self.wo.1) * sy + self.vo.1,
-        )
-    }
-
-    /// Window-to-viewport scale per axis. MM_TEXT fixes the scale at 1; the metric modes use a fixed
-    /// scale with y up; MM_ISOTROPIC uses one scale on both axes (the smaller magnitude, each axis's
-    /// sign kept); anisotropic and unknown modes use the extents as given.
-    fn ratios(&self) -> (f64, f64) {
-        if self.mode == MM_TEXT {
-            return (1.0, 1.0);
-        }
-        if let Some(mm) = metric_mm(self.mode) {
-            return (mm * self.px_mm.0, -mm * self.px_mm.1);
-        }
-        let (rx, ry) = (ratio(self.ve.0, self.we.0), ratio(self.ve.1, self.we.1));
-        if self.mode == MM_ISOTROPIC {
-            let s = rx.abs().min(ry.abs());
-            return (if rx < 0.0 { -s } else { s }, if ry < 0.0 { -s } else { s });
-        }
-        (rx, ry)
-    }
-
-    /// Approximate device length per logical length, for pen widths.
-    fn scale(&self) -> f64 {
-        let w = self.world;
-        let det = (w[0] * w[3] - w[1] * w[2]).abs().sqrt();
-        let (sx, sy) = self.ratios();
-        det * (sx.abs() + sy.abs()) / 2.0
-    }
-
-    /// True when the window-to-viewport extents set the scale (the isotropic and anisotropic modes).
-    pub fn uses_extents(&self) -> bool {
-        matches!(self.mode, MM_ISOTROPIC | MM_ANISOTROPIC)
-    }
-
-    pub fn window_ext(&self) -> P {
-        self.we
-    }
-
-    pub fn viewport_ext(&self) -> P {
-        self.ve
-    }
-
-    /// The window in device units as `[x, y, w, h]` with positive extents, used as the picture frame
-    /// of a plain WMF.
-    pub fn window_rect(&self) -> [f64; 4] {
-        let a = self.device(self.wo);
-        let b = self.device((self.wo.0 + self.we.0, self.wo.1 + self.we.1));
-        [
-            a.0.min(b.0),
-            a.1.min(b.1),
-            (b.0 - a.0).abs(),
-            (b.1 - a.1).abs(),
-        ]
-    }
-}
-
-fn ratio(num: f64, den: f64) -> f64 {
-    if den == 0.0 { 1.0 } else { num / den }
-}
-
 /// Output of drawing, in device units. Path points are already mapped; `lib.rs` normalises them.
 pub(crate) enum Raw {
     Path {
@@ -377,7 +250,7 @@ impl Canvas {
     pub fn new() -> Self {
         Canvas {
             items: Vec::new(),
-            map: Mapping::identity(),
+            map: Mapping::default(),
             window_set: false,
             viewport_set: false,
             saved: Vec::new(),
@@ -465,20 +338,20 @@ impl Canvas {
     }
 
     pub fn set_window_org(&mut self, p: P) {
-        self.map.wo = p;
+        self.map.window_origin = p;
     }
 
     pub fn set_window_ext(&mut self, e: P) {
-        self.map.we = e;
+        self.map.window_size = e;
         self.window_set = true;
     }
 
     pub fn set_viewport_org(&mut self, p: P) {
-        self.map.vo = p;
+        self.map.viewport_origin = p;
     }
 
     pub fn set_viewport_ext(&mut self, e: P) {
-        self.map.ve = e;
+        self.map.viewport_size = e;
         self.viewport_set = true;
     }
 
@@ -488,13 +361,7 @@ impl Canvas {
     /// Without a window (a plain WMF) only the viewport extent is set: the map mode and viewport
     /// origin stay the file's.
     pub fn play_into(&mut self, window: Option<[f64; 4]>, size: P) {
-        if let Some([x, y, w, h]) = window {
-            self.map.mode = MM_ANISOTROPIC;
-            self.map.wo = (x, y);
-            self.map.we = (w, h);
-            self.map.vo = (0.0, 0.0);
-        }
-        self.map.ve = size;
+        self.map.place(window, size);
     }
 
     pub fn set_map_mode(&mut self, mode: u32) {
@@ -503,9 +370,7 @@ impl Canvas {
 
     /// Device pixels per millimetre (x, y) for the metric map modes. Ignored unless both are positive.
     pub fn set_device_mm(&mut self, px_mm: P) {
-        if px_mm.0.is_finite() && px_mm.1.is_finite() && px_mm.0 > 0.0 && px_mm.1 > 0.0 {
-            self.map.px_mm = px_mm;
-        }
+        self.map.set_density(px_mm);
     }
 
     pub fn set_polyfill(&mut self, mode: u32) {
@@ -542,18 +407,12 @@ impl Canvas {
     /// EMF SETWORLDTRANSFORM (`mode` 4) and MODIFYWORLDTRANSFORM (1 identity, 2 left, 3 right, 4 set).
     /// An unknown mode leaves the world transform as it was.
     pub fn modify_world(&mut self, x: Xform, mode: u32) {
-        match mode {
-            1 => self.map.world = IDENTITY,
-            2 => self.map.world = mul(x, self.map.world),
-            3 => self.map.world = mul(self.map.world, x),
-            4 => self.map.world = x,
-            _ => {}
-        }
+        self.map.modify_world(x, mode);
     }
 
     /// The current world transform (EMF+ draws through it).
     pub fn world(&self) -> Xform {
-        self.map.world
+        self.map.world()
     }
 
     /// Sets the pen and brush directly (EMF+ records name their own pen and brush).
@@ -572,10 +431,8 @@ impl Canvas {
 
     /// Logical to device as one affine transform (the mapping is affine).
     pub fn device_affine(&self) -> Xform {
-        let o = self.map.device((0.0, 0.0));
-        let x = self.map.device((1.0, 0.0));
-        let y = self.map.device((0.0, 1.0));
-        [x.0 - o.0, x.1 - o.1, y.0 - o.0, y.1 - o.1, o.0, o.1]
+        let (o, x, y) = self.map.basis((0.0, 0.0));
+        [x.0, x.1, y.0, y.1, o.0, o.1]
     }
 
     /// Text colour, font and alignment set directly (EMF+ strings name their own font and brush);
@@ -681,18 +538,8 @@ impl Canvas {
 
     /// The logical rectangle as a device rectangle. A scale or translation keeps the rectangle; a
     /// rotation stores the bounds of the rotated corners.
-    fn device_rect(&self, [l, t, r, b]: [f64; 4]) -> Option<[f64; 4]> {
-        let mut points = [(l, t), (r, t), (l, b), (r, b)]
-            .into_iter()
-            .map(|point| self.map.device(point));
-        let (left, top) = points.next()?;
-        let bounds = points.try_fold([left, top, left, top], |[l, t, r, b], (x, y)| {
-            (x.is_finite() && y.is_finite()).then_some([l.min(x), t.min(y), r.max(x), b.max(y)])
-        })?;
-        if !left.is_finite() || !top.is_finite() {
-            return None;
-        }
-        clip::normalize(bounds)
+    fn device_rect(&self, logical: [f64; 4]) -> Option<[f64; 4]> {
+        clip::normalize(self.map.bounds(logical)?)
     }
 
     fn map_rects(&self, logical: &[[f64; 4]]) -> Vec<[f64; 4]> {
@@ -1147,55 +994,18 @@ impl Canvas {
             self.fill_rect_with(r, self.text.bk_color);
         }
         let lf = self.text.font.as_deref().cloned().unwrap_or_default();
-        let update = self.text.align & TA_UPDATECP != 0;
-        let origin = if update { self.pos } else { at };
-        let (h_align, v_align) = align(self.text.align);
-        let o = self.map.device(origin);
-        let ux = self.map.device((origin.0 + 1.0, origin.1));
-        let uy = self.map.device((origin.0, origin.1 + 1.0));
-        let (ux, uy) = ((ux.0 - o.0, ux.1 - o.1), (uy.0 - o.0, uy.1 - o.1));
-        if update {
-            // The current position moves along the baseline past the string (back past it when
-            // right-aligned). Without a dx array the advance is estimated from the height.
-            let adv: f64 = if dx.is_empty() {
-                f64::from(lf.font.height.abs().max(1.0)) * 0.5 * text.chars().count() as f64
-            } else {
-                dx.iter().map(|d| f64::from(*d)).sum()
-            };
-            let adv = match h_align {
-                crate::HAlign::Left => adv,
-                crate::HAlign::Right => -adv,
-                crate::HAlign::Center => 0.0,
-            };
-            let theta = (lf.escapement / 10.0).to_radians();
-            let y_sign = if uy.1 < 0.0 { 1.0 } else { -1.0 };
-            let p = (
-                origin.0 + adv * theta.cos(),
-                origin.1 + adv * theta.sin() * y_sign,
-            );
-            if p.0.is_finite() && p.1.is_finite() {
-                self.pos = p;
-            }
+        let placement = Placement::new(&self.map, self.text.align, at, self.pos, lf.escapement);
+        if placement.updates_position
+            && let Some(next) = placement.after(&text, &dx, lf.font.height)
+        {
+            self.pos = next;
         }
-        let (sx, sy) = (ux.0.hypot(ux.1), uy.0.hypot(uy.1));
-        let drawable = !text.is_empty()
-            && [sx, sy, o.0, o.1].iter().all(|v| v.is_finite())
-            && sx > 0.0
-            && sy > 0.0;
-        if !drawable {
+        if text.is_empty() {
             return;
         }
-        // The baseline runs along the device direction of the logical x axis (rotated by a world
-        // transform; a mirroring mapping does not mirror glyphs), turned counter-clockwise by the
-        // escapement.
-        let det = ux.0 * uy.1 - ux.1 * uy.0;
-        let phi = if det > 0.0 {
-            ux.1.atan2(ux.0)
-        } else {
-            ux.1.atan2(ux.0.abs())
+        let Some(transform) = placement.transform() else {
+            return;
         };
-        let a = phi - (lf.escapement / 10.0).to_radians();
-        let (c, s) = (a.cos(), a.sin());
         let clip = match (options & ETO_CLIPPED != 0, rect) {
             (true, Some([l, t, r, b])) => {
                 let (p, q) = (self.map.device((l, t)), self.map.device((r, b)));
@@ -1210,14 +1020,14 @@ impl Canvas {
         };
         self.push(Raw::Text {
             text: Box::new(Text {
-                transform: [sx * c, sx * s, -sy * s, sy * c, o.0, o.1],
+                transform,
                 text,
                 dx,
                 font: lf.font,
                 color: self.text.color,
                 background: self.text.bk_opaque.then_some(self.text.bk_color),
-                h_align,
-                v_align,
+                h_align: placement.horizontal,
+                v_align: placement.vertical,
                 clip,
                 region: None,
             }),

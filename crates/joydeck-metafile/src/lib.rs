@@ -25,14 +25,18 @@
 mod bitmap;
 mod bytes;
 mod canvas;
+#[path = "region.rs"]
 mod clip;
 mod cliprect;
+mod device;
 mod emf;
 mod emfplus;
 mod geom;
 mod place;
 mod records;
 mod text;
+mod text_records;
+mod vector_records;
 mod wmf;
 
 #[cfg(test)]
