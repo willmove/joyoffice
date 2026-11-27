@@ -1,0 +1,788 @@
+{
+  "tone-levels": {
+    "metafileSha256": "806302f418d36945e1c91aaf6b255b9391683413e4b4efc2ba8250bc783712f6",
+    "candidateRgbSha256": "afce2576da6b12b2c5586a4d27f0a745a1667d25a66b1f18397369a758416957",
+    "frozenRgbSha256": "2db3f77b0d45095672798e9c98798bc0d9ce4dc7e0ed77fc9140639df08c8a97",
+    "maxErrorByEffect": {
+      "combined_bc": 1,
+      "combined_bc_neg": 1,
+      "combined_bc_flat": 0,
+      "levels_combined": 0,
+      "highlight_50": 0,
+      "shadow_15": 0,
+      "midtone_-30": 0,
+      "midtone_75": 2,
+      "balance_mixed": 1,
+      "hsl_mixed": 8,
+      "tint_30": 2,
+      "tint_-30": 1
+    },
+    "preservePartsExact": true,
+    "candidateReopenedExact": true,
+    "officeReopenedExact": true,
+    "probeCount": 480,
+    "coverageByEffect": {
+      "combined_bc": {
+        "samples": 45,
+        "exact": 42,
+        "limit": 1,
+        "frozenMaxError": 68
+      },
+      "combined_bc_neg": {
+        "samples": 45,
+        "exact": 44,
+        "limit": 1,
+        "frozenMaxError": 70
+      },
+      "combined_bc_flat": {
+        "samples": 45,
+        "exact": 45,
+        "limit": 1,
+        "frozenMaxError": 67
+      },
+      "levels_combined": {
+        "samples": 45,
+        "exact": 45,
+        "limit": 2,
+        "frozenMaxError": 44
+      },
+      "highlight_50": {
+        "samples": 45,
+        "exact": 45,
+        "limit": 1,
+        "frozenMaxError": 126
+      },
+      "shadow_15": {
+        "samples": 45,
+        "exact": 45,
+        "limit": 1,
+        "frozenMaxError": 49
+      },
+      "midtone_-30": {
+        "samples": 45,
+        "exact": 45,
+        "limit": 1,
+        "frozenMaxError": 53
+      },
+      "midtone_75": {
+        "samples": 45,
+        "exact": 2,
+        "limit": 2,
+        "frozenMaxError": 96
+      },
+      "balance_mixed": {
+        "samples": 45,
+        "exact": 43,
+        "limit": 1,
+        "frozenMaxError": 97
+      },
+      "hsl_mixed": {
+        "samples": 45,
+        "exact": 15,
+        "limit": 14,
+        "frozenMaxError": 219
+      },
+      "tint_30": {
+        "samples": 15,
+        "exact": 4,
+        "limit": 2,
+        "frozenMaxError": 46
+      },
+      "tint_-30": {
+        "samples": 15,
+        "exact": 10,
+        "limit": 1,
+        "frozenMaxError": 58
+      }
+    }
+  },
+  "tone-curves": {
+    "metafileSha256": "2b53a2e8f1f628cb56549f9afc70c11d5c357d6e04ce2142e521b8b1eef68ece",
+    "candidateRgbSha256": "86e2d2bec2c74eaabe3e382443b36eb15240829d713ad548f7647e187bbcf632",
+    "frozenRgbSha256": "4e436320794808050e2203d77f33aaf3ecd7fa874acf4ba704803e74e41ba209",
+    "maxErrorByEffect": {
+      "curve_0_-50": 1,
+      "curve_1_150": 1,
+      "curve_2_-30": 1,
+      "curve_2_60": 3,
+      "curve_3_-30": 1,
+      "curve_3_60": 1,
+      "curve_4_-60": 1,
+      "curve_4_30": 1,
+      "curve_5_50": 1,
+      "curve_6_50": 1,
+      "curve_7_150": 1,
+      "curve_single": 2
+    },
+    "preservePartsExact": true,
+    "candidateReopenedExact": true,
+    "officeReopenedExact": true,
+    "probeCount": 540,
+    "coverageByEffect": {
+      "curve_0_-50": {
+        "samples": 45,
+        "exact": 41,
+        "limit": 2,
+        "frozenMaxError": 58
+      },
+      "curve_1_150": {
+        "samples": 45,
+        "exact": 42,
+        "limit": 2,
+        "frozenMaxError": 151
+      },
+      "curve_2_-30": {
+        "samples": 45,
+        "exact": 34,
+        "limit": 7,
+        "frozenMaxError": 25
+      },
+      "curve_2_60": {
+        "samples": 45,
+        "exact": 22,
+        "limit": 7,
+        "frozenMaxError": 54
+      },
+      "curve_3_-30": {
+        "samples": 45,
+        "exact": 37,
+        "limit": 7,
+        "frozenMaxError": 23
+      },
+      "curve_3_60": {
+        "samples": 45,
+        "exact": 17,
+        "limit": 7,
+        "frozenMaxError": 47
+      },
+      "curve_4_-60": {
+        "samples": 45,
+        "exact": 28,
+        "limit": 7,
+        "frozenMaxError": 50
+      },
+      "curve_4_30": {
+        "samples": 45,
+        "exact": 34,
+        "limit": 7,
+        "frozenMaxError": 20
+      },
+      "curve_5_50": {
+        "samples": 45,
+        "exact": 43,
+        "limit": 2,
+        "frozenMaxError": 63
+      },
+      "curve_6_50": {
+        "samples": 45,
+        "exact": 38,
+        "limit": 2,
+        "frozenMaxError": 196
+      },
+      "curve_7_150": {
+        "samples": 45,
+        "exact": 42,
+        "limit": 2,
+        "frozenMaxError": 146
+      },
+      "curve_single": {
+        "samples": 45,
+        "exact": 41,
+        "limit": 2,
+        "frozenMaxError": 32
+      }
+    }
+  },
+  "sharpen": {
+    "metafileSha256": "0998763b2d229afd50ae95de6733c184c105ab43f14f2332049d1b7fad8b9942",
+    "candidateRgbSha256": "ea4604cf1302e1822c4e46b1cffa16c0c83d011c3942a13836a78f0b221cafbf",
+    "frozenRgbSha256": "405a30c3ee2f2ebb123ef7e82d023b33a3803dcda95448fc91b79382d477df8c",
+    "maxErrorByEffect": {
+      "sharp_0.5": 0,
+      "sharp_1": 0,
+      "sharp_2": 1,
+      "sharp_3_25": 0,
+      "sharp_3": 0,
+      "sharp_3_95": 1,
+      "sharp_6": 0,
+      "sharp_20": 1,
+      "sharp_32": 1
+    },
+    "preservePartsExact": true,
+    "candidateReopenedExact": true,
+    "officeReopenedExact": true,
+    "probeCount": 117,
+    "coverageByEffect": {
+      "sharp_0.5": {
+        "samples": 13,
+        "exact": 13,
+        "limit": 3,
+        "frozenMaxError": 11
+      },
+      "sharp_1": {
+        "samples": 13,
+        "exact": 13,
+        "limit": 3,
+        "frozenMaxError": 16
+      },
+      "sharp_2": {
+        "samples": 13,
+        "exact": 11,
+        "limit": 3,
+        "frozenMaxError": 20
+      },
+      "sharp_3_25": {
+        "samples": 13,
+        "exact": 13,
+        "limit": 3,
+        "frozenMaxError": 11
+      },
+      "sharp_3": {
+        "samples": 13,
+        "exact": 13,
+        "limit": 3,
+        "frozenMaxError": 16
+      },
+      "sharp_3_95": {
+        "samples": 13,
+        "exact": 10,
+        "limit": 3,
+        "frozenMaxError": 42
+      },
+      "sharp_6": {
+        "samples": 13,
+        "exact": 13,
+        "limit": 3,
+        "frozenMaxError": 15
+      },
+      "sharp_20": {
+        "samples": 13,
+        "exact": 8,
+        "limit": 3,
+        "frozenMaxError": 23
+      },
+      "sharp_32": {
+        "samples": 13,
+        "exact": 10,
+        "limit": 3,
+        "frozenMaxError": 23
+      }
+    }
+  },
+  "red-eye": {
+    "metafileSha256": "184d7adc37a2a6738c56d21f93a278c692941b7aad1b68d942d6c1c0bd367214",
+    "candidateRgbSha256": "700ffed3705e22fff7d0b6a43e93cae4ac969383febec18a69ced62d355cde56",
+    "frozenRgbSha256": "5a3649233ae4ded55902d4eaa8c934b1ed1b42297eedce155f1a82086f47f084",
+    "maxErrorByEffect": {
+      "pupils": 3,
+      "pupils_offcenter": 15
+    },
+    "preservePartsExact": true,
+    "candidateReopenedExact": true,
+    "officeReopenedExact": true,
+    "probeCount": 16,
+    "coverageByEffect": {
+      "pupils": {
+        "samples": 8,
+        "exact": 6,
+        "limit": 4,
+        "frozenMaxError": 115
+      },
+      "pupils_offcenter": {
+        "samples": 8,
+        "exact": 3,
+        "limit": 16,
+        "frozenMaxError": 101
+      }
+    }
+  },
+  "expanded": {
+    "metafileSha256": "b63dfaab49cf2654dc17a3f30ceba19014d8cd0d8b9978c40db1b99939f99309",
+    "candidateRgbSha256": "4fc3898c1670ecb276f75f98489e283b0612e738526df4de921b5da95f2a8b70",
+    "frozenRgbSha256": "b0eb4ad7f799545453c507f0c604479fc57b3d56b467f0d1138781569c55a6df",
+    "maxErrorByEffect": {
+      "radius-3-window-False": 1,
+      "radius-20-window-False": 2,
+      "radius-3-window-True": 1,
+      "radius-20-window-True": 2
+    },
+    "preservePartsExact": true,
+    "candidateReopenedExact": true,
+    "officeReopenedExact": true,
+    "probeCount": 56,
+    "coverageByEffect": {
+      "radius-3-window-False": {
+        "samples": 14,
+        "exact": 12,
+        "limit": 5,
+        "frozenMaxError": 74
+      },
+      "radius-20-window-False": {
+        "samples": 14,
+        "exact": 7,
+        "limit": 5,
+        "frozenMaxError": 158
+      },
+      "radius-3-window-True": {
+        "samples": 14,
+        "exact": 12,
+        "limit": 5,
+        "frozenMaxError": 89
+      },
+      "radius-20-window-True": {
+        "samples": 14,
+        "exact": 1,
+        "limit": 5,
+        "frozenMaxError": 158
+      }
+    }
+  },
+  "downsample": {
+    "metafileSha256": "56d6a7edce855acd448c3e923de132ba9f2a4eadb725b6778bd350f14bad461c",
+    "candidateRgbSha256": "283deabcfe3699f51254cd7e5ef44d2826267f19a205e41e5a5a3d8bc493dc81",
+    "frozenRgbSha256": "2e3d4524dfaaa391d4030f04a49e699870a2687dc8a53726a717d5e8d63bf40b",
+    "maxErrorByEffect": {
+      "nearest-raw": 0,
+      "nearest-blur": 0,
+      "bilinear-raw": 0,
+      "bilinear-blur": 0,
+      "bicubic-raw": 0,
+      "bicubic-blur": 0,
+      "high-bilinear-raw": 0,
+      "high-bilinear-raw-transition": 2,
+      "high-bilinear-blur": 1,
+      "high-bilinear-blur-transition": 4,
+      "high-bicubic-raw": 0,
+      "high-bicubic-raw-transition": 14,
+      "high-bicubic-blur": 2,
+      "high-bicubic-blur-transition": 12
+    },
+    "preservePartsExact": true,
+    "candidateReopenedExact": true,
+    "officeReopenedExact": true,
+    "probeCount": 82,
+    "coverageByEffect": {
+      "nearest-raw": {
+        "samples": 7,
+        "exact": 7,
+        "limit": 5,
+        "frozenMaxError": 116
+      },
+      "nearest-blur": {
+        "samples": 7,
+        "exact": 7,
+        "limit": 5,
+        "frozenMaxError": 144
+      },
+      "bilinear-raw": {
+        "samples": 7,
+        "exact": 7,
+        "limit": 5,
+        "frozenMaxError": 116
+      },
+      "bilinear-blur": {
+        "samples": 7,
+        "exact": 7,
+        "limit": 5,
+        "frozenMaxError": 144
+      },
+      "bicubic-raw": {
+        "samples": 7,
+        "exact": 7,
+        "limit": 5,
+        "frozenMaxError": 116
+      },
+      "bicubic-blur": {
+        "samples": 7,
+        "exact": 7,
+        "limit": 5,
+        "frozenMaxError": 144
+      },
+      "high-bilinear-raw": {
+        "samples": 7,
+        "exact": 7,
+        "limit": 5,
+        "frozenMaxError": 153
+      },
+      "high-bilinear-raw-transition": {
+        "samples": 3,
+        "exact": 0,
+        "limit": 7,
+        "frozenMaxError": 64
+      },
+      "high-bilinear-blur": {
+        "samples": 7,
+        "exact": 6,
+        "limit": 5,
+        "frozenMaxError": 148
+      },
+      "high-bilinear-blur-transition": {
+        "samples": 3,
+        "exact": 0,
+        "limit": 7,
+        "frozenMaxError": 66
+      },
+      "high-bicubic-raw": {
+        "samples": 7,
+        "exact": 7,
+        "limit": 5,
+        "frozenMaxError": 153
+      },
+      "high-bicubic-raw-transition": {
+        "samples": 3,
+        "exact": 0,
+        "limit": 16,
+        "frozenMaxError": 120
+      },
+      "high-bicubic-blur": {
+        "samples": 7,
+        "exact": 5,
+        "limit": 5,
+        "frozenMaxError": 148
+      },
+      "high-bicubic-blur-transition": {
+        "samples": 3,
+        "exact": 0,
+        "limit": 16,
+        "frozenMaxError": 120
+      }
+    }
+  },
+  "texture-glyphs": {
+    "metafileSha256": "4da8c9948525d7c1c55e06caa112afb629ba116e390b9e2af6b6e03db679fee7",
+    "candidateRgbSha256": "b92267335027a8d5f8e27d8e2cb9abfc24bf738b66948d2d6876520cc4a5f45e",
+    "frozenRgbSha256": "ff465eabd4a3a9bfb884def862c112aa163585fb8ebbf5f13fbb08d0c350c5d3",
+    "coverage": {
+      "native": [
+        {
+          "background": 1305,
+          "redOver": 86,
+          "redCopy": 0,
+          "blue": 40,
+          "clear": 0
+        },
+        {
+          "background": 1152,
+          "redOver": 0,
+          "redCopy": 159,
+          "blue": 81,
+          "clear": 153
+        },
+        {
+          "background": 1152,
+          "redOver": 0,
+          "redCopy": 0,
+          "blue": 0,
+          "clear": 528
+        }
+      ],
+      "candidate": [
+        {
+          "background": 1248,
+          "redOver": 175,
+          "redCopy": 0,
+          "blue": 66,
+          "clear": 0
+        },
+        {
+          "background": 1152,
+          "redOver": 0,
+          "redCopy": 178,
+          "blue": 130,
+          "clear": 79
+        },
+        {
+          "background": 1152,
+          "redOver": 0,
+          "redCopy": 0,
+          "blue": 0,
+          "clear": 441
+        }
+      ]
+    },
+    "preservePartsExact": true,
+    "candidateReopenedExact": true,
+    "officeReopenedExact": true
+  },
+  "powerPoint": {
+    "version": "16.0.20625.20108",
+    "applicationVersion": "16.0",
+    "frozenCliSha256": "f8fd32a31570e241f17ced00dbce66f7e2ae53739b18e3c70bea03c2e78794f7",
+    "candidateCliSha256": "94941af78b12307e24a7bc5a4ae697cc4053199b313733215ffccaf039147d59",
+    "cases": [
+      {
+        "input": "final-cases/downsample-preserved.pptx",
+        "inputSha256": "7c5162296e1fa273b75bca7c8dec4d88fac410a1c4110dd04b896d8410d65f47",
+        "output": "01-downsample-preserved-powerpoint.pptx",
+        "outputSha256": "0d0ff1d6726d641241317705c4ce6f2b5dc5834f20ff77bf498b4fea793371eb",
+        "slides": [
+          {
+            "id": 256,
+            "shapeTypes": [
+              17,
+              17,
+              1,
+              17
+            ],
+            "effects": 0,
+            "notes": 3
+          },
+          {
+            "id": 257,
+            "shapeTypes": [
+              13
+            ],
+            "effects": 0,
+            "notes": 3
+          },
+          {
+            "id": 258,
+            "shapeTypes": [
+              17,
+              17,
+              1,
+              17
+            ],
+            "effects": 0,
+            "notes": 3
+          }
+        ],
+        "seriesOrderDifference": false
+      },
+      {
+        "input": "final-cases/expanded-preserved.pptx",
+        "inputSha256": "3c0b178f56a8c540014e6f940e8bb39f96a2abe81de136c70d72514e40e827a0",
+        "output": "02-expanded-preserved-powerpoint.pptx",
+        "outputSha256": "993a9f9a8a4cc282687288e2340acfeb38746b44c096945a4c3155b8a78a80cd",
+        "slides": [
+          {
+            "id": 256,
+            "shapeTypes": [
+              17,
+              17,
+              1,
+              17
+            ],
+            "effects": 0,
+            "notes": 3
+          },
+          {
+            "id": 257,
+            "shapeTypes": [
+              13
+            ],
+            "effects": 0,
+            "notes": 3
+          },
+          {
+            "id": 258,
+            "shapeTypes": [
+              17,
+              17,
+              1,
+              17
+            ],
+            "effects": 0,
+            "notes": 3
+          }
+        ],
+        "seriesOrderDifference": false
+      },
+      {
+        "input": "final-cases/red-eye-preserved.pptx",
+        "inputSha256": "72cda462b3e1f7ee179325263566e81b087206cebbae7b3eb159266d14180179",
+        "output": "03-red-eye-preserved-powerpoint.pptx",
+        "outputSha256": "06f57443b7200bb051442351a5dfe50816768e7273ab3d99f5b57fa00e8b6d58",
+        "slides": [
+          {
+            "id": 256,
+            "shapeTypes": [
+              17,
+              17,
+              1,
+              17
+            ],
+            "effects": 0,
+            "notes": 3
+          },
+          {
+            "id": 257,
+            "shapeTypes": [
+              13
+            ],
+            "effects": 0,
+            "notes": 3
+          },
+          {
+            "id": 258,
+            "shapeTypes": [
+              17,
+              17,
+              1,
+              17
+            ],
+            "effects": 0,
+            "notes": 3
+          }
+        ],
+        "seriesOrderDifference": false
+      },
+      {
+        "input": "final-cases/sharpen-preserved.pptx",
+        "inputSha256": "a1502998668dd3b84b862bc0f339e9a366d9961a37ed61ced9e3090319026297",
+        "output": "04-sharpen-preserved-powerpoint.pptx",
+        "outputSha256": "5be76a2f6eb99f65dfb447da93019ce202a4c238f87c5f5f1c2636ba45d9b666",
+        "slides": [
+          {
+            "id": 256,
+            "shapeTypes": [
+              17,
+              17,
+              1,
+              17
+            ],
+            "effects": 0,
+            "notes": 3
+          },
+          {
+            "id": 257,
+            "shapeTypes": [
+              13
+            ],
+            "effects": 0,
+            "notes": 3
+          },
+          {
+            "id": 258,
+            "shapeTypes": [
+              17,
+              17,
+              1,
+              17
+            ],
+            "effects": 0,
+            "notes": 3
+          }
+        ],
+        "seriesOrderDifference": false
+      },
+      {
+        "input": "final-cases/texture-glyphs-preserved.pptx",
+        "inputSha256": "4197026eb95eff2c352fd05b1f24de499fe96591eb737ab105ebe45bc238b0e5",
+        "output": "05-texture-glyphs-preserved-powerpoint.pptx",
+        "outputSha256": "0dc12b53138c3a48ef5726c3894423233deb8c991c42acfff3bbd64778c39891",
+        "slides": [
+          {
+            "id": 256,
+            "shapeTypes": [
+              17,
+              17,
+              1,
+              17
+            ],
+            "effects": 0,
+            "notes": 3
+          },
+          {
+            "id": 257,
+            "shapeTypes": [
+              13
+            ],
+            "effects": 0,
+            "notes": 3
+          },
+          {
+            "id": 258,
+            "shapeTypes": [
+              17,
+              17,
+              1,
+              17
+            ],
+            "effects": 0,
+            "notes": 3
+          }
+        ],
+        "seriesOrderDifference": false
+      },
+      {
+        "input": "final-cases/tone-curves-preserved.pptx",
+        "inputSha256": "d8a492c1ad1a88c597a4d7814796d8cac25f1a321fc19395cd9ad8ebdd67b633",
+        "output": "06-tone-curves-preserved-powerpoint.pptx",
+        "outputSha256": "2009801a34fd4821d7daaaefd456aca38ccd981f440ad055b900918062d0a19a",
+        "slides": [
+          {
+            "id": 256,
+            "shapeTypes": [
+              17,
+              17,
+              1,
+              17
+            ],
+            "effects": 0,
+            "notes": 3
+          },
+          {
+            "id": 257,
+            "shapeTypes": [
+              13
+            ],
+            "effects": 0,
+            "notes": 3
+          },
+          {
+            "id": 258,
+            "shapeTypes": [
+              17,
+              17,
+              1,
+              17
+            ],
+            "effects": 0,
+            "notes": 3
+          }
+        ],
+        "seriesOrderDifference": false
+      },
+      {
+        "input": "final-cases/tone-levels-preserved.pptx",
+        "inputSha256": "b93ffd3b34e0383a6f9389b701c6b19dd96289b7181b20d82798b477c8908f78",
+        "output": "07-tone-levels-preserved-powerpoint.pptx",
+        "outputSha256": "16422257813578600a9859f79c59d7c38869d91d4710ca6241e8c7f160b90d60",
+        "slides": [
+          {
+            "id": 256,
+            "shapeTypes": [
+              17,
+              17,
+              1,
+              17
+            ],
+            "effects": 0,
+            "notes": 3
+          },
+          {
+            "id": 257,
+            "shapeTypes": [
+              13
+            ],
+            "effects": 0,
+            "notes": 3
+          },
+          {
+            "id": 258,
+            "shapeTypes": [
+              17,
+              17,
+              1,
+              17
+            ],
+            "effects": 0,
+            "notes": 3
+          }
+        ],
+        "seriesOrderDifference": false
+      }
+    ]
+  }
+}

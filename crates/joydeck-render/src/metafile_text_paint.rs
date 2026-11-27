@@ -61,7 +61,11 @@ impl GlyphPaint {
                 // The shader is anchored to the picture rather than to a glyph.
                 let picture = transform * Affine::new(text.transform).inverse();
                 if picture.is_finite() && picture.determinant() != 0.0 {
-                    if let Some((tile, mapping)) = brush.hatch() {
+                    if let Some(tile) = brush.texture()
+                        && draw_texture(ctx, &path, picture, tile, budget).is_some()
+                    {
+                        return;
+                    } else if let Some((tile, mapping)) = brush.hatch() {
                         if let Some(texture) = premul(8, 8, tile) {
                             let sampler = peniko::ImageSampler {
                                 x_extend: peniko::Extend::Repeat,
@@ -89,6 +93,60 @@ impl GlyphPaint {
             draw(ctx);
         }
     }
+}
+
+fn draw_texture(
+    ctx: &mut RenderContext,
+    path: &BezPath,
+    picture: Affine,
+    tile: joydeck_metafile::TextTexture<'_>,
+    budget: &mut usize,
+) -> Option<()> {
+    let (mut w, mut h) = (tile.width, tile.height);
+    let mut mapping = tile.texture_to_picture;
+    let extend = |mirrored| {
+        if mirrored {
+            peniko::Extend::Reflect
+        } else {
+            peniko::Extend::Repeat
+        }
+    };
+    let mut sampler = peniko::ImageSampler {
+        x_extend: extend(tile.x_mirrored),
+        y_extend: extend(tile.y_mirrored),
+        quality: peniko::ImageQuality::Medium,
+        alpha: 1.0,
+    };
+    let border;
+    let bytes = if tile.clamp {
+        let row = w as usize * 4;
+        w += 2;
+        h += 2;
+        *budget = budget.checked_sub(w as usize * h as usize)?;
+        let stride = w as usize * 4;
+        // A transparent border makes Pad sample transparency outside the brush image.
+        let mut rgba = vec![0; stride * h as usize];
+        for (dest, source) in rgba
+            .chunks_exact_mut(stride)
+            .skip(1)
+            .zip(tile.rgba.chunks_exact(row))
+        {
+            dest[4..4 + row].copy_from_slice(source);
+        }
+        border = rgba;
+        mapping *= Affine::translate((-1.0, -1.0));
+        sampler.x_extend = peniko::Extend::Pad;
+        sampler.y_extend = peniko::Extend::Pad;
+        &border
+    } else {
+        *budget = budget.checked_sub(w as usize * h as usize)?;
+        tile.rgba
+    };
+    let texture = premul(w, h, bytes)?;
+    paint_image(ctx, texture, sampler, picture * mapping, |ctx| {
+        ctx.fill_path(path)
+    });
+    Some(())
 }
 
 fn sample_brush(

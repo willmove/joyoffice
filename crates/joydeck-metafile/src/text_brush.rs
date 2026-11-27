@@ -22,6 +22,16 @@ enum Paint {
     Sample(Brush),
 }
 
+pub struct Texture<'a> {
+    pub width: u32,
+    pub height: u32,
+    pub rgba: &'a [u8],
+    pub texture_to_picture: Affine,
+    pub x_mirrored: bool,
+    pub y_mirrored: bool,
+    pub clamp: bool,
+}
+
 impl TextBrush {
     pub(crate) fn new(brush: &Brush, device: Xform, origin: P, cell: f64) -> Option<Self> {
         match brush {
@@ -64,6 +74,22 @@ impl TextBrush {
             Paint::Hatch(tile) => Some((tile, self.space)),
             Paint::Sample(_) => None,
         }
+    }
+
+    /// The original bitmap and placement, for preserving texel boundaries when sampling glyphs.
+    pub fn texture(&self) -> Option<Texture<'_>> {
+        let Paint::Sample(Brush::Texture { img, wrap, .. }) = &self.paint else {
+            return None;
+        };
+        Some(Texture {
+            width: u32::try_from(img.w).ok()?,
+            height: u32::try_from(img.h).ok()?,
+            rgba: &img.px,
+            texture_to_picture: self.space,
+            x_mirrored: matches!(wrap, 1 | 3),
+            y_mirrored: matches!(wrap, 2 | 3),
+            clamp: *wrap == 4,
+        })
     }
 
     pub fn picture_to_brush(&self) -> Affine {

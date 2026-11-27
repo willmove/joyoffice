@@ -1,5 +1,6 @@
 //! Bounded bitmap effects for MS-EMFPLUS SerializableObject records.
 
+use crate::plus_tone;
 use crate::{MAX_PIXELS, bitmap::Rgba, bytes::Bytes, plus_shapes::floats};
 
 const MAX_FILTER_PIXELS: usize = 8_000_000;
@@ -53,8 +54,10 @@ pub fn read(record: Bytes<'_>) -> Option<Effect> {
         }
         (0xD3A1DBE1, 0x8EC4, 0x4C17, 0x9F4CEA97AD1C343D) => {
             let brightness = f64::from(signed(0, -255, 255)?) / 255.0;
-            let contrast = f64::from(percentage(4)?) / 100.0;
-            tone(0, |x| (x - 0.5) * slope(contrast) + 0.5 + brightness)
+            let gain = plus_tone::contrast(f64::from(percentage(4)?) / 100.0);
+            tone(0, |x| {
+                (x - 0.5) * gain + 0.5 + brightness * (1.0 + gain) * 0.5
+            })
         }
         (0x537E597D, 0x251E, 0x48DA, 0x966429CA496B70F8) => Effect::Balance(triple()?),
         (0xDD6A0022, 0x58E4, 0x4A67, 0x9D9BD48EB881A53D) => {
@@ -63,8 +66,11 @@ pub fn read(record: Bytes<'_>) -> Option<Effect> {
             if mode > 7 || channel > 3 {
                 return None;
             }
-            let strength = f64::from(signed(8, -255, 255)?);
-            tone(channel, |x| curve(x, mode, strength))
+            let strength = data.i32(8)?;
+            plus_tone::curve(0.0, mode, strength)?;
+            tone(channel, |x| {
+                plus_tone::curve(x, mode, strength).unwrap_or(x)
+            })
         }
         (0x8B2DD6C3, 0xEB07, 0x4D87, 0xA5F07108E26A9C5F) => {
             Effect::Hsl([signed(0, -180, 180)?, percentage(4)?, percentage(8)?])
@@ -116,38 +122,8 @@ fn byte(value: f64) -> u8 {
     (value.clamp(0.0, 1.0) * 255.0).round() as u8
 }
 
-fn slope(normalized: f64) -> f64 {
-    if normalized < 0.0 {
-        1.0 + normalized
-    } else {
-        1.0 / (1.0 - normalized).max(0.005)
-    }
-}
-
 fn levels(highlight: i32, midtone: i32, shadow: i32) -> Effect {
-    let [highlight, midtone, shadow] = [highlight, midtone, shadow].map(|v| f64::from(v) / 100.0);
-    tone(0, |x| {
-        x + (x - highlight).max(0.0) * (1.0 - x) + midtone * x * (1.0 - x)
-            - (shadow - x).max(0.0) * x
-    })
-}
-
-fn curve(x: f64, mode: u32, strength: f64) -> f64 {
-    let p = (strength / 100.0).clamp(-1.0, 1.0);
-    match mode {
-        0 => x * 2_f64.powf(strength / 100.0),
-        1 => x.powf(2_f64.powf(-p)),
-        2 => (x - 0.5) * slope(p) + 0.5,
-        3 => x + p * (x - 0.5).max(0.0) * (1.0 - x) * 2.0,
-        4 => x + p * (0.5 - x).max(0.0) * x * 2.0,
-        5 => x + p * 4.0 * x * (1.0 - x) * 0.25,
-        6 => x / (strength.clamp(1.0, 255.0) / 255.0),
-        7 => {
-            let black = strength.clamp(0.0, 254.0) / 255.0;
-            (x - black) / (1.0 - black)
-        }
-        _ => x,
-    }
+    tone(0, |x| plus_tone::levels(x, highlight, midtone, shadow))
 }
 
 impl Effect {
@@ -157,24 +133,27 @@ impl Effect {
         *work = work.checked_sub(pixels)?;
         match self {
             Self::Blur(radius, expand) => {
-                if radius.round() == 0.0 {
-                    return Some(0);
-                }
-                if *radius >= 20.0 {
-                    // The wide native filter is separable on both axes. The recorded draw still
-                    // samples the original source window, including its softened inner edges.
-                    crate::plus_wide_blur::apply(image, *radius, *expand, work)?;
+                if *radius == 0.0 {
                     return Some(0);
                 }
                 let pad = if *expand { radius.ceil() as usize } else { 0 };
-                // Windows GDI+ expands the horizontal profile in bitmap coordinates in
-                // both direct DrawImage and serialized EMF+ playback.
-                *image = blurred(image, *radius, pad, false, work)?;
+                if *radius >= 20.0 {
+                    crate::plus_wide_blur::apply(image, *radius, pad, *expand, work)?;
+                } else {
+                    *image = blurred(image, *radius, pad, *expand, work)?;
+                }
                 return Some(pad);
             }
             Self::Sharpen(radius, amount) => {
                 if *radius >= 1.0 && *amount > 0.0 {
-                    let blurred = blurred(image, *radius, 0, true, work)?;
+                    let blurred = if *radius >= 20.0 {
+                        let mut working = image.clone();
+                        crate::plus_wide_blur::apply(&mut working, *radius, 0, true, work)?;
+                        working
+                    } else {
+                        blurred(image, *radius, 0, true, work)?
+                    };
+                    let gain = sharpen_gain(*amount);
                     for (pixel, b) in image
                         .px
                         .as_chunks_mut::<4>()
@@ -184,7 +163,7 @@ impl Effect {
                     {
                         for index in 0..3 {
                             let source = f64::from(pixel[index]);
-                            pixel[index] = (source + amount * (source - f64::from(b[index])))
+                            pixel[index] = (source + gain * (source - f64::from(b[index])))
                                 .round()
                                 .clamp(0.0, 255.0) as u8;
                         }
@@ -192,29 +171,7 @@ impl Effect {
                 }
             }
             Self::RedEye(rects) => {
-                for &[x0, y0, x1, y1] in rects {
-                    let (x0, y0) = (x0.max(0) as usize, y0.max(0) as usize);
-                    let (x1, y1) = (
-                        (x1.max(0) as usize).min(image.w),
-                        (y1.max(0) as usize).min(image.h),
-                    );
-                    let w = x1.saturating_sub(x0);
-                    if w == 0 || y1 <= y0 {
-                        continue;
-                    }
-                    let area = w.saturating_mul(y1.saturating_sub(y0));
-                    *work = work.checked_sub(area)?;
-                    for y in y0..y1 {
-                        let offset = (y * image.w + x0.min(image.w)) * 4;
-                        let line = image.px.get_mut(offset..offset + w * 4)?;
-                        for [r, g, b, _] in line.as_chunks_mut::<4>().0 {
-                            let neutral = (u16::from(*g) + u16::from(*b)) / 2;
-                            if u16::from(*r) > neutral.saturating_add(22) {
-                                *r = neutral as u8;
-                            }
-                        }
-                    }
-                }
+                crate::plus_red_eye::apply(image, rects, work)?;
             }
             _ => {
                 for pixel in image.px.as_chunks_mut::<4>().0 {
@@ -245,34 +202,37 @@ impl Effect {
             Self::Balance(balance) => {
                 for (color, delta) in rgba[..3].iter_mut().zip(balance) {
                     let x = f64::from(*color) / 255.0;
-                    *color = byte(adjust(x, f64::from(*delta) / 100.0));
+                    *color = byte(x * (1.0 + f64::from(*delta) / 100.0));
                 }
                 rgba
             }
             Self::Hsl([angle, saturation, light]) => {
+                if *angle == 0 && *saturation == 0 && *light == 0 {
+                    return rgba;
+                }
                 let [h, s, l] = rgb_to_hsl(rgba);
                 rgba[..3].copy_from_slice(&hsl_to_rgb(
                     h + f64::from(*angle) / 360.0,
-                    adjust(s, f64::from(*saturation) / 100.0),
-                    adjust(l, f64::from(*light) / 100.0),
+                    (s * (1.0 + f64::from(*saturation) / 100.0)).clamp(0.0, 1.0),
+                    (l + f64::from(*light) / 100.0).clamp(0.0, 1.0),
                 ));
                 rgba
             }
             Self::Tint(angle, amount) => {
-                let [h, s, l] = rgb_to_hsl(rgba);
-                let target = (f64::from(*angle) / 360.0).rem_euclid(1.0);
-                let distance = (h - target + 0.5).rem_euclid(1.0) - 0.5;
-                let strength = f64::from(*amount) / 100.0 * (1.0 - 2.0 * distance.abs());
-                rgba[..3].copy_from_slice(&hsl_to_rgb(h, s, adjust(l, strength)));
+                let hue = f64::from(*angle) / 360.0;
+                let tint = hsl_to_rgb(hue, 1.0, 0.5).map(|v| f64::from(v) / 255.0);
+                let luminance = |[r, g, b]: [f64; 3]| 0.2126 * r + 0.7152 * g + 0.0722 * b;
+                let original = [rgba[0], rgba[1], rgba[2]].map(|value| f64::from(value) / 255.0);
+                let strength = luminance(original) * f64::from(*amount) / 100.0;
+                let neutral = luminance(tint);
+                for (i, value) in rgba[..3].iter_mut().enumerate() {
+                    *value = byte(original[i] + strength * (tint[i] - neutral));
+                }
                 rgba
             }
             _ => rgba,
         }
     }
-}
-
-fn adjust(value: f64, strength: f64) -> f64 {
-    value + strength * if strength >= 0.0 { 1.0 - value } else { value }
 }
 
 fn rgb_to_hsl([r, g, b, _]: [u8; 4]) -> [f64; 3] {
@@ -310,7 +270,7 @@ fn blurred(
     image: &Rgba,
     radius: f64,
     pad: usize,
-    vertical: bool,
+    preserve_color: bool,
     work: &mut usize,
 ) -> Option<Rgba> {
     let w = image.w.checked_add(pad * 2)?;
@@ -319,19 +279,10 @@ fn blurred(
     if size > MAX_FILTER_PIXELS || size > MAX_PIXELS {
         return None;
     }
-    let support = if vertical {
-        radius.floor()
-    } else {
-        radius.ceil()
-    } as usize;
+    let support = radius.ceil() as usize;
     let samples = 2 * support + 1;
-    let passes = 1 + usize::from(vertical);
-    *work = work.checked_sub(size.saturating_mul(passes * samples + 1))?;
-    let sigma = if vertical {
-        radius * 0.5
-    } else {
-        radius * 0.505
-    };
+    *work = work.checked_sub(size.saturating_mul(samples + 1))?;
+    let sigma = radius * 0.505;
     let weights: Vec<u32> = (0..samples)
         .map(|i| {
             let x = (i as f64 - support as f64) / sigma;
@@ -348,29 +299,42 @@ fn blurred(
             .iter()
             .zip(premultiplied[at..at + row.len()].as_chunks_mut::<4>().0)
         {
-            *dest = crate::bitmap::premultiplied(*pixel);
+            *dest = if preserve_color {
+                *pixel
+            } else {
+                crate::bitmap::premultiplied(*pixel)
+            };
         }
     }
     let mut temp = vec![0u8; size * 4];
     for y in 0..h {
         gaussian_line(&premultiplied, &mut temp, (y * w, w, 1), &weights, total);
     }
-    if vertical {
-        for x in 0..w {
-            gaussian_line(&temp, &mut premultiplied, (x, h, w), &weights, total);
+    if !preserve_color {
+        for pixel in temp.as_chunks_mut::<4>().0 {
+            *pixel = crate::bitmap::straight(*pixel);
         }
-    } else {
-        premultiplied = temp;
-    }
-    for pixel in premultiplied.as_chunks_mut::<4>().0 {
-        *pixel = crate::bitmap::straight(*pixel);
     }
     Some(Rgba {
         w,
         h,
-        px: premultiplied,
+        px: temp,
         bottom_up: false,
     })
+}
+
+fn sharpen_gain(amount: f64) -> f64 {
+    // Measured unsharp-mask response, expressed as a multiplier of the original minus the blur.
+    const GAIN: [f64; 12] = [
+        0.0, 0.045, 0.09, 0.15, 0.238, 0.328, 0.465, 0.64, 0.86, 1.24, 1.55, 2.0,
+    ];
+    let index = if amount <= 0.9 {
+        amount * 10.0
+    } else {
+        9.0 + (amount - 0.9) * 20.0
+    };
+    let lo = (index as usize).min(GAIN.len() - 2);
+    GAIN[lo] + (index - lo as f64) * (GAIN[lo + 1] - GAIN[lo])
 }
 
 fn gaussian_line(
@@ -405,10 +369,10 @@ mod tests {
         for value in 0..=255 {
             assert_eq!(neutral.color([value; 4]), [value; 4]);
         }
-        assert_eq!(curve(0.25, 3, 100.0), 0.25);
-        assert_eq!(curve(0.75, 4, 100.0), 0.75);
-        assert!(curve(0.75, 3, 100.0) > 0.75);
-        assert!(curve(0.25, 4, -100.0) < 0.25);
+        assert_eq!(plus_tone::curve(0.25, 3, 100), Some(0.25));
+        assert_eq!(plus_tone::curve(0.75, 4, 100), Some(0.75));
+        assert!(plus_tone::curve(0.75, 3, 100) > Some(0.75));
+        assert!(plus_tone::curve(0.25, 4, -100) < Some(0.25));
     }
 
     #[test]
@@ -425,7 +389,7 @@ mod tests {
         assert_eq!((image.w, image.h), (3, 3));
         let pixels = image.px.as_chunks::<4>().0;
         assert!(pixels[..3].iter().chain(&pixels[6..]).all(|p| *p == [0; 4]));
-        assert_eq!(&pixels[4][..3], &[255, 0, 0]);
+        assert_eq!(&pixels[4][..3], &[pixels[4][3], 0, 0]);
         assert!((197..=201).contains(&pixels[4][3]));
         assert!((26..=30).contains(&pixels[3][3]));
         assert_eq!(pixels[3], pixels[5]);
@@ -514,6 +478,85 @@ mod tests {
             );
             for color in image.px.as_chunks::<4>().0 {
                 assert_eq!(crate::bitmap::premultiplied(*color), [63, 36, 18, 64]);
+            }
+        }
+    }
+
+    #[test]
+    fn sharpen_matches_native_impulse_and_switches_axes_at_twenty() {
+        let source = || {
+            let px = (0..61)
+                .flat_map(|y| {
+                    (0..61).flat_map(move |x| {
+                        [
+                            if x < 30 { 96 } else { 160 },
+                            if y < 30 { 64 } else { 164 },
+                            if (x, y) == (30, 30) { 220 } else { 128 },
+                            if x < 10 { 128 } else { 255 },
+                        ]
+                    })
+                })
+                .collect();
+            Rgba {
+                w: 61,
+                h: 61,
+                px,
+                bottom_up: false,
+            }
+        };
+        for (r, amount, expected) in [
+            (
+                3.0,
+                0.25,
+                [
+                    [163, 64, 128, 255],
+                    [163, 164, 228, 255],
+                    [93, 164, 126, 255],
+                ],
+            ),
+            (
+                3.0,
+                0.60,
+                [
+                    [171, 64, 128, 255],
+                    [171, 164, 251, 255],
+                    [85, 164, 119, 255],
+                ],
+            ),
+            (
+                3.0,
+                0.95,
+                [
+                    [196, 64, 128, 255],
+                    [196, 164, 255, 255],
+                    [60, 164, 96, 255],
+                ],
+            ),
+            (
+                20.0,
+                0.60,
+                [
+                    [175, 42, 128, 255],
+                    [175, 187, 255, 255],
+                    [82, 187, 128, 255],
+                ],
+            ),
+        ] {
+            let mut image = source();
+            let mut work = EFFECT_WORK;
+            assert_eq!(
+                Effect::Sharpen(r, amount).apply(&mut image, &mut work),
+                Some(0)
+            );
+            for ((x, y), color) in [(30, 29), (30, 30), (29, 30)].into_iter().zip(expected) {
+                let current = image.px.as_chunks::<4>().0[y * 61 + x];
+                assert!(
+                    current
+                        .into_iter()
+                        .zip(color)
+                        .all(|(a, b)| a.abs_diff(b) <= 2),
+                    "{r} {amount} ({x}, {y}): {current:?} vs {color:?}"
+                );
             }
         }
     }

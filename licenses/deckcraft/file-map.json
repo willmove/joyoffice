@@ -571,7 +571,7 @@
       "source_path": "crates/metafile/src/emfplus.rs",
       "source_sha256": "183b0be47ee2467ef8824b768709a57a83dc243f15195c066ccef601a933d15e",
       "target_path": "crates/joydeck-metafile/src/emfplus.rs",
-      "adapted_sha256": "1d945ee767cf12e2e09ae8e260b7f1272c95553e4f7f9048608ab2f42e4c6f31",
+      "adapted_sha256": "65bd8508766cf7bce4903a306fff188869ba70247c9942fc5e2ee6b6806586b3",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -585,7 +585,8 @@
         "Replay native custom caps, all GDI+ hatch styles, source-window affine draws, and nested projected scenes.",
         "Resolve image attributes and serialized effects for EMF+ bitmap draws, with bounded processing.",
         "Apply source copy to vector operations and respect native bitmap interpolation state.",
-        "Keep the original EMF+ brush for shaped and indexed text playback."
+        "Keep the original EMF+ brush for shaped and indexed text playback.",
+        "Preserve the EMF+ interpolation state and apply bounded device-scale sampling after bitmap effects."
       ]
     },
     {
@@ -607,7 +608,7 @@
       "source_path": "crates/metafile/src/lib.rs",
       "source_sha256": "3adccd030b589e5f091cbc791f814929f62221850853b6932cca5d9a22014a1d",
       "target_path": "crates/joydeck-metafile/src/lib.rs",
-      "adapted_sha256": "7344cceb976e5f9260a1b3982266a9256d95c011c5ff86f253ca66edcd136d46",
+      "adapted_sha256": "dd84598712b58f4773be093b928ed56eae159235643996792c9f5002afad8386",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -622,7 +623,8 @@
         "Register first-party scene projection and retain source sampling and nested clip geometry in the picture model.",
         "Retain image composition and GDI raster transfers in the normalized scene.",
         "Record vector mix, brush strokes and nearest-neighbor image sampling.",
-        "Route wide filters and WMF palettes and transform text brush placement into picture coordinates."
+        "Route wide filters and WMF palettes and transform text brush placement into picture coordinates.",
+        "Register the first-party EMF+ tonal, red-eye and resampling modules and expose image-backed text brushes."
       ]
     },
     {
