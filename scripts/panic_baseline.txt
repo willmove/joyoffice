@@ -27,7 +27,6 @@ crates/joydeck-engine/src/content.rs:479:assert!(s.execute(Command::Undo).unwrap
 crates/joydeck-engine/src/content.rs:482:assert!(s.execute(Command::Redo).unwrap());
 crates/joydeck-engine/src/content.rs:505:.unwrap();
 crates/joydeck-engine/src/content.rs:513:.unwrap();
-crates/joydeck-engine/src/media_refs.rs:426:let mut s = (**p.slides.first().expect("slide")).clone();
 crates/joydeck-fonts/build.rs:281:std::fs::create_dir(&path).unwrap();
 crates/joydeck-fonts/build.rs:282:std::fs::create_dir(path.join("fonts")).unwrap();
 crates/joydeck-fonts/build.rs:283:std::fs::write(path.join("fonts/fixture.ttf"), b"build-input path fixture").unwrap();

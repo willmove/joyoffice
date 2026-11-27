@@ -1,0 +1,1447 @@
+{
+  "targets": {
+    "x86_64-pc-windows-msvc": {
+      "joydeck": {
+        "packages": 490,
+        "craftCrates": [],
+        "selectedVersions": {
+          "gpui-kit": "0.9.1",
+          "gpui-pre": "0.3.12",
+          "krilla": "0.8.2",
+          "mac": "0.1.1",
+          "seahash": "4.1.0"
+        }
+      },
+      "joydeck-cli": {
+        "packages": 168,
+        "craftCrates": [],
+        "selectedVersions": {
+          "krilla": "0.8.2",
+          "mac": "0.1.1"
+        }
+      }
+    },
+    "aarch64-apple-darwin": {
+      "joydeck": {
+        "packages": 497,
+        "craftCrates": [],
+        "selectedVersions": {
+          "gpui-kit": "0.9.1",
+          "gpui-pre": "0.3.12",
+          "krilla": "0.8.2",
+          "mac": "0.1.1",
+          "seahash": "4.1.0"
+        }
+      },
+      "joydeck-cli": {
+        "packages": 167,
+        "craftCrates": [],
+        "selectedVersions": {
+          "krilla": "0.8.2",
+          "mac": "0.1.1"
+        }
+      }
+    },
+    "x86_64-unknown-linux-gnu": {
+      "joydeck": {
+        "packages": 574,
+        "craftCrates": [],
+        "selectedVersions": {
+          "gpui-kit": "0.9.1",
+          "gpui-pre": "0.3.12",
+          "gpui-pre-linux": "0.3.12",
+          "krilla": "0.8.2",
+          "mac": "0.1.1",
+          "seahash": "4.1.0"
+        }
+      },
+      "joydeck-cli": {
+        "packages": 166,
+        "craftCrates": [],
+        "selectedVersions": {
+          "krilla": "0.8.2",
+          "mac": "0.1.1"
+        }
+      }
+    },
+    "aarch64-unknown-linux-gnu": {
+      "joydeck": {
+        "packages": 573,
+        "craftCrates": [],
+        "selectedVersions": {
+          "gpui-kit": "0.9.1",
+          "gpui-pre": "0.3.12",
+          "gpui-pre-linux": "0.3.12",
+          "krilla": "0.8.2",
+          "mac": "0.1.1",
+          "seahash": "4.1.0"
+        }
+      },
+      "joydeck-cli": {
+        "packages": 165,
+        "craftCrates": [],
+        "selectedVersions": {
+          "krilla": "0.8.2",
+          "mac": "0.1.1"
+        }
+      }
+    }
+  },
+  "sourceLedger": {
+    "ledgerRecords": 195,
+    "mappedCompiledRust": {
+      "joydeck-anim": [
+        {
+          "path": "crates/joydeck-anim/src/easing.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/anim/src/easing.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-anim/src/effects.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/anim/src/effects.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-anim/src/interact.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/anim/src/interact.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-anim/src/lib.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/anim/src/lib.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-anim/src/mesh.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/anim/src/mesh.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-anim/src/morph.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/anim/src/morph.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-anim/src/path.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/anim/src/path.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-anim/src/show.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/anim/src/show.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-anim/src/timeline.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/anim/src/timeline.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-anim/src/transition.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/anim/src/transition.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-anim/src/transition_fx.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/anim/src/transition_fx.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-anim/src/transition_geom.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/anim/src/transition_geom.rs"
+          ]
+        }
+      ],
+      "joydeck-color": [
+        {
+          "path": "crates/joydeck-color/src/lib.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/color/src/lib.rs"
+          ]
+        }
+      ],
+      "joydeck-fonts": [
+        {
+          "path": "crates/joydeck-fonts/src/fallback.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/fonts/src/fallback.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-fonts/src/fontdb.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/fonts/src/fontdb.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-fonts/src/lib.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/fonts/src/lib.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-fonts/src/script.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/fonts/src/script.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-fonts/src/shape.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/fonts/src/shape.rs"
+          ]
+        }
+      ],
+      "joydeck-format": [
+        {
+          "path": "crates/joydeck-format/src/lib.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/format/src/lib.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-format/src/rtf.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/format/src/rtf.rs"
+          ]
+        }
+      ],
+      "joydeck-geom": [
+        {
+          "path": "crates/joydeck-geom/src/lib.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/geom/src/lib.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-geom/src/morph.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/geom/src/morph.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-geom/src/preset.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/geom/src/preset.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-geom/src/preset/build.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/geom/src/preset/build.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-geom/src/preset/builder.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/geom/src/preset/builder.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-geom/src/preset/catalog.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/geom/src/preset/catalog.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-geom/src/preset/shapes.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/geom/src/preset/shapes.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-geom/src/squircle.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/geom/src/squircle.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-geom/src/warp.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/geom/src/warp.rs"
+          ]
+        }
+      ],
+      "joydeck-metafile": [
+        {
+          "path": "crates/joydeck-metafile/src/bytes.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/metafile/src/bytes.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-metafile/src/canvas.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/metafile/src/canvas.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-metafile/src/clip.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/metafile/src/clip.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-metafile/src/cliprect.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/metafile/src/cliprect.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-metafile/src/dib.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/metafile/src/dib.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-metafile/src/emf.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/metafile/src/emf.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-metafile/src/emfplus.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/metafile/src/emfplus.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-metafile/src/geom.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/metafile/src/geom.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-metafile/src/lib.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/metafile/src/lib.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-metafile/src/place.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/metafile/src/place.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-metafile/src/text.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/metafile/src/text.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-metafile/src/wmf.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/metafile/src/wmf.rs"
+          ]
+        }
+      ],
+      "joydeck-model": [
+        {
+          "path": "crates/joydeck-model/src/anim.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/model/src/anim.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-model/src/bidi.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/model/src/bidi.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-model/src/chart.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/model/src/chart.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-model/src/defaults.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/model/src/defaults.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-model/src/edit.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/model/src/edit.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-model/src/lib.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/model/src/lib.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-model/src/numfmt.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/model/src/numfmt.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-model/src/resolve.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/model/src/resolve.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-model/src/shape.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/model/src/lib.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-model/src/style.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/model/src/style.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-model/src/table.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/model/src/table.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-model/src/text.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/model/src/text.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-model/src/theme.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/model/src/theme.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-model/src/trendline.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/model/src/trendline.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-model/src/words.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/model/src/words.rs"
+          ]
+        }
+      ],
+      "joydeck-pdf": [
+        {
+          "path": "crates/joydeck-pdf/src/lib.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/pdf/src/lib.rs"
+          ]
+        }
+      ],
+      "joydeck-pptx": [
+        {
+          "path": "crates/joydeck-pptx/src/cfb.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/pptx/src/cfb.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-pptx/src/custgeom.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/pptx/src/custgeom.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-pptx/src/dgm.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/pptx/src/dgm.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-pptx/src/lib.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/pptx/src/lib.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-pptx/src/maps.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/pptx/src/maps.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-pptx/src/opc.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/pptx/src/opc.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-pptx/src/png.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/pptx/src/png.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-pptx/src/read.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/pptx/src/read.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-pptx/src/read/chart.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/pptx/src/read/chart.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-pptx/src/read/dml.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/pptx/src/read/dml.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-pptx/src/read/shapes.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/pptx/src/read/shapes.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-pptx/src/read/timing.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/pptx/src/read/timing.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-pptx/src/tables.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/pptx/src/tables.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-pptx/src/write.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/pptx/src/write.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-pptx/src/write/chart.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/pptx/src/write/chart.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-pptx/src/write/dml.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/pptx/src/write/dml.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-pptx/src/write/shapes.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/pptx/src/write/shapes.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-pptx/src/write/timing.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/pptx/src/write/timing.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-pptx/src/xml.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/pptx/src/xml.rs"
+          ]
+        }
+      ],
+      "joydeck-render": [
+        {
+          "path": "crates/joydeck-render/src/bevel.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/render/src/bevel.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-render/src/camera.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/render/src/camera.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-render/src/chart.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/render/src/chart.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-render/src/chartex.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/render/src/chartex.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-render/src/colr.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/render/src/colr.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-render/src/compound.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/render/src/compound.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-render/src/extent.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/render/src/extent.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-render/src/extrude.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/render/src/extrude.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-render/src/geometry.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/render/src/geometry.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-render/src/images.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/render/src/images.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-render/src/lib.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/render/src/lib.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-render/src/light.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/render/src/light.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-render/src/metafile.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/render/src/metafile.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-render/src/morph_path.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/render/src/morph_path.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-render/src/morph_text.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/render/src/morph_text.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-render/src/opts.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/render/src/opts.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-render/src/paint.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/render/src/paint.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-render/src/pathgrad.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/render/src/pathgrad.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-render/src/pattern.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/render/src/pattern.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-render/src/placed.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/render/src/placed.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-render/src/radar.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/render/src/radar.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-render/src/ramp.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/render/src/ramp.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-render/src/raster.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/render/src/raster.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-render/src/renderer.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/render/src/renderer.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-render/src/scene.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/render/src/placed.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-render/src/slide.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/render/src/slide.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-render/src/stroke.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/render/src/stroke.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-render/src/table.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/render/src/table.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-render/src/text_draw.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/render/src/text_draw.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-render/src/transition.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/render/src/transition.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-render/src/warp.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/render/src/warp.rs"
+          ]
+        }
+      ],
+      "joydeck-text": [
+        {
+          "path": "crates/joydeck-text/src/autonum.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/text/src/autonum.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-text/src/bidi.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/text/src/bidi.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-text/src/breaking.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/text/src/breaking.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-text/src/datetime.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/text/src/datetime.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-text/src/layout.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/text/src/layout.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-text/src/lib.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/text/src/lib.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-text/src/run.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/text/src/run.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-text/src/shape.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/text/src/shape.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-text/src/style.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/text/src/style.rs"
+          ]
+        },
+        {
+          "path": "crates/joydeck-text/src/symbol.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/text/src/symbol.rs"
+          ]
+        }
+      ],
+      "joydeck-ui-gpui": [
+        {
+          "path": "crates/joydeck-ui-gpui/src/chrome.rs",
+          "entries": [
+            "joydeck"
+          ],
+          "originPaths": [
+            "crates/ui-egui/src/ribbon.rs",
+            "crates/ui-egui/src/theme.rs",
+            "crates/ui-egui/src/widgets.rs"
+          ]
+        }
+      ],
+      "joyoffice-metafile": [
+        {
+          "path": "crates/joyoffice-metafile/src/lib.rs",
+          "entries": [
+            "joydeck",
+            "joydeck-cli"
+          ],
+          "originPaths": [
+            "crates/metafile/src/bytes.rs"
+          ]
+        }
+      ]
+    },
+    "mappedBuildScripts": [
+      {
+        "path": "crates/joydeck-fonts/build.rs",
+        "entries": [
+          "joydeck",
+          "joydeck-cli"
+        ],
+        "originPaths": [
+          "crates/fonts/build.rs"
+        ]
+      }
+    ],
+    "retired": [
+      "crates/joydeck-engine/src/history_cost.rs",
+      "crates/joydeck-engine/src/media_refs.rs",
+      "crates/joydeck-engine/src/transfer.rs",
+      "crates/joydeck-format/src/chart_parts.rs",
+      "crates/joydeck-format/src/finite.rs",
+      "crates/joydeck-pptx/src/read/chartex.rs",
+      "crates/joydeck-pptx/src/read/theme.rs",
+      "crates/joydeck-pptx/src/write/theme.rs"
+    ],
+    "otherActiveLedgerPaths": [
+      "crates/joydeck-anim/Cargo.toml",
+      "crates/joydeck-anim/src/tests.rs",
+      "crates/joydeck-anim/src/tests_interact.rs",
+      "crates/joydeck-anim/src/transition_tests.rs",
+      "crates/joydeck-color/Cargo.toml",
+      "crates/joydeck-fonts/Cargo.toml",
+      "crates/joydeck-fonts/src/tests.rs",
+      "crates/joydeck-fonts/tests/build_input.rs",
+      "crates/joydeck-fonts/tests/fixtures/latin-families.txt",
+      "crates/joydeck-fonts/tests/fixtures/legacy-regular.ttf",
+      "crates/joydeck-fonts/tests/fixtures/legacy-semibold.ttf",
+      "crates/joydeck-fonts/tests/fixtures/make_legacy_font.py",
+      "crates/joydeck-format/Cargo.toml",
+      "crates/joydeck-format/src/chart_parts_tests.rs",
+      "crates/joydeck-format/src/tests.rs",
+      "crates/joydeck-geom/Cargo.toml",
+      "crates/joydeck-geom/src/preset/extra.rs",
+      "crates/joydeck-geom/src/preset/tests.rs",
+      "crates/joydeck-geom/src/warp/tests.rs",
+      "crates/joydeck-metafile/Cargo.toml",
+      "crates/joydeck-metafile/src/tests.rs",
+      "crates/joydeck-model/Cargo.toml",
+      "crates/joydeck-model/src/tests.rs",
+      "crates/joydeck-pdf/Cargo.toml",
+      "crates/joydeck-pptx/Cargo.toml",
+      "crates/joydeck-render/Cargo.toml",
+      "crates/joydeck-render/src/tests.rs",
+      "crates/joydeck-render/src/tests_wild.rs",
+      "crates/joydeck-render/tests/fixtures/colr-squares.ttf",
+      "crates/joydeck-render/tests/fixtures/make_colr_font.py",
+      "crates/joydeck-text/Cargo.toml",
+      "crates/joydeck-text/src/tests.rs",
+      "docs/joydeck/upstream-tests/joydeck-pptx/cfb-tests.rs",
+      "docs/joydeck/upstream-tests/joydeck-pptx/chart_data_labels.rs",
+      "docs/joydeck/upstream-tests/joydeck-pptx/it/anchor.rs",
+      "docs/joydeck/upstream-tests/joydeck-pptx/it/anim_auto_reverse.rs",
+      "docs/joydeck/upstream-tests/joydeck-pptx/it/chart_embed.rs",
+      "docs/joydeck/upstream-tests/joydeck-pptx/it/comments.rs",
+      "docs/joydeck/upstream-tests/joydeck-pptx/it/corpus.rs",
+      "docs/joydeck/upstream-tests/joydeck-pptx/it/corpus_charts.rs",
+      "docs/joydeck/upstream-tests/joydeck-pptx/it/corpus_elements.rs",
+      "docs/joydeck/upstream-tests/joydeck-pptx/it/corpus_kinds.rs",
+      "docs/joydeck/upstream-tests/joydeck-pptx/it/corpus_media.rs",
+      "docs/joydeck/upstream-tests/joydeck-pptx/it/corpus_style.rs",
+      "docs/joydeck/upstream-tests/joydeck-pptx/it/corpus_themes.rs",
+      "docs/joydeck/upstream-tests/joydeck-pptx/it/fills.rs",
+      "docs/joydeck/upstream-tests/joydeck-pptx/it/kept_parts.rs",
+      "docs/joydeck/upstream-tests/joydeck-pptx/it/locks.rs",
+      "docs/joydeck/upstream-tests/joydeck-pptx/it/main.rs",
+      "docs/joydeck/upstream-tests/joydeck-pptx/it/malformed.rs",
+      "docs/joydeck/upstream-tests/joydeck-pptx/it/math_ns.rs",
+      "docs/joydeck/upstream-tests/joydeck-pptx/it/media_timing.rs",
+      "docs/joydeck/upstream-tests/joydeck-pptx/it/notes.rs",
+      "docs/joydeck/upstream-tests/joydeck-pptx/it/ole.rs",
+      "docs/joydeck/upstream-tests/joydeck-pptx/it/ole_vml.rs",
+      "docs/joydeck/upstream-tests/joydeck-pptx/it/placeholders.rs",
+      "docs/joydeck/upstream-tests/joydeck-pptx/it/roundtrip.rs",
+      "docs/joydeck/upstream-tests/joydeck-pptx/it/sample.rs",
+      "docs/joydeck/upstream-tests/joydeck-pptx/it/smartart.rs",
+      "docs/joydeck/upstream-tests/joydeck-pptx/it/sniff.rs",
+      "docs/joydeck/upstream-tests/joydeck-pptx/it/table_styles.rs",
+      "docs/joydeck/upstream-tests/joydeck-pptx/it/tags.rs",
+      "docs/joydeck/upstream-tests/joydeck-pptx/it/transition_xml.rs",
+      "docs/joydeck/upstream-tests/joydeck-pptx/it/trigger_steps.rs",
+      "licenses/deckcraft/ATTRIBUTION-upstream.md"
+    ]
+  },
+  "package": {
+    "target": "x86_64-pc-windows-msvc",
+    "profile": "debug",
+    "signed": false,
+    "buildGraphSha256": "d112eab32d3a516d178ff170c2e811c3c336f5e3f7b76db9e1be5808bdb1b7ef",
+    "archiveSha256": "b8ab1ff27656e19520cb1a9fd7d2149083af15f2dd61ce5fec6168e627e2e005",
+    "verifiedMembers": 1975,
+    "spdxSha256": "f128ac12719137a3ccf59ee61548feccbd3a1333cb0f4c56afba20974721f9b3",
+    "packages": 491,
+    "missingLicenseTexts": [],
+    "standardTextFallbacks": [
+      {
+        "package": "mac@0.1.1",
+        "declared": "MIT/Apache-2.0",
+        "standardText": "Apache-2.0",
+        "originalStandaloneTextAvailable": false,
+        "recordHashesVerified": true
+      },
+      {
+        "package": "seahash@4.1.0",
+        "declared": "MIT",
+        "standardText": "MIT",
+        "originalStandaloneTextAvailable": false,
+        "recordHashesVerified": true
+      }
+    ],
+    "executables": {
+      "joydeck-cli.exe": "7714ff2201827df392117aacb7a26144ec6f180db4e30c4bda328ec37c87e18b",
+      "joydeck-media-windows.exe": "b95ec7bd6f4aa62295aab8db70ffc6b7d08dd79b41bf95393ed1853e25890ab6",
+      "joydeck-print-windows.exe": "06ffeeb243e465b972a34cd05cb470d2c57ed23bf6277a361f42e5e75aaf983b",
+      "joydeck-video-windows.exe": "ae14d0b714a2ddbbabc7090981c4cfbc0cdf512527999bcb03a4ec2e65395bbe",
+      "joydeck.exe": "2bec110619e2ee3e43522e3edf45f4d8e58ce7a384393e76afb1274c5f9e8a2f"
+    },
+    "noticeHashes": {
+      "THIRD_PARTY-JOYDECK.md": "e2954e845b72c9c0f2fca5a28f20a3607caa2df6aa3a7638caac56cc5bd5f18b",
+      "licenses/deckcraft/LICENSE-MIT": "90e96fef569474cd526350e716e4b05dd32f179ca96d39d61e6b928485e35406",
+      "licenses/deckcraft/LICENSE-APACHE": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+      "licenses/deckcraft/NOTICE": "2ce764ed5d83f2453a7dba485092c0c41b465fe795b31c2c59bc5279332bc4f3",
+      "licenses/deckcraft/ATTRIBUTION-upstream.md": "3e0b490182f29522d002af0b4f0f46ab44ab8863bfe5e4e50c65a84d2d18c076",
+      "licenses/deckcraft/file-map.json": "850b703f03dc41d2c06ab078c16cdfb45dc7bf3b0be301660e9030cb170d886e",
+      "licenses/deckcraft/source-inventory.json": "50a15b55f67e4800caac312a761bfe4bf3d56fb50a638253131fb61359baa5d4",
+      "licenses/joyoffice/LICENSE-MIT": "2d4a159ea2bffa4cdbac4134d3c773447cc808a11293f35309ca255a202a730b",
+      "licenses/joyoffice/source-map.json": "aff1b4ccae6ce34a09aa2359362d343794b4e83fd085e00e10190afe4299d4b7",
+      "licenses/fonts/sources.json": "54b88c8a7c71550a0063a95009b0e10d7af10bda410ca4cc2bb79a232cd45b91"
+    }
+  }
+}
