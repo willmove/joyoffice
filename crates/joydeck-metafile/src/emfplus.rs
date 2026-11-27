@@ -65,7 +65,7 @@ struct Saved {
     page: f64,
     rendering_origin: P,
     composition: ImageComposition,
-    nearest: bool,
+    interpolation: Option<u8>,
     clip: Area,
     clip_paint: Option<PlusClip>,
 }
@@ -78,7 +78,7 @@ pub(crate) struct Plus {
     page: f64,
     rendering_origin: P,
     composition: ImageComposition,
-    nearest: bool,
+    interpolation: Option<u8>,
     effect: Option<Effect>,
     effect_work: usize,
     /// The logical region and the compiled mask are in device units.
@@ -102,7 +102,7 @@ impl Plus {
             page: 1.0,
             rendering_origin: (0.0, 0.0),
             composition: ImageComposition::SourceOver,
-            nearest: false,
+            interpolation: None,
             effect: None,
             effect_work: plus_effects::EFFECT_WORK,
             clip: Area::full(),
@@ -274,7 +274,7 @@ impl Plus {
             State::Transform(matrix) => self.world = matrix,
             State::Concat(matrix) => return self.apply(matrix, flags),
             State::RenderingOrigin(origin) => self.rendering_origin = origin,
-            State::NearestNeighbor(nearest) => self.nearest = nearest,
+            State::Interpolation(mode) => self.interpolation = Some(mode),
             State::SourceCopy(copy) => {
                 self.composition = if copy {
                     ImageComposition::SourceCopy
@@ -340,7 +340,7 @@ impl Plus {
                 page: self.page,
                 rendering_origin: self.rendering_origin,
                 composition: self.composition,
-                nearest: self.nearest,
+                interpolation: self.interpolation,
                 clip: self.clip.clone(),
                 clip_paint: self.clip_paint.clone(),
             });
@@ -354,7 +354,7 @@ impl Plus {
                 (s.world, s.page, s.clip, s.clip_paint);
             self.rendering_origin = s.rendering_origin;
             self.composition = s.composition;
-            self.nearest = s.nearest;
+            self.interpolation = s.interpolation;
             self.stack.truncate(i);
         }
     }
@@ -524,11 +524,39 @@ impl Plus {
                     processed = Some(extended);
                 }
                 let target = Affine::new(cv.device_affine()) * dst;
+                let magnification = crate::plus_resample::magnification(target, source);
+                if matches!(self.interpolation, Some(2 | 6 | 7))
+                    && let Some(reduced) = crate::plus_resample::downsample(
+                        processed.as_ref().unwrap_or(bitmap),
+                        &mut source,
+                        magnification,
+                        &mut self.effect_work,
+                    )
+                {
+                    processed = Some(reduced);
+                }
+                let nearest = match self.interpolation {
+                    Some(1 | 5) => true,
+                    Some(3) => magnification.iter().any(|&value| value < 0.5),
+                    Some(4) => magnification.iter().any(|&value| value <= 0.25),
+                    _ => false,
+                };
+                if nearest
+                    && crate::image_placement::axis_aligned(target)
+                    && let Some(reduced) = crate::plus_resample::subsample(
+                        processed.as_ref().unwrap_or(bitmap),
+                        &mut source,
+                        magnification,
+                        &mut self.effect_work,
+                    )
+                {
+                    processed = Some(reduced);
+                }
                 let [a, _, _, d, x, y] = dst.as_coeffs();
                 if crate::image_placement::axis_aligned(dst)
                     && crate::image_placement::axis_aligned(target)
                     && self.composition == ImageComposition::SourceOver
-                    && !self.nearest
+                    && !nearest
                     && source[2] > 0.0
                     && source[3] > 0.0
                     && source
@@ -543,7 +571,7 @@ impl Plus {
                     cv.bitmap(rect, bitmap);
                 } else {
                     let bitmap = processed.unwrap_or_else(|| bitmap.clone());
-                    cv.composited_bitmap(dst, source, bitmap, self.composition, self.nearest)?;
+                    cv.composited_bitmap(dst, source, bitmap, self.composition, nearest)?;
                 }
             }
             ImageData::Meta {

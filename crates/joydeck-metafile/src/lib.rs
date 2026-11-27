@@ -45,9 +45,12 @@ mod plus_image;
 mod plus_objects;
 mod plus_paint;
 mod plus_pen;
+mod plus_red_eye;
 mod plus_region;
+mod plus_resample;
 mod plus_shapes;
 mod plus_text;
+mod plus_tone;
 mod plus_wide_blur;
 mod projection;
 mod raster_transfer;
@@ -82,7 +85,7 @@ pub use image_placement::ImagePlacement;
 pub use projection::{MAX_BITMAP_SIDE, PlacedItem};
 pub use raster_transfer::{Logic, RasterTransfer};
 pub use text::{Font, GlyphPlacement, HAlign, IndexedGlyphs, SYMBOL_CHARSET, Text, VAlign};
-pub use text_brush::TextBrush;
+pub use text_brush::{TextBrush, Texture as TextTexture};
 pub use vector_mix::{Rop2, VectorMix};
 
 /// Clip geometry in the same space as the drawing item. Outlines use nonzero winding.

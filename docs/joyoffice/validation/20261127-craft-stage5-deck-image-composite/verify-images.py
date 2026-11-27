@@ -78,7 +78,7 @@ def attributes_and_lut(windows):
     return SCENE.emfplus(*records), probes
 
 
-def filters(horizontal_blur=False):
+def filters(horizontal_blur=False, native_effects=None):
     source = (0, 0, 8, 8)
     records = [SCENE.fill(SCENE.WHITE), bitmap(color_at=lambda x, y: 0xFF40648C)]
     probes = []
@@ -99,14 +99,27 @@ def filters(horizontal_blur=False):
     # Bounds verify the direction of these adjustments without assuming a native tone curve.
     swatch("537E597D-251E-48DA-9664-29CA496B70F8", pack("<3i", 35, 0, 0),
            (36, 31, 25, 22), [((47, 40), ((80, 220), 100, 140))])
+    def measured(case, index, tolerance, previous, composite=False):
+        if native_effects is None:
+            return previous
+        pixel = native_effects[case][2][index]
+        rgb = [(pixel >> shift) & 255 for shift in (16, 8, 0)]
+        if composite:
+            alpha = (pixel >> 24) & 255
+            rgb = [(value * alpha + 255 * (255 - alpha) + 127) // 255 for value in rgb]
+        return tuple((max(0, value - tolerance), min(255, value + tolerance)) for value in rgb)
+
+    tint = measured("legacy_tint", 0, 12, ((75, 245), (106, 245), (141, 255)))
     swatch("1077AF00-2848-4441-9489-44AD4C2D7A2C", pack("<2i", -140, 30),
-           (68, 31, 25, 22), [((79, 40), ((75, 245), (106, 245), (141, 255)))])
+           (68, 31, 25, 22), [((79, 40), tint)])
     records.append(bitmap(color_at=lambda x, y: 0xFFC8283C))
+    correction = measured("legacy_eye", 25, 3, ((30, 80), 40, 60))
     swatch("74D29D05-69A4-4266-9549-3CC52836B632", pack("<5i", 1, 0, 0, 4, 8),
-           (4, 57, 25, 33), [((9, 72), ((30, 80), 40, 60)), ((25, 72), (200, 40, 60))])
+           (4, 57, 25, 33), [((9, 72), correction), ((25, 72), (200, 40, 60))])
     records.append(bitmap(color_at=lambda x, y: 0xFFFF0000 if 2 <= x <= 5 and 2 <= y <= 5 else 0))
+    soft_edge = measured("legacy_expand", 52, 14, (255, (200, 245), (200, 245)), composite=True)
     swatch("633C80A4-1843-482B-9EF2-BE2834C5FDD4", pack("<fI", 1, 1),
-           (38, 63, 24, 24), [((49, 75), (255, 0, 0)), ((42.5, 75), (255, (200, 245), (200, 245))),
+           (38, 63, 24, 24), [((49, 75), (255, 0, 0)), ((42.5, 75), soft_edge),
                             ((49, 66.5), (255, 255, 255)) if horizontal_blur
                             else ((49, 67.5), (255, (200, 245), (200, 245))),
                             ((38, 75), (255, 255, 255))])
@@ -229,6 +242,7 @@ def main():
         parser.add_argument(name, type=Path)
     parser.add_argument("--office", type=Path)
     parser.add_argument("--horizontal-blur", action="store_true")
+    parser.add_argument("--native-effects-json", type=Path)
     args = parser.parse_args()
     report = args.output / "verification.json"
     windows = json.loads((args.native / "windows.json").read_text(encoding="utf-8-sig"))
@@ -254,7 +268,8 @@ def main():
             "matrix": ((args.native / "matrix-native.emf").read_bytes(), [((45, 45), windows["matrix"])]),
             "attributes-lut": attributes_and_lut(windows),
             "gdi": gdi(),
-            "filters": filters(args.horizontal_blur),
+            "filters": filters(args.horizontal_blur, json.loads(
+                args.native_effects_json.read_text(encoding="utf-8-sig")) if args.native_effects_json else None),
         }
         evidence = {}
         for name, (payload, probes) in fixtures.items():
