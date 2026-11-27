@@ -157,7 +157,7 @@ impl PicturePainter {
                     });
                 ctx.set_fill_rule(fill_rule(even_odd));
                 if let Some(image) = &prepared.pixels
-                    && tile.determinant().abs().sqrt() >= MIN_CELL_PX
+                    && (t.sampled || tile.determinant().abs().sqrt() >= MIN_CELL_PX)
                 {
                     let sampler = peniko::ImageSampler {
                         x_extend: peniko::Extend::Repeat,
@@ -252,6 +252,10 @@ fn draw_text(ctx: &mut RenderContext, t: &Text, m: Affine) {
         (false, true) => "Italic",
         (false, false) => "Regular",
     };
+    if let Some(indexed) = &t.indexed {
+        crate::metafile_glyphs::draw(ctx, t, m, family, style, indexed);
+        return;
+    }
     let face = db.document_face(family, style);
     let upem = face.upem.max(1.0);
     let (asc, desc) = win_metrics(&face);

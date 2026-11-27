@@ -26,6 +26,7 @@ mod compound;
 mod extent;
 mod images;
 mod metafile;
+mod metafile_glyphs;
 mod morph_path;
 mod morph_text;
 mod paint;

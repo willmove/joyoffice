@@ -9,7 +9,7 @@ use std::sync::Arc;
 
 use kurbo::{Affine, BezPath, Rect, Shape};
 
-use crate::{Item, Picture, Seg};
+use crate::{ClipRegion, Item, Picture, Seg};
 
 /// Largest bitmap side the renderers draw: within the PDF image limit and the rasteriser's 16-bit sides.
 pub const MAX_BITMAP_SIDE: u32 = 30_000;
@@ -93,21 +93,19 @@ impl Picture {
         let k = (c[0].abs() + c[3].abs()) / 2.0;
         let mut out = Vec::with_capacity(self.items.len());
         let mut total_elements = 0usize;
-        let mut cached_region: Option<(*const [f32; 4], usize, Option<Option<Arc<BezPath>>>)> =
-            None;
-        let mut get_region = |reg: &Option<Vec<[f32; 4]>>| -> Option<Option<Arc<BezPath>>> {
-            let (ptr, len) = match reg {
-                None => (std::ptr::null(), 0),
-                Some(v) => (v.as_ptr(), v.len()),
+        let mut cached_region: Option<(*const BezPath, Option<Option<Arc<BezPath>>>)> = None;
+        let mut get_region = |reg: &Option<ClipRegion<f32>>| -> Option<Option<Arc<BezPath>>> {
+            let Some(ClipRegion::Outline(path)) = reg else {
+                return placed_region(&tf, reg);
             };
-            if let Some((c_ptr, c_len, ref res)) = cached_region
+            let ptr = Arc::as_ptr(path);
+            if let Some((c_ptr, ref res)) = cached_region
                 && c_ptr == ptr
-                && c_len == len
             {
                 return res.clone();
             }
             let res = placed_region(&tf, reg);
-            cached_region = Some((ptr, len, res.clone()));
+            cached_region = Some((ptr, res.clone()));
             res
         };
 
@@ -246,9 +244,15 @@ impl Item {
 
 /// The device-context clip in target units. `Some(None)` is the default clip. `None` means the
 /// region does not meet the page, so the item draws nothing.
-fn placed_region(tf: &Affine, region: &Option<Vec<[f32; 4]>>) -> Option<Option<Arc<BezPath>>> {
-    let Some(rects) = region else {
-        return Some(None);
+fn placed_region(tf: &Affine, region: &Option<ClipRegion<f32>>) -> Option<Option<Arc<BezPath>>> {
+    let rects = match region {
+        None => return Some(None),
+        Some(ClipRegion::Rectangles(rects)) => rects,
+        Some(ClipRegion::Outline(outline)) => {
+            let path = *tf * outline.as_ref();
+            return (!path.is_empty() && in_range(path.bounding_box()))
+                .then(|| Some(Arc::new(path)));
+        }
     };
     let mut path = BezPath::new();
     for [x0, y0, x1, y1] in rects {

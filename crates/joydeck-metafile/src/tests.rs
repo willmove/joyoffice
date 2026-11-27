@@ -2491,11 +2491,15 @@ fn pattern_brush_pixels_count_against_the_byte_budget() {
 }
 
 fn item_region(item: &Item) -> Option<&[[f32; 4]]> {
-    match item {
+    let region = match item {
         Item::Path { region, .. } | Item::Bitmap { region, .. } | Item::Pattern { region, .. } => {
-            region.as_deref()
+            region.as_ref()
         }
-        Item::Text(t) => t.region.as_deref(),
+        Item::Text(t) => t.region.as_ref(),
+    };
+    match region? {
+        crate::ClipRegion::Rectangles(rectangles) => Some(rectangles),
+        crate::ClipRegion::Outline(_) => None,
     }
 }
 
@@ -3052,8 +3056,7 @@ fn emfplus_driver_string_uses_character_codes_and_positions() {
 }
 
 #[test]
-fn emfplus_glyph_index_driver_strings_map_back_in_core_fonts_only() {
-    // Glyph indices (no CmapLookup): 36, 69 are "Ab" in Arial's standard glyph order.
+fn emfplus_driver_strings_keep_physical_glyph_indices_and_positions() {
     let gi = || {
         prec(
             0x4036,
@@ -3064,29 +3067,29 @@ fn emfplus_glyph_index_driver_strings_map_back_in_core_fonts_only() {
                 h32(0),
                 h32(2),
                 h16(36),
-                h16(69),
-                f32s(&[0.0, 0.0, 6.0, 0.0]),
+                h16(1500),
+                f32s(&[0.0, 0.0, 6.0, 3.0]),
             ]),
         )
     };
-    let p = plus_pic(vec![
-        prec(0x4008, 0x0600, &font_obj("Arial", 10.0, 0, 0)),
-        gi(),
-    ]);
-    assert!(
-        matches!(&p.items[0], Item::Text(t) if t.text == "Ab"),
-        "{:?}",
-        p.items
-    );
-    // An unknown font's glyph indices cannot be mapped: nothing is drawn.
-    assert!(
-        plus_pic(vec![
-            prec(0x4008, 0x0600, &font_obj("Calibri", 10.0, 0, 0)),
-            gi()
-        ])
-        .items
-        .is_empty()
-    );
+    for family in ["Arial", "Calibri"] {
+        let p = plus_pic(vec![
+            prec(0x4008, 0x0600, &font_obj(family, 10.0, 0, 0)),
+            gi(),
+        ]);
+        let [Item::Text(t)] = p.items.as_slice() else {
+            panic!("missing indexed glyphs");
+        };
+        assert_eq!(t.font.family, family);
+        assert!(t.text.is_empty());
+        assert_eq!(
+            t.indexed,
+            Some(crate::IndexedGlyphs {
+                ids: vec![36, 1500],
+                placement: crate::GlyphPlacement::Explicit(vec![(0.0, 0.0), (6.0, 3.0)])
+            })
+        );
+    }
 }
 
 #[test]

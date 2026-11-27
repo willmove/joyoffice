@@ -1,6 +1,7 @@
 //! DrawString layout and explicit DrawDriverString glyph origins.
 
 use crate::{
+    GlyphPlacement, IndexedGlyphs,
     bytes::Bytes,
     canvas::LogFont,
     device::Xform,
@@ -138,17 +139,19 @@ pub fn layout(data: Bytes<'_>, format: Format, em: f64) -> Option<(Vec<Run>, Opt
     Some((runs, clip))
 }
 
-pub fn driver(data: Bytes<'_>, family: &str, em: f32) -> Option<(Vec<Run>, Xform)> {
+pub enum DriverString {
+    Text(Vec<Run>),
+    Glyphs { at: P, indexed: IndexedGlyphs },
+}
+
+pub fn driver(data: Bytes<'_>, em: f32) -> Option<(DriverString, Xform)> {
     let options = data.u32(4)?;
     let has_matrix = data.u32(8)? != 0;
-    let count = (data.u32(12)? as usize).min(MAX_CHARS);
-    if count == 0 {
+    let count = data.u32(12)? as usize;
+    if !(1..=MAX_CHARS).contains(&count) {
         return None;
     }
-    let mut units = utf16(data, 16, count)?;
-    if options & 1 == 0 {
-        map_core_font(family, &mut units)?;
-    }
+    let units = utf16(data, 16, count)?;
     let offsets = 16 + 2 * count;
     let realized = options & 4 != 0;
     let trailing = usize::from(has_matrix) * 24;
@@ -161,14 +164,38 @@ pub fn driver(data: Bytes<'_>, family: &str, em: f32) -> Option<(Vec<Run>, Xform
         IDENTITY
     };
     let first = *locations.first()?;
+    if options & 1 == 0 {
+        let placement = if realized {
+            GlyphPlacement::Realized {
+                vertical: options & 2 != 0,
+            }
+        } else {
+            GlyphPlacement::Explicit(
+                locations
+                    .iter()
+                    .map(|&(x, y)| (x - first.0, y - first.1))
+                    .collect(),
+            )
+        };
+        return Some((
+            DriverString::Glyphs {
+                at: first,
+                indexed: IndexedGlyphs {
+                    ids: units,
+                    placement,
+                },
+            },
+            transform,
+        ));
+    }
     if realized {
         return Some((
-            vec![Run {
+            DriverString::Text(vec![Run {
                 text: String::from_utf16_lossy(&units),
                 advances: Vec::new(),
                 at: first,
                 align: 24,
-            }],
+            }]),
             transform,
         ));
     }
@@ -197,7 +224,7 @@ pub fn driver(data: Bytes<'_>, family: &str, em: f32) -> Option<(Vec<Run>, Xform
         });
         at = end;
     }
-    Some((runs, transform))
+    Some((DriverString::Text(runs), transform))
 }
 
 fn surrogate_boundary(units: &[u16], at: usize) -> bool {
@@ -215,32 +242,6 @@ fn utf16(bytes: Bytes<'_>, at: usize, count: usize) -> Option<Vec<u16>> {
             .map(u16::from_le_bytes)
             .collect(),
     )
-}
-
-fn map_core_font(family: &str, units: &mut [u16]) -> Option<()> {
-    let family = family.trim().to_ascii_lowercase();
-    if !matches!(
-        family.as_str(),
-        "arial"
-            | "arial black"
-            | "times new roman"
-            | "courier new"
-            | "verdana"
-            | "georgia"
-            | "tahoma"
-            | "trebuchet ms"
-            | "comic sans ms"
-            | "impact"
-    ) {
-        return None;
-    }
-    for glyph in units {
-        if !(3..=97).contains(glyph) {
-            return None;
-        }
-        *glyph += 29;
-    }
-    Some(())
 }
 
 fn glyph_width(unit: u16) -> f64 {
@@ -320,20 +321,30 @@ mod tests {
             bytes
         };
         let data = record(1, &[[5.0, 20.0], [12.0, 30.0]]);
-        let placements = driver(Bytes(&data), "Arial", 10.0).map(|(runs, _)| {
-            runs.into_iter()
-                .map(|run| (run.text, run.at))
-                .collect::<Vec<_>>()
+        let placements = driver(Bytes(&data), 10.0).and_then(|(draw, _)| {
+            let DriverString::Text(runs) = draw else {
+                return None;
+            };
+            Some(
+                runs.into_iter()
+                    .map(|run| (run.text, run.at))
+                    .collect::<Vec<_>>(),
+            )
         });
         assert_eq!(
             placements,
             Some(vec![("A".into(), (5.0, 20.0)), ("x".into(), (12.0, 30.0))])
         );
         let data = record(5, &[[5.0, 20.0]]);
-        let realized = driver(Bytes(&data), "Arial", 10.0).map(|(runs, _)| {
-            runs.into_iter()
-                .map(|run| (run.text, run.at, run.advances))
-                .collect::<Vec<_>>()
+        let realized = driver(Bytes(&data), 10.0).and_then(|(draw, _)| {
+            let DriverString::Text(runs) = draw else {
+                return None;
+            };
+            Some(
+                runs.into_iter()
+                    .map(|run| (run.text, run.at, run.advances))
+                    .collect::<Vec<_>>(),
+            )
         });
         assert_eq!(realized, Some(vec![("Ax".into(), (5.0, 20.0), vec![])]));
     }

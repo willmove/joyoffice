@@ -52,6 +52,8 @@ pub struct Text {
     /// mapping are folded in; glyphs are never mirrored.
     pub transform: [f64; 6],
     pub text: String,
+    /// DrawDriverString can address the source face directly, without a Unicode mapping.
+    pub indexed: Option<IndexedGlyphs>,
     /// Advance after each character of `text`, in text units (the dx array). Empty when the file
     /// gives none: the font's own advances apply.
     pub dx: Vec<f32>,
@@ -65,7 +67,21 @@ pub struct Text {
     pub clip: Option<[f32; 4]>,
     /// Clip region from the device context, in picture units. None is the default clip. Drawn
     /// together with [`Text::clip`] when both are set.
-    pub region: Option<Vec<[f32; 4]>>,
+    pub region: Option<crate::ClipRegion<f32>>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct IndexedGlyphs {
+    pub ids: Vec<u16>,
+    pub placement: GlyphPlacement,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum GlyphPlacement {
+    /// Each origin is relative to the text reference point in logical units.
+    Explicit(Vec<(f64, f64)>),
+    /// Use the physical font's advances after the first origin.
+    Realized { vertical: bool },
 }
 
 /// ETO_OPAQUE fills the rectangle with the background colour; ETO_CLIPPED clips the text to it.
