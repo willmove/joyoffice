@@ -32,11 +32,14 @@ mod convex_clip;
 mod device;
 mod emf;
 mod emfplus;
+mod gdi_transfer;
 #[path = "path_geometry.rs"]
 mod geom;
 mod image_placement;
+mod plus_attributes;
 mod plus_caps;
 mod plus_commands;
+mod plus_effects;
 mod plus_hatch;
 mod plus_image;
 mod plus_objects;
@@ -46,6 +49,7 @@ mod plus_region;
 mod plus_shapes;
 mod plus_text;
 mod projection;
+mod raster_transfer;
 mod records;
 mod text;
 mod text_encoding;
@@ -68,8 +72,10 @@ use std::sync::Arc;
 use bytes::Bytes;
 use canvas::Raw;
 use geom::{Op, P};
+pub use image_placement::ImageComposition;
 pub use image_placement::ImagePlacement;
 pub use projection::{MAX_BITMAP_SIDE, PlacedItem};
+pub use raster_transfer::{Logic, RasterTransfer};
 pub use text::{Font, GlyphPlacement, HAlign, IndexedGlyphs, SYMBOL_CHARSET, Text, VAlign};
 
 /// Clip geometry in the same space as the drawing item. Outlines use nonzero winding.
@@ -126,9 +132,14 @@ pub enum Item {
     },
     AffineBitmap {
         placement: ImagePlacement,
+        composition: ImageComposition,
         width: u32,
         height: u32,
         rgba: Vec<u8>,
+        region: Option<ClipRegion<f32>>,
+    },
+    Transfer {
+        transfer: Box<RasterTransfer>,
         region: Option<ClipRegion<f32>>,
     },
     Nested {
@@ -285,13 +296,25 @@ fn build(raw: Vec<Raw>, frame: Option<Frame>) -> Picture {
             placement,
             img,
             region,
+            composition,
         } => Some(Item::AffineBitmap {
             placement: placement.map(affine),
+            composition,
             width: u32::try_from(img.w).ok()?,
             height: u32::try_from(img.h).ok()?,
             rgba: img.px,
             region: map_region(region, &tf, affine)?,
         }),
+        Raw::Transfer {
+            mut transfer,
+            region,
+        } => {
+            transfer.map(affine);
+            Some(Item::Transfer {
+                transfer,
+                region: map_region(region, &tf, affine)?,
+            })
+        }
         Raw::Nested {
             placement,
             picture,
@@ -466,6 +489,11 @@ fn bbox(raw: &[Raw]) -> Option<[f64; 4]> {
             }
             Raw::AffineBitmap { placement, .. } | Raw::Nested { placement, .. } => {
                 let rect = placement.bounds();
+                grow((rect.x0, rect.y0));
+                grow((rect.x1, rect.y1));
+            }
+            Raw::Transfer { transfer, .. } => {
+                let rect = transfer.placement.bounds();
                 grow((rect.x0, rect.y0));
                 grow((rect.x1, rect.y1));
             }

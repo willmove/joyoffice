@@ -2,8 +2,8 @@
 
 use std::{collections::HashMap, sync::Arc};
 
-use joydeck_metafile::{Item, Picture, PlacedItem, Tile};
-use kurbo::{Affine, BezPath, Rect, Shape};
+use joydeck_metafile::{ImageComposition, Item, Picture, PlacedItem, RasterTransfer, Tile};
+use kurbo::{Affine, BezPath, Point, Rect, Shape};
 use vello_cpu::{Pixmap, RenderContext, Resources, peniko};
 
 use super::metafile::{draw_text, rgba};
@@ -11,6 +11,8 @@ use super::metafile::{draw_text, rgba};
 const MAX_RASTER_SIDE: u32 = 8192;
 const MIN_PATTERN_PIXEL: f64 = 1.5;
 const MAX_SCENE_WORK: usize = 1_000_000;
+const MAX_TRANSFER_PIXELS: usize = 80_000_000;
+const MAX_DESTINATION_READS: usize = 64;
 
 pub(super) fn rasterize(picture: &Picture, side: u32) -> Option<image::RgbaImage> {
     if !picture.has_size() {
@@ -34,11 +36,15 @@ pub(super) fn rasterize(picture: &Picture, side: u32) -> Option<image::RgbaImage
         },
     );
     let viewport = Rect::new(0.0, 0.0, f64::from(w), f64::from(h));
-    ctx.push_clip_layer(&viewport.to_path(0.1));
     let mut playback = Playback {
         tiles: HashMap::new(),
         remaining: MAX_SCENE_WORK,
+        remaining_pixels: MAX_TRANSFER_PIXELS,
+        remaining_reads: MAX_DESTINATION_READS,
+        viewport,
+        masks: Vec::new(),
     };
+    playback.push_mask(&mut ctx, Arc::new(viewport.to_path(0.1)));
     playback.play(&mut ctx, picture, picture.fit(viewport, [0.0; 4])?, 0);
     ctx.set_fill_rule(peniko::Fill::NonZero);
     ctx.pop_layer();
@@ -49,13 +55,8 @@ pub(super) fn rasterize(picture: &Picture, side: u32) -> Option<image::RgbaImage
         vello_cpu::PixmapMut::new(w, h, &mut pixels)?,
         &mut Resources::new(),
     );
-    for [r, g, b, alpha] in pixels.as_chunks_mut::<4>().0 {
-        let a = u32::from(*alpha);
-        if (1..255).contains(&a) {
-            for channel in [r, g, b] {
-                *channel = ((u32::from(*channel) * 255 + a / 2) / a).min(255) as u8;
-            }
-        }
+    for pixel in pixels.as_chunks_mut::<4>().0 {
+        *pixel = straight(*pixel);
     }
     image::RgbaImage::from_raw(u32::from(w), u32::from(h), pixels)
 }
@@ -63,6 +64,10 @@ pub(super) fn rasterize(picture: &Picture, side: u32) -> Option<image::RgbaImage
 struct Playback {
     tiles: HashMap<*const Tile, PreparedTile>,
     remaining: usize,
+    remaining_pixels: usize,
+    remaining_reads: usize,
+    viewport: Rect,
+    masks: Vec<Arc<BezPath>>,
 }
 
 struct PreparedTile {
@@ -71,6 +76,19 @@ struct PreparedTile {
 }
 
 impl Playback {
+    fn push_mask(&mut self, ctx: &mut RenderContext, mask: Arc<BezPath>) {
+        ctx.set_fill_rule(peniko::Fill::NonZero);
+        ctx.push_clip_layer(&mask);
+        self.masks.push(mask);
+    }
+
+    fn pop_masks(&mut self, ctx: &mut RenderContext, count: usize) {
+        for _ in 0..count {
+            self.masks.pop();
+            ctx.pop_layer();
+        }
+    }
+
     fn play(
         &mut self,
         ctx: &mut RenderContext,
@@ -87,6 +105,7 @@ impl Playback {
                 | PlacedItem::Pattern { path, region, .. } => (region, path.elements().len() + 1),
                 PlacedItem::Bitmap { region, .. }
                 | PlacedItem::AffineBitmap { region, .. }
+                | PlacedItem::Transfer { region, .. }
                 | PlacedItem::Text { region, .. }
                 | PlacedItem::Nested { region, .. } => (region, 1),
             };
@@ -100,13 +119,10 @@ impl Playback {
             self.remaining -= cost;
             let mask_count = masks.len();
             for outline in masks {
-                ctx.set_fill_rule(peniko::Fill::NonZero);
-                ctx.push_clip_layer(outline);
+                self.push_mask(ctx, outline.clone());
             }
             self.paint(ctx, &picture.items, operation, depth);
-            for _ in 0..mask_count {
-                ctx.pop_layer();
-            }
+            self.pop_masks(ctx, mask_count);
         }
     }
 
@@ -167,9 +183,40 @@ impl Playback {
                 };
                 let outline = placement.transform * placement.source.to_path(0.1);
                 ctx.set_fill_rule(peniko::Fill::NonZero);
-                paint_image(ctx, texture, photo_sampler(), placement.transform, |ctx| {
-                    ctx.fill_path(&outline)
-                });
+                if matches!(
+                    items.get(index),
+                    Some(Item::AffineBitmap {
+                        composition: ImageComposition::SourceCopy,
+                        ..
+                    })
+                ) {
+                    ctx.push_layer(
+                        Some(&outline),
+                        Some(peniko::BlendMode::new(
+                            peniko::Mix::Normal,
+                            peniko::Compose::Copy,
+                        )),
+                        None,
+                        None,
+                        None,
+                    );
+                    paint_image(ctx, texture, photo_sampler(), placement.transform, |ctx| {
+                        ctx.fill_rect(&placement.bounds())
+                    });
+                    ctx.pop_layer();
+                } else {
+                    paint_image(ctx, texture, photo_sampler(), placement.transform, |ctx| {
+                        ctx.fill_path(&outline)
+                    });
+                }
+            }
+            PlacedItem::Transfer {
+                index, transform, ..
+            } => {
+                let Some(Item::Transfer { transfer, .. }) = items.get(index) else {
+                    return;
+                };
+                self.transfer(ctx, transfer, transform);
             }
             PlacedItem::Pattern {
                 index,
@@ -225,12 +272,94 @@ impl Playback {
                     return;
                 };
                 let clip = placement.transform * placement.source.to_path(0.1);
-                inside(ctx, Some(&clip), |ctx| {
-                    self.play(ctx, picture, placement.transform, depth + 1)
-                });
+                self.push_mask(ctx, Arc::new(clip));
+                self.play(ctx, picture, placement.transform, depth + 1);
+                self.pop_masks(ctx, 1);
             }
         }
     }
+
+    fn transfer(&mut self, ctx: &mut RenderContext, transfer: &RasterTransfer, transform: Affine) {
+        let mut transfer = transfer.clone();
+        transfer.map(transform);
+        let bounds = transfer.placement.bounds();
+        let rect = Rect::new(
+            bounds.x0.floor(),
+            bounds.y0.floor(),
+            bounds.x1.ceil(),
+            bounds.y1.ceil(),
+        )
+        .intersect(self.viewport);
+        let (x, y) = (rect.x0 as usize, rect.y0 as usize);
+        let (w, h) = (rect.width() as usize, rect.height() as usize);
+        let reads = transfer.logic.uses_destination();
+        // Vello crops the right and bottom of a snapshot at the supplied dimensions.
+        let (prefix_w, prefix_h) = (x + w, y + h);
+        let work = w * h + if reads { prefix_w * prefix_h } else { 0 };
+        if w == 0 || h == 0 || work > self.remaining_pixels || (reads && self.remaining_reads == 0)
+        {
+            return;
+        }
+        self.remaining_pixels -= work;
+        let backdrop = if reads {
+            self.remaining_reads -= 1;
+            self.read_destination(ctx, prefix_w as u16, prefix_h as u16)
+        } else {
+            Vec::new()
+        };
+        let backdrop = backdrop.as_chunks::<4>().0;
+        let inverse = transfer.placement.transform.inverse();
+        let mut patch = vec![0; w * h * 4];
+        for (i, pixel) in patch.as_chunks_mut::<4>().0.iter_mut().enumerate() {
+            let (column, row) = (x + i % w, y + i / w);
+            let center = Point::new(column as f64 + 0.5, row as f64 + 0.5);
+            let destination = backdrop
+                .get(row * prefix_w + column)
+                .copied()
+                .map_or([0; 4], straight);
+            if let Some(output) = transfer.paint(inverse * center, center, destination) {
+                *pixel = output;
+            }
+        }
+        if let Some(texture) = premul(w as u32, h as u32, &patch) {
+            ctx.set_fill_rule(peniko::Fill::NonZero);
+            paint_image(
+                ctx,
+                texture,
+                peniko::ImageSampler::default().with_quality(peniko::ImageQuality::Low),
+                Affine::translate((rect.x0, rect.y0)),
+                |ctx| ctx.fill_rect(&rect),
+            );
+        }
+    }
+
+    fn read_destination(&self, ctx: &mut RenderContext, w: u16, h: u16) -> Vec<u8> {
+        let mut pixels = vec![0; usize::from(w) * usize::from(h) * 4];
+        let Some(target) = vello_cpu::PixmapMut::new(w, h, &mut pixels) else {
+            return Vec::new();
+        };
+        // Close clip layers to make the recorded prefix readable. Reopen the same clips for
+        // subsequent operations, so both the prefix and the resulting write stay clipped.
+        for _ in &self.masks {
+            ctx.pop_layer();
+        }
+        ctx.flush();
+        ctx.render(target, &mut Resources::new());
+        for mask in &self.masks {
+            ctx.set_fill_rule(peniko::Fill::NonZero);
+            ctx.push_clip_layer(mask);
+        }
+        pixels
+    }
+}
+
+fn straight([r, g, b, a]: [u8; 4]) -> [u8; 4] {
+    if a == 0 || a == 255 {
+        return [r, g, b, a];
+    }
+    let alpha = u32::from(a);
+    let unpremul = |channel| ((u32::from(channel) * 255 + alpha / 2) / alpha).min(255) as u8;
+    [unpremul(r), unpremul(g), unpremul(b), a]
 }
 
 fn photo_sampler() -> peniko::ImageSampler {

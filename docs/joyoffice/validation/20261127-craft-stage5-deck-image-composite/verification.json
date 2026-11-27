@@ -1,0 +1,1662 @@
+{
+  "matrix": {
+    "emfSha256": "ffb8197189f60269cd3c0523db7786c1983f7bbe25dfc26de099499930ca525a",
+    "candidateRgbSha256": "41f928841c904b9b316e90dddebdf65aa8100269675d49013cb2337ffaf98853",
+    "frozenRgbSha256": "89fb5f5bc044e036e6bdc2e593ecd081c252c34f37c0011a9ef8ed5a3952d680",
+    "preservedPartsExact": true,
+    "probes": [
+      {
+        "point": [
+          45,
+          45
+        ],
+        "expected": [
+          183,
+          217,
+          147
+        ],
+        "candidate": [
+          183,
+          217,
+          147
+        ],
+        "frozen": [
+          180,
+          40,
+          80
+        ]
+      }
+    ],
+    "powerPointEmfAndReopenedRasterExact": true
+  },
+  "attributes-lut": {
+    "emfSha256": "2b4bb674737a4729977c3167fac1fc7759c5588cfffbeaf5a75765ae37c63942",
+    "candidateRgbSha256": "3ba9876422d5d73397ed854c67d5290ae4246263e9a76d14c3765fcbfcbd513f",
+    "frozenRgbSha256": "c09c37665977d7e0cd58cba2c9bd860360f89084e8694591d84f66581475b27c",
+    "preservedPartsExact": true,
+    "probes": [
+      {
+        "point": [
+          20,
+          12
+        ],
+        "expected": [
+          0,
+          220,
+          240
+        ],
+        "candidate": [
+          0,
+          220,
+          240
+        ],
+        "frozen": [
+          20,
+          154,
+          74
+        ]
+      },
+      {
+        "point": [
+          39,
+          12
+        ],
+        "expected": [
+          255,
+          0,
+          0
+        ],
+        "candidate": [
+          255,
+          0,
+          0
+        ],
+        "frozen": [
+          255,
+          0,
+          0
+        ]
+      },
+      {
+        "point": [
+          60,
+          12
+        ],
+        "expected": [
+          0,
+          0,
+          255
+        ],
+        "candidate": [
+          0,
+          0,
+          255
+        ],
+        "frozen": [
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "point": [
+          81,
+          12
+        ],
+        "expected": [
+          0,
+          220,
+          240
+        ],
+        "candidate": [
+          0,
+          220,
+          240
+        ],
+        "frozen": [
+          20,
+          154,
+          74
+        ]
+      },
+      {
+        "point": [
+          20,
+          32
+        ],
+        "expected": [
+          255,
+          0,
+          0
+        ],
+        "candidate": [
+          255,
+          0,
+          0
+        ],
+        "frozen": [
+          20,
+          154,
+          74
+        ]
+      },
+      {
+        "point": [
+          39,
+          32
+        ],
+        "expected": [
+          255,
+          0,
+          0
+        ],
+        "candidate": [
+          255,
+          0,
+          0
+        ],
+        "frozen": [
+          255,
+          0,
+          0
+        ]
+      },
+      {
+        "point": [
+          60,
+          32
+        ],
+        "expected": [
+          0,
+          0,
+          255
+        ],
+        "candidate": [
+          0,
+          0,
+          255
+        ],
+        "frozen": [
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "point": [
+          81,
+          32
+        ],
+        "expected": [
+          0,
+          0,
+          255
+        ],
+        "candidate": [
+          0,
+          0,
+          255
+        ],
+        "frozen": [
+          20,
+          154,
+          74
+        ]
+      },
+      {
+        "point": [
+          20,
+          52
+        ],
+        "expected": [
+          0,
+          0,
+          255
+        ],
+        "candidate": [
+          0,
+          0,
+          255
+        ],
+        "frozen": [
+          20,
+          154,
+          74
+        ]
+      },
+      {
+        "point": [
+          39,
+          52
+        ],
+        "expected": [
+          255,
+          0,
+          0
+        ],
+        "candidate": [
+          255,
+          0,
+          0
+        ],
+        "frozen": [
+          255,
+          0,
+          0
+        ]
+      },
+      {
+        "point": [
+          60,
+          52
+        ],
+        "expected": [
+          0,
+          0,
+          255
+        ],
+        "candidate": [
+          0,
+          0,
+          255
+        ],
+        "frozen": [
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "point": [
+          81,
+          52
+        ],
+        "expected": [
+          255,
+          0,
+          0
+        ],
+        "candidate": [
+          255,
+          0,
+          0
+        ],
+        "frozen": [
+          20,
+          154,
+          74
+        ]
+      },
+      {
+        "point": [
+          20,
+          72
+        ],
+        "expected": [
+          0,
+          220,
+          240
+        ],
+        "candidate": [
+          0,
+          220,
+          240
+        ],
+        "frozen": [
+          20,
+          154,
+          74
+        ]
+      },
+      {
+        "point": [
+          39,
+          72
+        ],
+        "expected": [
+          255,
+          0,
+          0
+        ],
+        "candidate": [
+          255,
+          0,
+          0
+        ],
+        "frozen": [
+          255,
+          0,
+          0
+        ]
+      },
+      {
+        "point": [
+          60,
+          72
+        ],
+        "expected": [
+          0,
+          0,
+          255
+        ],
+        "candidate": [
+          0,
+          0,
+          255
+        ],
+        "frozen": [
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "point": [
+          81,
+          72
+        ],
+        "expected": [
+          0,
+          220,
+          240
+        ],
+        "candidate": [
+          0,
+          220,
+          240
+        ],
+        "frozen": [
+          20,
+          154,
+          74
+        ]
+      },
+      {
+        "point": [
+          15,
+          91
+        ],
+        "expected": [
+          130,
+          107,
+          87
+        ],
+        "candidate": [
+          130,
+          107,
+          87
+        ],
+        "frozen": [
+          122,
+          0,
+          133
+        ]
+      },
+      {
+        "point": [
+          41,
+          91
+        ],
+        "expected": [
+          248,
+          158,
+          178
+        ],
+        "candidate": [
+          248,
+          158,
+          178
+        ],
+        "frozen": [
+          74,
+          0,
+          181
+        ]
+      },
+      {
+        "point": [
+          68,
+          91
+        ],
+        "expected": [
+          130,
+          107,
+          87
+        ],
+        "candidate": [
+          130,
+          107,
+          87
+        ],
+        "frozen": [
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "point": [
+          84,
+          91
+        ],
+        "expected": [
+          255,
+          0,
+          0
+        ],
+        "candidate": [
+          255,
+          0,
+          0
+        ],
+        "frozen": [
+          255,
+          0,
+          0
+        ]
+      },
+      {
+        "point": [
+          93,
+          91
+        ],
+        "expected": [
+          0,
+          0,
+          255
+        ],
+        "candidate": [
+          0,
+          0,
+          255
+        ],
+        "frozen": [
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "point": [
+          2,
+          91
+        ],
+        "expected": [
+          20,
+          154,
+          74
+        ],
+        "candidate": [
+          20,
+          154,
+          74
+        ],
+        "frozen": [
+          20,
+          154,
+          74
+        ]
+      }
+    ],
+    "powerPointEmfAndReopenedRasterExact": true
+  },
+  "gdi": {
+    "emfSha256": "6a0700e73f93d4db897ce004d4957588da78732fedabff7e0c34c930d273a6e4",
+    "candidateRgbSha256": "033d54b7d862055e05f8cb2af2b89e0dac6dd61758d35ef3fc6e44d8ce7508fa",
+    "frozenRgbSha256": "dd908d08d66dc1bdd4370adf41d511965f5d399b981d4231d5559f70ce8f1b0c",
+    "preservedPartsExact": true,
+    "probes": [
+      {
+        "point": [
+          10.5,
+          11.5
+        ],
+        "expected": [
+          60,
+          150,
+          204
+        ],
+        "candidate": [
+          60,
+          150,
+          204
+        ],
+        "frozen": [
+          170,
+          85,
+          51
+        ]
+      },
+      {
+        "point": [
+          13.5,
+          11.5
+        ],
+        "expected": [
+          60,
+          150,
+          204
+        ],
+        "candidate": [
+          60,
+          150,
+          204
+        ],
+        "frozen": [
+          170,
+          85,
+          51
+        ]
+      },
+      {
+        "point": [
+          21.5,
+          14.5
+        ],
+        "expected": [
+          170,
+          85,
+          51
+        ],
+        "candidate": [
+          170,
+          85,
+          51
+        ],
+        "frozen": [
+          170,
+          85,
+          51
+        ]
+      },
+      {
+        "point": [
+          22.5,
+          15.5
+        ],
+        "expected": [
+          60,
+          150,
+          204
+        ],
+        "candidate": [
+          60,
+          150,
+          204
+        ],
+        "frozen": [
+          170,
+          85,
+          51
+        ]
+      },
+      {
+        "point": [
+          28.5,
+          15.5
+        ],
+        "expected": [
+          60,
+          150,
+          204
+        ],
+        "candidate": [
+          60,
+          150,
+          204
+        ],
+        "frozen": [
+          170,
+          85,
+          51
+        ]
+      },
+      {
+        "point": [
+          29.5,
+          15.5
+        ],
+        "expected": [
+          60,
+          150,
+          204
+        ],
+        "candidate": [
+          60,
+          150,
+          204
+        ],
+        "frozen": [
+          170,
+          85,
+          51
+        ]
+      },
+      {
+        "point": [
+          34.5,
+          17.5
+        ],
+        "expected": [
+          170,
+          85,
+          51
+        ],
+        "candidate": [
+          170,
+          85,
+          51
+        ],
+        "frozen": [
+          170,
+          85,
+          51
+        ]
+      },
+      {
+        "point": [
+          51.5,
+          10.5
+        ],
+        "expected": [
+          170,
+          85,
+          51
+        ],
+        "candidate": [
+          170,
+          85,
+          51
+        ],
+        "frozen": [
+          170,
+          85,
+          51
+        ]
+      },
+      {
+        "point": [
+          55.5,
+          12.5
+        ],
+        "expected": [
+          40,
+          20,
+          0
+        ],
+        "candidate": [
+          40,
+          20,
+          0
+        ],
+        "frozen": [
+          170,
+          85,
+          51
+        ]
+      },
+      {
+        "point": [
+          56.5,
+          12.5
+        ],
+        "expected": [
+          40,
+          20,
+          0
+        ],
+        "candidate": [
+          40,
+          20,
+          0
+        ],
+        "frozen": [
+          170,
+          85,
+          51
+        ]
+      },
+      {
+        "point": [
+          60.5,
+          11.5
+        ],
+        "expected": [
+          40,
+          20,
+          0
+        ],
+        "candidate": [
+          40,
+          20,
+          0
+        ],
+        "frozen": [
+          170,
+          85,
+          51
+        ]
+      },
+      {
+        "point": [
+          67.5,
+          18.5
+        ],
+        "expected": [
+          40,
+          20,
+          0
+        ],
+        "candidate": [
+          40,
+          20,
+          0
+        ],
+        "frozen": [
+          170,
+          85,
+          51
+        ]
+      },
+      {
+        "point": [
+          72.5,
+          18.5
+        ],
+        "expected": [
+          40,
+          20,
+          0
+        ],
+        "candidate": [
+          40,
+          20,
+          0
+        ],
+        "frozen": [
+          170,
+          85,
+          51
+        ]
+      },
+      {
+        "point": [
+          85.5,
+          14.5
+        ],
+        "expected": [
+          40,
+          20,
+          0
+        ],
+        "candidate": [
+          40,
+          20,
+          0
+        ],
+        "frozen": [
+          170,
+          85,
+          51
+        ]
+      },
+      {
+        "point": [
+          88.5,
+          14.5
+        ],
+        "expected": [
+          170,
+          85,
+          51
+        ],
+        "candidate": [
+          170,
+          85,
+          51
+        ],
+        "frozen": [
+          170,
+          85,
+          51
+        ]
+      },
+      {
+        "point": [
+          17.599999999999998,
+          45.6
+        ],
+        "expected": [
+          253,
+          45,
+          9
+        ],
+        "candidate": [
+          253,
+          45,
+          9
+        ],
+        "frozen": [
+          170,
+          85,
+          51
+        ]
+      },
+      {
+        "point": [
+          37.54,
+          48.81
+        ],
+        "expected": [
+          23,
+          71,
+          242
+        ],
+        "candidate": [
+          23,
+          71,
+          242
+        ],
+        "frozen": [
+          170,
+          85,
+          51
+        ]
+      },
+      {
+        "point": [
+          21.24,
+          57.56
+        ],
+        "expected": [
+          170,
+          85,
+          51
+        ],
+        "candidate": [
+          170,
+          85,
+          51
+        ],
+        "frozen": [
+          170,
+          85,
+          51
+        ]
+      },
+      {
+        "point": [
+          41.11,
+          60.54
+        ],
+        "expected": [
+          170,
+          85,
+          51
+        ],
+        "candidate": [
+          170,
+          85,
+          51
+        ],
+        "frozen": [
+          170,
+          85,
+          51
+        ]
+      },
+      {
+        "point": [
+          29.2,
+          38.4
+        ],
+        "expected": [
+          170,
+          85,
+          51
+        ],
+        "candidate": [
+          170,
+          85,
+          51
+        ],
+        "frozen": [
+          170,
+          85,
+          51
+        ]
+      },
+      {
+        "point": [
+          63,
+          50
+        ],
+        "expected": [
+          170,
+          85,
+          51
+        ],
+        "candidate": [
+          170,
+          85,
+          51
+        ],
+        "frozen": [
+          170,
+          85,
+          51
+        ]
+      },
+      {
+        "point": [
+          84,
+          50
+        ],
+        "expected": [
+          30,
+          190,
+          80
+        ],
+        "candidate": [
+          30,
+          190,
+          80
+        ],
+        "frozen": [
+          170,
+          85,
+          51
+        ]
+      },
+      {
+        "point": [
+          18,
+          82
+        ],
+        "expected": [
+          177,
+          74,
+          58
+        ],
+        "candidate": [
+          177,
+          74,
+          59
+        ],
+        "frozen": [
+          177,
+          74,
+          59
+        ]
+      },
+      {
+        "point": [
+          65,
+          82
+        ],
+        "expected": [
+          85,
+          170,
+          204
+        ],
+        "candidate": [
+          85,
+          170,
+          204
+        ],
+        "frozen": [
+          170,
+          85,
+          51
+        ]
+      },
+      {
+        "point": [
+          96,
+          82
+        ],
+        "expected": [
+          170,
+          85,
+          51
+        ],
+        "candidate": [
+          170,
+          85,
+          51
+        ],
+        "frozen": [
+          170,
+          85,
+          51
+        ]
+      }
+    ],
+    "powerPointEmfAndReopenedRasterExact": true
+  },
+  "filters": {
+    "emfSha256": "b89939d954d2dea6ec92cc929b3cf0d64846ce1f1c6fd7df038a414df736329f",
+    "candidateRgbSha256": "eeb64653204b044be59fcd43ba4cd1661a3f07c26f6d79a1ceb7126ba85a028c",
+    "frozenRgbSha256": "d29107d7fb6010ea5a19f8e8b2ff2fb3de1e68ce56cbcfa19860df3094fad000",
+    "preservedPartsExact": true,
+    "probes": [
+      {
+        "point": [
+          15,
+          15
+        ],
+        "expected": [
+          96,
+          132,
+          172
+        ],
+        "candidate": [
+          96,
+          132,
+          172
+        ],
+        "frozen": [
+          64,
+          100,
+          140
+        ]
+      },
+      {
+        "point": [
+          47,
+          15
+        ],
+        "expected": [
+          128,
+          100,
+          140
+        ],
+        "candidate": [
+          128,
+          100,
+          140
+        ],
+        "frozen": [
+          64,
+          100,
+          140
+        ]
+      },
+      {
+        "point": [
+          79,
+          15
+        ],
+        "expected": [
+          140,
+          64,
+          100
+        ],
+        "candidate": [
+          140,
+          64,
+          100
+        ],
+        "frozen": [
+          64,
+          100,
+          140
+        ]
+      },
+      {
+        "point": [
+          15,
+          40
+        ],
+        "expected": [
+          64,
+          100,
+          140
+        ],
+        "candidate": [
+          64,
+          100,
+          140
+        ],
+        "frozen": [
+          64,
+          100,
+          140
+        ]
+      },
+      {
+        "point": [
+          47,
+          40
+        ],
+        "expected": [
+          [
+            80,
+            220
+          ],
+          100,
+          140
+        ],
+        "candidate": [
+          131,
+          100,
+          140
+        ],
+        "frozen": [
+          64,
+          100,
+          140
+        ]
+      },
+      {
+        "point": [
+          79,
+          40
+        ],
+        "expected": [
+          [
+            75,
+            245
+          ],
+          [
+            106,
+            245
+          ],
+          [
+            141,
+            255
+          ]
+        ],
+        "candidate": [
+          105,
+          144,
+          186
+        ],
+        "frozen": [
+          64,
+          100,
+          140
+        ]
+      },
+      {
+        "point": [
+          9,
+          72
+        ],
+        "expected": [
+          [
+            30,
+            80
+          ],
+          40,
+          60
+        ],
+        "candidate": [
+          50,
+          40,
+          60
+        ],
+        "frozen": [
+          200,
+          40,
+          60
+        ]
+      },
+      {
+        "point": [
+          25,
+          72
+        ],
+        "expected": [
+          200,
+          40,
+          60
+        ],
+        "candidate": [
+          200,
+          40,
+          60
+        ],
+        "frozen": [
+          200,
+          40,
+          60
+        ]
+      },
+      {
+        "point": [
+          49,
+          75
+        ],
+        "expected": [
+          255,
+          0,
+          0
+        ],
+        "candidate": [
+          255,
+          0,
+          0
+        ],
+        "frozen": [
+          255,
+          0,
+          0
+        ]
+      },
+      {
+        "point": [
+          42.5,
+          75
+        ],
+        "expected": [
+          255,
+          [
+            200,
+            245
+          ],
+          [
+            200,
+            245
+          ]
+        ],
+        "candidate": [
+          255,
+          220,
+          220
+        ],
+        "frozen": [
+          255,
+          245,
+          245
+        ]
+      },
+      {
+        "point": [
+          49,
+          67.5
+        ],
+        "expected": [
+          255,
+          [
+            200,
+            245
+          ],
+          [
+            200,
+            245
+          ]
+        ],
+        "candidate": [
+          255,
+          227,
+          227
+        ],
+        "frozen": [
+          255,
+          254,
+          254
+        ]
+      },
+      {
+        "point": [
+          38,
+          75
+        ],
+        "expected": [
+          255,
+          255,
+          255
+        ],
+        "candidate": [
+          255,
+          255,
+          255
+        ],
+        "frozen": [
+          255,
+          255,
+          255
+        ]
+      },
+      {
+        "point": [
+          80,
+          75
+        ],
+        "expected": [
+          [
+            0,
+            65
+          ],
+          [
+            0,
+            65
+          ],
+          [
+            0,
+            65
+          ]
+        ],
+        "candidate": [
+          49,
+          49,
+          49
+        ],
+        "frozen": [
+          80,
+          80,
+          80
+        ]
+      },
+      {
+        "point": [
+          84,
+          75
+        ],
+        "expected": [
+          [
+            213,
+            255
+          ],
+          [
+            213,
+            255
+          ],
+          [
+            213,
+            255
+          ]
+        ],
+        "candidate": [
+          222,
+          222,
+          222
+        ],
+        "frozen": [
+          192,
+          192,
+          192
+        ]
+      }
+    ],
+    "powerPointEmfAndReopenedRasterExact": true
+  },
+  "powerPoint": {
+    "version": "16.0.20625.20108",
+    "applicationVersion": "16.0",
+    "frozenCliSha256": "f8fd32a31570e241f17ced00dbce66f7e2ae53739b18e3c70bea03c2e78794f7",
+    "candidateCliSha256": "681c80bafc840a7428d7b4dbea31212657aa0ab9d8604234fd7e2d8705dea5aa",
+    "cases": [
+      {
+        "input": "directed-verified/matrix-preserved.pptx",
+        "inputSha256": "20dca2ddfe54c880caea42240f23e258a4ec78495486d4ebee07693253377af5",
+        "output": "01-matrix-preserved-powerpoint.pptx",
+        "outputSha256": "e53accd092164510520de5a744e33fe3be15c17ea7521465c4c76f1632095199",
+        "slides": [
+          {
+            "id": 256,
+            "shapeTypes": [
+              17,
+              17,
+              1,
+              17
+            ],
+            "effects": 0,
+            "notes": 3
+          },
+          {
+            "id": 257,
+            "shapeTypes": [
+              13
+            ],
+            "effects": 0,
+            "notes": 3
+          },
+          {
+            "id": 258,
+            "shapeTypes": [
+              17,
+              17,
+              1,
+              17
+            ],
+            "effects": 0,
+            "notes": 3
+          }
+        ],
+        "seriesOrderDifference": false
+      },
+      {
+        "input": "directed-verified/attributes-lut-preserved.pptx",
+        "inputSha256": "6562687ced534e970c23ce5be098ad190fd7b3dc2aec0f5b2fd4d7898119ac0b",
+        "output": "02-attributes-lut-preserved-powerpoint.pptx",
+        "outputSha256": "1b1966940f13557ed53345f968f81b083e50dc1a33945c9bbc281abec97697ab",
+        "slides": [
+          {
+            "id": 256,
+            "shapeTypes": [
+              17,
+              17,
+              1,
+              17
+            ],
+            "effects": 0,
+            "notes": 3
+          },
+          {
+            "id": 257,
+            "shapeTypes": [
+              13
+            ],
+            "effects": 0,
+            "notes": 3
+          },
+          {
+            "id": 258,
+            "shapeTypes": [
+              17,
+              17,
+              1,
+              17
+            ],
+            "effects": 0,
+            "notes": 3
+          }
+        ],
+        "seriesOrderDifference": false
+      },
+      {
+        "input": "directed-verified/gdi-preserved.pptx",
+        "inputSha256": "8c5077d3c0441ed038864b26cff99443b1073558878f9342cb1bba6e5e0f5764",
+        "output": "03-gdi-preserved-powerpoint.pptx",
+        "outputSha256": "6eaf04d9c8aa6e7b55e224d9e7dda1e8394a4d4009485ee8e2fb3ec3e56d08df",
+        "slides": [
+          {
+            "id": 256,
+            "shapeTypes": [
+              17,
+              17,
+              1,
+              17
+            ],
+            "effects": 0,
+            "notes": 3
+          },
+          {
+            "id": 257,
+            "shapeTypes": [
+              13
+            ],
+            "effects": 0,
+            "notes": 3
+          },
+          {
+            "id": 258,
+            "shapeTypes": [
+              17,
+              17,
+              1,
+              17
+            ],
+            "effects": 0,
+            "notes": 3
+          }
+        ],
+        "seriesOrderDifference": false
+      },
+      {
+        "input": "directed-verified/filters-preserved.pptx",
+        "inputSha256": "8e825cb86d7b61e421a03835dc60fc960f8adbf8bb90f3becfbde0ac16916b4e",
+        "output": "04-filters-preserved-powerpoint.pptx",
+        "outputSha256": "de2e4b2c5642c39d519f8cf794f2e607fbdd3606ebda7bddf7a469ee4b205068",
+        "slides": [
+          {
+            "id": 256,
+            "shapeTypes": [
+              17,
+              17,
+              1,
+              17
+            ],
+            "effects": 0,
+            "notes": 3
+          },
+          {
+            "id": 257,
+            "shapeTypes": [
+              13
+            ],
+            "effects": 0,
+            "notes": 3
+          },
+          {
+            "id": 258,
+            "shapeTypes": [
+              17,
+              17,
+              1,
+              17
+            ],
+            "effects": 0,
+            "notes": 3
+          }
+        ],
+        "seriesOrderDifference": false
+      }
+    ]
+  },
+  "windowsOracle": {
+    "matrix": [
+      183,
+      217,
+      147
+    ],
+    "attributes": [
+      [
+        [
+          0,
+          220,
+          240
+        ],
+        [
+          255,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          255
+        ],
+        [
+          0,
+          220,
+          240
+        ]
+      ],
+      [
+        [
+          255,
+          0,
+          0
+        ],
+        [
+          255,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          255
+        ],
+        [
+          0,
+          0,
+          255
+        ]
+      ],
+      [
+        [
+          0,
+          0,
+          255
+        ],
+        [
+          255,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          255
+        ],
+        [
+          255,
+          0,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          220,
+          240
+        ],
+        [
+          255,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          255
+        ],
+        [
+          0,
+          220,
+          240
+        ]
+      ]
+    ],
+    "blurImpulse": {
+      "x": [
+        68,
+        55,
+        29,
+        10,
+        0
+      ],
+      "y": [
+        68,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  }
+}

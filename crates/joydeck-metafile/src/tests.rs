@@ -1311,25 +1311,28 @@ fn emf_alphablend_uses_constant_and_per_pixel_alpha() {
 }
 
 #[test]
-fn emf_srcand_mask_draws_all_but_its_white_pixels() {
-    // SRCAND over white paper is the source itself; white keeps the destination, so it is transparent.
+fn emf_srcand_uses_the_existing_destination_and_white_is_an_identity() {
     let dib = dib24_bottom_up();
     let rec = bitblt_rec(0x0088_00C6, [0, 0, 2, 2], &dib[..40], &dib[40..]);
     let p = parse(&emf(&[rec], [0; 4], [0; 4])).unwrap();
-    let Item::Bitmap { rgba, .. } = &p.items[0] else {
-        panic!("expected a bitmap")
+    let Item::Transfer { transfer, .. } = &p.items[0] else {
+        panic!("expected raster transfer")
+    };
+    let paint = |x, y, background| {
+        let unit = kurbo::Point::new(x, y);
+        transfer.paint(unit, unit, background)
     };
     assert_eq!(
-        rgba.as_slice(),
-        [
-            255, 0, 0, 255, 255, 255, 255, 0, 0, 0, 255, 255, 0, 255, 0, 255
-        ]
+        paint(0.25, 0.25, [165, 97, 82, 255]),
+        Some([165, 0, 0, 255])
     );
+    assert_eq!(paint(0.75, 0.25, [165, 97, 82, 255]), None);
+    assert_eq!(paint(0.75, 0.75, [0; 4]), Some([0, 255, 0, 255]));
 }
 
 #[test]
-fn emf_srcpaint_makes_black_pixels_transparent() {
-    // A 2 x 1 DIB: black, then red. SRCPAINT leaves black transparent; SRCCOPY keeps it opaque.
+fn emf_srcpaint_ors_the_source_and_leaves_black_unchanged() {
+    // A 2 x 1 DIB: black, then red. SRCCOPY still writes both pixels.
     let info = info_header(2, 1, 24, 8);
     let bits = [0u8, 0, 0, 0, 0, 255, 0, 0];
     let p = parse(&emf(
@@ -1338,10 +1341,15 @@ fn emf_srcpaint_makes_black_pixels_transparent() {
         [0; 4],
     ))
     .unwrap();
-    let Item::Bitmap { rgba, .. } = &p.items[0] else {
-        panic!("expected a bitmap")
+    let Item::Transfer { transfer, .. } = &p.items[0] else {
+        panic!("expected raster transfer")
     };
-    assert_eq!(rgba.as_slice(), [0, 0, 0, 0, 255, 0, 0, 255]);
+    let paint = |x| {
+        let unit = kurbo::Point::new(x, 0.5);
+        transfer.paint(unit, unit, [61, 123, 72, 255])
+    };
+    assert_eq!(paint(0.25), None);
+    assert_eq!(paint(0.75), Some([255, 123, 72, 255]));
     let p = parse(&emf(
         &[bitblt_rec(0x00CC_0020, [0, 0, 2, 1], &info, &bits)],
         [0; 4],
@@ -2272,13 +2280,21 @@ fn patblt_fills_with_the_brush() {
         patblt(0x0055_0009),
     ];
     let p = wmf200(&recs);
-    assert_eq!(p.items.len(), 1, "DSTINVERT draws nothing: {:?}", p.items);
+    assert_eq!(p.items.len(), 2);
     let (x0, y0, x1, y1) = rect_extent(&p.items[0]);
     assert!(
         close(x0, 20.0) && close(y0, 10.0) && close(x1, 60.0) && close(y1, 40.0),
         "{x0} {y0} {x1} {y1}"
     );
     assert_eq!(path_segs(&p.items[0]).1, Some([0, 0, 255, 255]));
+    let Item::Transfer { transfer, .. } = &p.items[1] else {
+        panic!("expected destination invert")
+    };
+    let center = kurbo::Point::new(0.5, 0.5);
+    assert_eq!(
+        transfer.paint(center, center, [0, 0, 255, 255]),
+        Some([255, 255, 0, 255])
+    );
 }
 
 #[test]
@@ -2495,6 +2511,7 @@ fn item_region(item: &Item) -> Option<&[[f32; 4]]> {
         Item::Path { region, .. }
         | Item::Bitmap { region, .. }
         | Item::AffineBitmap { region, .. }
+        | Item::Transfer { region, .. }
         | Item::Nested { region, .. }
         | Item::Pattern { region, .. } => region.as_ref(),
         Item::Text(t) => t.region.as_ref(),

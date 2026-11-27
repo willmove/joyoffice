@@ -312,7 +312,7 @@ fn dib_stretchblt(cv: &mut Canvas, r: Bytes) -> Option<()> {
 }
 
 /// A DIB at `at`, stretched from source rectangle `src` into `dst` (both in logical units, pixels for `src`).
-/// The raster operation `rop` decides how the pixels combine (see [`bitmap::prepare`]).
+/// A ROP other than source copy is evaluated with the selected brush and the current destination.
 fn dib_blit(
     cv: &mut Canvas,
     r: Bytes,
@@ -321,12 +321,24 @@ fn dib_blit(
     dst: [f64; 4],
     src: [f64; 4],
 ) -> Option<()> {
+    use crate::image_placement::rectangle;
+    use crate::raster_transfer::{Logic, RasterTransfer, TransferSource};
+
+    if Canvas::sourceless(rop) {
+        cv.fill_rop(dst, rop);
+        return Some(());
+    }
     let dib = r.tail(at)?;
     let n = bitmap::info_len(dib)?;
     let info = dib.slice(0, n)?;
     let bits = dib.tail(n)?;
-    let mut img = bitmap::decode(Bytes(info), bits, false)?;
-    bitmap::prepare(&mut img, bitmap::Blend::Rop(rop));
+    let img = bitmap::decode(Bytes(info), bits, false)?;
+    let logic = Logic::single(rop);
+    if logic.foreground != Logic::SOURCE {
+        let source = TransferSource::dib(img, src)?;
+        cv.raster_transfer(RasterTransfer::new(rectangle(dst), logic, Some(source)));
+        return Some(());
+    }
     let (img, dst) = bitmap::clip_blit(&img, src.map(|v| v as i64), dst)?;
     cv.bitmap(dst, img);
     Some(())

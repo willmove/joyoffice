@@ -4,6 +4,13 @@ use kurbo::{Affine, Rect};
 
 use crate::geom::P;
 
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum ImageComposition {
+    #[default]
+    SourceOver,
+    SourceCopy,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ImagePlacement {
     /// Maps source coordinates to the drawing space.
@@ -52,7 +59,7 @@ impl ImagePlacement {
             && self.bounds().is_finite()
     }
 
-    pub(crate) fn bounds(self) -> Rect {
+    pub fn bounds(self) -> Rect {
         self.transform.transform_rect_bbox(self.source)
     }
 }

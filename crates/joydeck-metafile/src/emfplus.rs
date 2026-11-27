@@ -15,10 +15,9 @@
 //! - cardinal splines (DrawCurve, DrawClosedCurve, FillClosedCurve), FillRegion, and Clear
 //!   (over the picture frame).
 //!
-//! Every drawing record of MS-EMFPLUS §2.3.4 is played. Image attributes are not drawn.
-//! Deliberately ignored: rendering hints (antialias, text
-//! hint, interpolation, pixel offset, compositing; the renderer has its own),
-//! SerializableObject image effects, the terminal-server records SetTSGraphics and
+//! Image draws honor wrap attributes, serialized bitmap effects and image compositing mode.
+//! Rendering hints for antialiasing, text, interpolation and pixel offsets are ignored, as are
+//! the terminal-server records SetTSGraphics and
 //! SetTSClip, and StrokeFillPath (0x4037), which the specification lists but gives no layout for
 //! and GDI+ doesn't write.
 
@@ -26,11 +25,12 @@ use std::sync::Arc;
 
 use kurbo::{Affine, Rect};
 
-use crate::ImagePlacement;
 use crate::bytes::Bytes;
 use crate::canvas::{BS_NULL, BS_SOLID, Brush, Canvas, LogFont, PS_NULL, Pen, RawTile, Xform, mul};
 use crate::canvas::{PlusClip, Raw};
 use crate::geom::{Op, P};
+use crate::plus_attributes::Attributes;
+use crate::plus_effects::{self, Effect};
 use crate::plus_image::{ImageData, image};
 use crate::plus_paint::{Brush as Fill, argb, brush};
 use crate::plus_pen::{self, Pen as PlusPen};
@@ -38,6 +38,7 @@ use crate::plus_region::{self, Area};
 use crate::plus_shapes::{Drawing, Geometry, Paint, floats, path};
 use crate::plus_text::{DriverString, FontSpec, Format, Run, unit_px};
 use crate::text::ETO_CLIPPED;
+use crate::{ImageComposition, ImagePlacement};
 
 /// "EMF+" as the comment identifier of an EMR_COMMENT holding EMF+ records.
 pub(crate) const EMF_PLUS: u32 = 0x2B46_4D45;
@@ -55,6 +56,7 @@ enum Obj {
     Format(Format),
     /// A region object in world units.
     Region(Area),
+    Attributes(Attributes),
 }
 
 struct Saved {
@@ -62,6 +64,7 @@ struct Saved {
     world: Xform,
     page: f64,
     rendering_origin: P,
+    composition: ImageComposition,
     clip: Area,
     clip_paint: Option<PlusClip>,
 }
@@ -73,6 +76,9 @@ pub(crate) struct Plus {
     world: Xform,
     page: f64,
     rendering_origin: P,
+    composition: ImageComposition,
+    effect: Option<Effect>,
+    effect_work: usize,
     /// The logical region and the compiled mask are in device units.
     clip: Area,
     clip_paint: Option<PlusClip>,
@@ -93,6 +99,9 @@ impl Plus {
             world: IDENTITY,
             page: 1.0,
             rendering_origin: (0.0, 0.0),
+            composition: ImageComposition::SourceOver,
+            effect: None,
+            effect_work: plus_effects::EFFECT_WORK,
             clip: Area::full(),
             clip_paint: None,
             clip_work: plus_region::WORK_BUDGET,
@@ -148,7 +157,11 @@ impl Plus {
             0x4009 | 0x4013 | 0x401A..=0x401C | 0x4036 => {
                 self.record_image_text_region(cv, typ, flags, r)
             }
-            0x401d | 0x4025..=0x4035 => self.record_state(cv, typ, flags, r),
+            0x4038 => {
+                self.effect = plus_effects::read(r);
+                Some(())
+            }
+            0x401d | 0x4023 | 0x4025..=0x4035 => self.record_state(cv, typ, flags, r),
             _ => self.record_shape(cv, typ, flags, r),
         }
     }
@@ -232,7 +245,14 @@ impl Plus {
                 self.painter().fill(cv, &ops, &fill);
             }
             Command::Image { slot, destination } => {
-                return self.draw_image(cv, self.image(slot)?.as_ref(), r, destination);
+                let image = self.image(slot)?;
+                return self.draw_image(
+                    cv,
+                    image.as_ref(),
+                    r,
+                    destination,
+                    typ == 0x401b && flags & 0x2000 != 0,
+                );
             }
             Command::Text => return self.draw_string(cv, flags, r),
             Command::DriverText => return self.draw_driver_string(cv, flags, r),
@@ -249,6 +269,13 @@ impl Plus {
             State::Transform(matrix) => self.world = matrix,
             State::Concat(matrix) => return self.apply(matrix, flags),
             State::RenderingOrigin(origin) => self.rendering_origin = origin,
+            State::SourceCopy(copy) => {
+                self.composition = if copy {
+                    ImageComposition::SourceCopy
+                } else {
+                    ImageComposition::SourceOver
+                };
+            }
             State::Page(scale) => {
                 let page = scale * unit_px(u32::from(flags & 0xff), self.dpi);
                 if (0.0..1.0e6).contains(&page) && page > 0.0 {
@@ -306,6 +333,7 @@ impl Plus {
                 world: self.world,
                 page: self.page,
                 rendering_origin: self.rendering_origin,
+                composition: self.composition,
                 clip: self.clip.clone(),
                 clip_paint: self.clip_paint.clone(),
             });
@@ -318,6 +346,7 @@ impl Plus {
             (self.world, self.page, self.clip, self.clip_paint) =
                 (s.world, s.page, s.clip, s.clip_paint);
             self.rendering_origin = s.rendering_origin;
+            self.composition = s.composition;
             self.stack.truncate(i);
         }
     }
@@ -422,36 +451,75 @@ impl Plus {
     }
 
     fn draw_image(
-        &self,
+        &mut self,
         cv: &mut Canvas,
         image: &ImageData,
         record: Bytes<'_>,
         dst: Affine,
+        use_effect: bool,
     ) -> Option<()> {
         let source = floats::<4>(record, 8)?;
         let use_source = record.u32(4)? == 2 && source[2] != 0.0 && source[3] != 0.0;
+        let attributes = match self.objects.get(record.u32(0)? as usize) {
+            Some(Some(Obj::Attributes(value))) => Some(*value),
+            _ => None,
+        };
         let painter = self.painter();
         painter.begin(cv, IDENTITY);
-        let result = Self::image_in_device(cv, image, dst, use_source.then_some(source));
+        let result = self.image_in_device(
+            cv,
+            image,
+            dst,
+            use_source.then_some(source),
+            attributes,
+            use_effect,
+        );
         painter.end(cv);
         result
     }
 
     fn image_in_device(
+        &mut self,
         cv: &mut Canvas,
         image: &ImageData,
         dst: Affine,
         source: Option<[f64; 4]>,
+        attributes: Option<Attributes>,
+        use_effect: bool,
     ) -> Option<()> {
-        let target = Affine::new(cv.device_affine()) * dst;
         match image {
             ImageData::Bitmap(bitmap) => {
                 let (w, h) = (bitmap.w as f64, bitmap.h as f64);
-                let source = source.unwrap_or([0.0, 0.0, w, h]);
+                let mut source = source.unwrap_or([0.0, 0.0, w, h]);
+                let mut processed = None;
+                if use_effect
+                    && bitmap.w.saturating_mul(bitmap.h) <= self.effect_work
+                    && let Some(effect) = &self.effect
+                {
+                    let mut working = bitmap.clone();
+                    if let Some(padding) = effect.apply(&mut working, &mut self.effect_work) {
+                        let pad = padding as f64;
+                        // The filter can extend its backing bitmap. DrawImage still maps the
+                        // record's source window onto its original destination.
+                        source[0] += pad;
+                        source[1] += pad;
+                        processed = Some(working);
+                    }
+                }
+                if let Some(attributes) = attributes
+                    && let Some(Some(extended)) = attributes.extend(
+                        processed.as_ref().unwrap_or(bitmap),
+                        &mut source,
+                        &mut self.effect_work,
+                    )
+                {
+                    processed = Some(extended);
+                }
+                let target = Affine::new(cv.device_affine()) * dst;
                 let [a, _, _, d, x, y] = dst.as_coeffs();
-                // Keep the existing integer transfer for ordinary axis-aligned bitmaps.
                 if crate::image_placement::axis_aligned(dst)
                     && crate::image_placement::axis_aligned(target)
+                    && self.composition == ImageComposition::SourceOver
                     && source[2] > 0.0
                     && source[3] > 0.0
                     && source
@@ -459,13 +527,14 @@ impl Plus {
                         .all(|value| value.fract() == 0.0 && value.abs() <= 1e9)
                 {
                     let (bitmap, rect) = crate::bitmap::clip_blit(
-                        bitmap,
+                        processed.as_ref().unwrap_or(bitmap),
                         source.map(|value| value as i64),
                         [x, y, a, d],
                     )?;
                     cv.bitmap(rect, bitmap);
                 } else {
-                    cv.affine_bitmap(dst, source, bitmap.clone())?;
+                    let bitmap = processed.unwrap_or_else(|| bitmap.clone());
+                    cv.composited_bitmap(dst, source, bitmap, self.composition)?;
                 }
             }
             ImageData::Meta {
@@ -473,6 +542,7 @@ impl Plus {
                 device_size: [device_w, device_h],
                 bytes,
             } => {
+                let target = Affine::new(cv.device_affine()) * dst;
                 let (w, h) = (f64::from(picture.width), f64::from(picture.height));
                 let [x, y, sw, sh] = source.unwrap_or([0.0, 0.0, *device_w, *device_h]);
                 let (sx, sy) = (w / device_w, h / device_h);
@@ -721,6 +791,7 @@ fn parse_object(kind: u16, record: Bytes, region_work: &mut usize) -> Option<Obj
         5 => image(record).map(|image| Obj::Image(Arc::new(image))),
         6 => FontSpec::read(record).map(Obj::Font),
         7 => Format::read(record).map(Obj::Format),
+        8 => Attributes::read(record).map(Obj::Attributes),
         _ => None,
     }
 }

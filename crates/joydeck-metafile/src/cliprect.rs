@@ -183,7 +183,9 @@ pub(crate) fn clip_raw(raw: Raw, clip: &[P]) -> Vec<Raw> {
         Raw::Bitmap { rect, img, region } => crop(rect, img, clip)
             .map(|(rect, img)| vec![Raw::Bitmap { rect, img, region }])
             .unwrap_or_default(),
-        Raw::Text { .. } | Raw::AffineBitmap { .. } | Raw::Nested { .. } => vec![raw],
+        Raw::Text { .. } | Raw::AffineBitmap { .. } | Raw::Nested { .. } | Raw::Transfer { .. } => {
+            vec![raw]
+        }
     }
 }
 
