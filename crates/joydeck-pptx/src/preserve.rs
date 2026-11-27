@@ -7,6 +7,8 @@ use crate::{
 };
 use joydeck_model::{Presentation, Shape, ShapeId, ShapeKind, Slide, SlideId, TextBody};
 use std::collections::BTreeMap;
+#[path = "preserve_assets.rs"]
+mod assets;
 #[path = "preserve_chart.rs"]
 mod charts;
 #[path = "preserve_content.rs"]
@@ -17,6 +19,8 @@ mod fields;
 mod links;
 #[path = "preserve_placeholders.rs"]
 mod placeholders;
+#[path = "preserve_table.rs"]
+mod tables;
 pub struct SlideBinding {
     pub slide: SlideId,
     pub source: SlideId,
@@ -42,32 +46,6 @@ fn relationship_root(pkg: &opc::Package, part: &str) -> Result<El, PptxError> {
         )],
         children: vec![],
     })
-}
-// Structural table edits regenerate rows, so admit only the documented simple subset.
-// Ordinary cell text/fill edits retain the surrounding original XML and do not use this gate.
-fn simple_table_rows(e: &El) -> bool {
-    if e.name
-        .split_once(':')
-        .is_none_or(|(prefix, _)| prefix != "a")
-    {
-        return false;
-    }
-    let attrs: &[&str] = match e.local() {
-        "tblGrid" | "tcPr" | "txBody" | "bodyPr" | "lstStyle" | "p" | "solidFill" => &[],
-        "gridCol" => &["w"],
-        "tr" => &["h"],
-        "tc" => &["rowSpan", "gridSpan", "hMerge", "vMerge"],
-        "pPr" => &["algn", "lvl"],
-        "r" | "br" => &[],
-        "rPr" | "endParaRPr" | "defRPr" => {
-            &["lang", "altLang", "sz", "b", "i", "dirty", "smtClean"]
-        }
-        "latin" | "ea" | "cs" => &["typeface", "panose", "pitchFamily", "charset"],
-        "srgbClr" | "schemeClr" => &["val"],
-        "t" => &["xml:space"],
-        _ => return false,
-    };
-    e.attrs.iter().all(|(k, _)| attrs.contains(&k.as_str())) && e.elements().all(simple_table_rows)
 }
 fn child_mut<'a>(e: &'a mut El, local: &str) -> Option<&'a mut El> {
     e.elements_mut().find(|e| e.is(local))
@@ -567,6 +545,7 @@ pub fn export_preserving(
         .ok_or_else(|| error("missing presentation relationships"))?
         .root;
     content::globals(&pkg, &gen_pkg, base, current, &mut parts, &mut pres)?;
+    let mut needed_styles = std::collections::BTreeSet::new();
     let mut ids = vec![];
     let mut next_file_id = ordered
         .iter()
@@ -577,7 +556,7 @@ pub fn export_preserving(
         .ok_or_else(|| error("slide ID space exhausted"))?;
     let mut destinations = BTreeMap::new();
     let mut generated_slides = BTreeMap::new();
-    let mut pictures = content::Pictures::new(&pkg);
+    let mut assets = assets::Assets::new(&pkg);
     for (index, slide) in current.slides.iter().enumerate() {
         let binding = bindings
             .iter()
@@ -859,181 +838,40 @@ pub fn export_preserving(
                     let generated = generated
                         .find("tbl")
                         .ok_or_else(|| error("missing generated table"))?;
-                    if before.cols.len() == after.cols.len()
-                        && before.rows.len() == after.rows.len()
-                        && before
-                            .rows
-                            .iter()
-                            .zip(&after.rows)
-                            .all(|(a, b)| a.cells.len() == b.cells.len())
-                    {
-                        if before.cols != after.cols {
-                            let grid = child_mut(source, "tblGrid")
-                                .ok_or_else(|| error("table grid missing"))?;
-                            let new_grid = generated
-                                .child("tblGrid")
-                                .ok_or_else(|| error("generated grid missing"))?;
-                            for (old, new) in grid
-                                .elements_mut()
-                                .filter(|e| e.is("gridCol"))
-                                .zip(new_grid.elements().filter(|e| e.is("gridCol")))
-                            {
-                                if let Some(w) = new.attr("w") {
-                                    set(old, "w", w.into());
-                                }
-                            }
-                        }
-                        if before.style != after.style
-                            || before.first_row != after.first_row
-                            || before.band_row != after.band_row
-                        {
-                            let new = generated
-                                .child("tblPr")
-                                .ok_or_else(|| error("generated table properties missing"))?;
-                            let old = child_mut(source, "tblPr")
-                                .ok_or_else(|| error("table properties missing"))?;
-                            for name in ["firstRow", "bandRow"] {
-                                old.attrs.retain(|(k, _)| k != name);
-                                if let Some(v) = new.attr(name) {
-                                    set(old, name, v.into());
-                                }
-                            }
-                            replace(old, "tableStyleId", new.child("tableStyleId").cloned());
-                        }
-                        // Text/fill edits retain untouched cells, table style and unknown table XML.
-                        for (r, row) in source.elements_mut().filter(|e| e.is("tr")).enumerate() {
-                            let generated_row = generated
-                                .elements()
-                                .filter(|e| e.is("tr"))
-                                .nth(r)
-                                .ok_or_else(|| error("missing generated table row"))?;
-                            if before.rows[r].height != after.rows[r].height
-                                && let Some(h) = generated_row.attr("h")
-                            {
-                                set(row, "h", h.into());
-                            }
-                            for (c, cell) in row.elements_mut().filter(|e| e.is("tc")).enumerate() {
-                                let a = before
-                                    .cell(r, c)
-                                    .ok_or_else(|| error("unmapped source cell"))?;
-                                let b = after
-                                    .cell(r, c)
-                                    .ok_or_else(|| error("unmapped edited cell"))?;
-                                let g = generated_row
-                                    .elements()
-                                    .filter(|e| e.is("tc"))
-                                    .nth(c)
-                                    .ok_or_else(|| error("missing generated cell"))?;
-                                if a.text != b.text {
-                                    patch_text(
-                                        cell,
-                                        g,
-                                        Some(&a.text),
-                                        Some(&b.text),
-                                        &mut link_relationships,
-                                        &mut field_ids,
-                                    )?;
-                                }
-                                if a.fill != b.fill
-                                    || a.grid_span != b.grid_span
-                                    || a.row_span != b.row_span
-                                    || a.h_merge != b.h_merge
-                                    || a.v_merge != b.v_merge
-                                {
-                                    // Merge identity is on a:tc, fill is inside a:tcPr.
-                                    for key in ["gridSpan", "rowSpan", "hMerge", "vMerge"] {
-                                        cell.attrs.retain(|(k, _)| k != key);
-                                        if let Some(v) = g.attr(key) {
-                                            set(cell, key, v.into());
-                                        }
-                                    }
-                                    let pr = child_mut(cell, "tcPr")
-                                        .ok_or_else(|| error("missing cell properties"))?;
-                                    pr.children.retain(|n|!matches!(n,Node::El(e) if matches!(e.local(),"gradFill"|"pattFill"|"noFill"|"blipFill"|"grpFill")));
-                                    replace(
-                                        pr,
-                                        "solidFill",
-                                        g.child("tcPr").and_then(|x| x.child("solidFill")).cloned(),
-                                    );
-                                }
-                                if a.borders != b.borders
-                                    || a.margins != b.margins
-                                    || a.anchor != b.anchor
-                                    || a.vertical != b.vertical
-                                {
-                                    if cell.child("tcPr").is_none() {
-                                        replace(
-                                            cell,
-                                            "tcPr",
-                                            Some(El {
-                                                name: "a:tcPr".into(),
-                                                attrs: vec![],
-                                                children: vec![],
-                                            }),
-                                        );
-                                    }
-                                    let new = g.child("tcPr").ok_or_else(|| {
-                                        error("generated cell properties missing")
-                                    })?;
-                                    let old = child_mut(cell, "tcPr")
-                                        .ok_or_else(|| error("cell properties missing"))?;
-                                    for (changed, names) in [
-                                        (
-                                            a.margins != b.margins,
-                                            &["marL", "marR", "marT", "marB"][..],
-                                        ),
-                                        (a.anchor != b.anchor, &["anchor"][..]),
-                                        (a.vertical != b.vertical, &["vert"][..]),
-                                    ] {
-                                        if changed {
-                                            for name in names {
-                                                old.attrs.retain(|(k, _)| k != name);
-                                                if let Some(v) = new.attr(name) {
-                                                    set(old, name, v.into());
-                                                }
-                                            }
-                                        }
-                                    }
-                                    for (side, name) in
-                                        ["lnL", "lnR", "lnT", "lnB"].iter().enumerate()
-                                    {
-                                        if a.borders[side] != b.borders[side] {
-                                            replace(old, name, new.child(name).cloned());
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        // Structural edits of extension-bearing tables are intentionally refused.
-                        if source
-                            .elements()
-                            .filter(|e| e.is("tblGrid") || e.is("tr"))
-                            .any(|e| !simple_table_rows(e))
-                        {
-                            return Err(error(
-                                "table extensions require .joydeck Save As for structural edits",
-                            ));
-                        }
-                        replace(source, "tblGrid", generated.child("tblGrid").cloned());
-                        source
-                            .children
-                            .retain(|n| !matches!(n,Node::El(e) if e.is("tr")));
-                        for row in generated.elements().filter(|e| e.is("tr")) {
-                            let mut row = row.clone();
-                            link_relationships.rebind_generated(&mut row)?;
-                            field_ids.reassign_tree(&mut row);
-                            source.children.push(Node::El(row));
-                        }
+                    if before.style != after.style {
+                        needed_styles.insert(
+                            crate::tables::guid_for_style(&after.style)
+                                .0
+                                .to_ascii_uppercase(),
+                        );
                     }
+                    tables::patch(
+                        source,
+                        generated,
+                        before,
+                        after,
+                        &mut link_relationships,
+                        &mut field_ids,
+                    )?;
                 }
                 e
             } else {
+                let mut table_nodes = Vec::new();
+                generated.find_all("tbl", &mut table_nodes);
+                for table in table_nodes {
+                    if let Some(style) = table.path(&["tblPr", "tableStyleId"]) {
+                        needed_styles.insert(style.text().to_ascii_uppercase());
+                    }
+                }
                 let mut e = generated.clone();
                 link_relationships.rebind_generated(&mut e)?;
-                link_relationships.rebind_generated_images(&mut e, &mut |target| {
-                    pictures.target(&gen_pkg, target, &mut parts, &mut ct)
-                })?;
+                assets.rebind(
+                    &mut e,
+                    &gen_pkg,
+                    &mut link_relationships,
+                    &mut parts,
+                    &mut ct,
+                )?;
                 field_ids.reassign_tree(&mut e);
                 e
             };
@@ -1067,7 +905,7 @@ pub fn export_preserving(
                 &mut parts,
                 &mut ct,
                 &mut added_rels,
-                &mut pictures,
+                &mut assets,
                 preserved_chart,
             )?;
             if let Some(nv) = find_mut(&mut e, "cNvPr") {
@@ -1188,6 +1026,17 @@ pub fn export_preserving(
         child_mut(&mut pres, "sldIdLst")
             .ok_or_else(|| error("missing slide list"))?
             .children = ids;
+    }
+    let style_relationship = tables::register_styles(
+        &pkg,
+        &gen_pkg,
+        &pres_path,
+        &mut pres_rels,
+        &mut parts,
+        &mut ct,
+        &needed_styles,
+    )?;
+    if structural || style_relationship {
         parts.insert(opc::rels_path(&pres_path), pres_rels.to_xml().into_bytes());
     }
     if structural || current.slide_size != base.slide_size {

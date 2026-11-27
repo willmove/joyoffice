@@ -38,12 +38,14 @@ mod master_part;
 mod media_part;
 mod model3d_part;
 mod opc;
+mod package_writer;
 mod png;
 mod presentation_parts;
 pub(crate) mod read;
 mod relationships;
 mod review_part;
 mod table_part;
+#[path = "table_styles.rs"]
 mod tables;
 mod theme_part;
 mod transition_part;

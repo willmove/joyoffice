@@ -254,8 +254,6 @@ crates/joydeck-pptx/src/read/dml.rs:970:let d = parse(br#"<a:bodyPr><a:normAutof
 crates/joydeck-pptx/src/read/dml.rs:978:let d = parse(br#"<a:bodyPr spcFirstLastPara="1"/>"#).unwrap();
 crates/joydeck-pptx/src/read/dml.rs:982:let d = parse(br#"<a:bodyPr vert="mongolianVert"/>"#).unwrap();
 crates/joydeck-pptx/src/read/dml.rs:986:let d = parse(br#"<a:bodyPr vert="wordArtVertRtl"/>"#).unwrap();
-crates/joydeck-pptx/src/tables.rs:410:let d = crate::xml::parse(&table_styles_xml(&used, &[])).unwrap();
-crates/joydeck-pptx/src/tables.rs:416:.map(|e| ORDER.iter().position(|o| *o == e.local()).unwrap())
 crates/joydeck-pptx/src/write/chart.rs:1281:let c = crate::read::read_chartex_xml(MAP.as_bytes()).expect("a region map is read");
 crates/joydeck-pptx/src/write/chart.rs:1307:let back = crate::read::read_chartex_xml(built.as_bytes()).expect("the rebuilt part reads");
 crates/joydeck-pptx/src/write/chart.rs:1342:let xml = String::from_utf8(super::chart_xml(&c).0).unwrap();

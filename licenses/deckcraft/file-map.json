@@ -561,7 +561,7 @@
       "source_path": "crates/metafile/src/emfplus.rs",
       "source_sha256": "183b0be47ee2467ef8824b768709a57a83dc243f15195c066ccef601a933d15e",
       "target_path": "crates/joydeck-metafile/src/emfplus.rs",
-      "adapted_sha256": "f3935017b0886f86904d113da1b7556da186409230c0e116d0bfe0cfdeb6dd9a",
+      "adapted_sha256": "beb98a768be60e998c73e1e67d4f878b294b48e555040de90b4a0730d5e0101c",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -569,7 +569,8 @@
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
         "Replay EMF+ comments with validated payload sizes and alignment.",
         "Use the independent bitmap cropping and mirroring path for EMF+.",
-        "Use independent state decoding, object assembly, image unpacking, and path construction."
+        "Use independent state decoding, object assembly, image unpacking, and path construction.",
+        "Route brush/pen decoding, region evaluation, drawing commands and positioned glyphs through first-party codecs."
       ]
     },
     {
@@ -591,7 +592,7 @@
       "source_path": "crates/metafile/src/lib.rs",
       "source_sha256": "3adccd030b589e5f091cbc791f814929f62221850853b6932cca5d9a22014a1d",
       "target_path": "crates/joydeck-metafile/src/lib.rs",
-      "adapted_sha256": "b80772d7723b74f7e322a73c455fff8119458af31392c1fae1dbe37b5f133fc5",
+      "adapted_sha256": "9bf1163d53d87e9b1eadffef370355e48bb3697143b338f35ad67cba04d8bb74",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -600,7 +601,8 @@
         "Register the bounded metafile record stream.",
         "Replace the original DIB decoder and pixel preparation with the independent bitmap module.",
         "Route prepared WMF and EMF record payloads to first-party vector, mapping, rectangle region and text modules.",
-        "Register independent EMF+ state, image, object, polygon clipping, path and code-page implementations."
+        "Register independent EMF+ state, image, object, polygon clipping, path and code-page implementations.",
+        "Register the first-party EMF+ drawing, brush, region and text codecs."
       ]
     },
     {
@@ -1797,7 +1799,7 @@
       "source_path": "crates/pptx/src/lib.rs",
       "source_sha256": "7886430c0095c036472d8a84d8b4d2eccf001b0c8660e5c2b43572f6a0f79c1f",
       "target_path": "crates/joydeck-pptx/src/lib.rs",
-      "adapted_sha256": "27e6bfbaec31fb2a99af2616e82ca409b7048051c7594bb40c9a5cecdfc8743f",
+      "adapted_sha256": "355aad82ddbf53bb0fb0d75c38e4ed8aade88074f2b0f89eec5f87d369baa53b",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -1811,7 +1813,8 @@
         "Route shape geometry, rich text, diagrams and Office 3-D payloads through the DrawingML exchange codecs.",
         "Route object effects and their timing nodes through the PresentationML sequence codec.",
         "Add a standalone OPC relationship codec used by the reader and preserving writeback.",
-        "Replace the inherited XML DOM and output with first-party tree and writer modules."
+        "Replace the inherited XML DOM and output with first-party tree and writer modules.",
+        "Register the generated OPC inventory writer and the table style codec."
       ],
       "safety_integration": "Register footer import and preservation regression tests (d28049dc)."
     },
@@ -1831,7 +1834,7 @@
       "source_path": "crates/pptx/src/opc.rs",
       "source_sha256": "f7905174cd984e290e231dbed1c05dcece3379233feef91ee06f6975e4267ef9",
       "target_path": "crates/joydeck-pptx/src/opc.rs",
-      "adapted_sha256": "d33947405de9fa43ed2619b4605bcc54d364d28e5cbb6faf0c600b384f57dcf6",
+      "adapted_sha256": "a76cea3b895d14703c8f0d8a07a884727b7d4f4572a2950f034149a7137e3d83",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -1841,7 +1844,8 @@
         "Reuse verified OPC buffers while preserving format reader budgets and ZIP name decoding.",
         "Share the checked member inventory and ZIP writer between regenerated and preserved packages.",
         "Replace inherited relationship parsing and target resolution with independent URI resolution, encoding and rebasing.",
-        "Use the shared first-party relationship writer for generated OPC relationships."
+        "Use the shared first-party relationship writer for generated OPC relationships.",
+        "Route generated output through the first-party package inventory and content type serializer."
       ]
     },
     {
@@ -1903,7 +1907,7 @@
       "source_path": "crates/pptx/src/read/shapes.rs",
       "source_sha256": "9df34bf672f801a9fe96569f10829fa82486d39b225c9231da2adbb0b4ced9f8",
       "target_path": "crates/joydeck-pptx/src/read/shapes.rs",
-      "adapted_sha256": "f7567061f624a5581fa4be598ce6035fcc5266cacf2d1c7a5305b57eb020fee4",
+      "adapted_sha256": "33eead14740785bdbd98187c51eea44789066155adf0f33e3baaf037009bf52f",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -1912,7 +1916,8 @@
         "Derive straight, orthogonal and smoothed DrawingML connector paths and adjustments from the published coordinate guides, including multi-bend defaults when opening and writing PPTX.",
         "Use the same bounded preset reader to verify preservation writes.",
         "Read table frames and chart sidecars through the new part readers.",
-        "Route shape geometry, rich text, diagrams and Office 3-D payloads through the DrawingML exchange codecs."
+        "Route shape geometry, rich text, diagrams and Office 3-D payloads through the DrawingML exchange codecs.",
+        "Route audio and video metadata through the shared media part codec."
       ]
     },
     {
@@ -1975,8 +1980,11 @@
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
-      ]
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "Retire the inherited table-style writer. Preserve existing style GUIDs and the compatibility tests."
+      ],
+      "retired": true,
+      "last_verified_in": "bdf00a53"
     },
     {
       "source_path": "crates/pptx/src/write/chart.rs",
@@ -2010,7 +2018,7 @@
       "source_path": "crates/pptx/src/write/shapes.rs",
       "source_sha256": "386f88a4a3ca7b7b1434028d1360f17ff16af7c0eca4b75cb5e73a38e7aced1a",
       "target_path": "crates/joydeck-pptx/src/write/shapes.rs",
-      "adapted_sha256": "24f6b549c05761efa9def6d90b46dc2ad433652527644f92731e7b80f1cabd20",
+      "adapted_sha256": "697d6af011c1185f7112ae8ac991334d7fb5de6cf1dd6573bb62ce169bf6b31c",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -2020,7 +2028,8 @@
         "Retain the signed DrawingML range of borderCallout1 through regeneration.",
         "Use the shared first-party DrawingML table codec.",
         "Use the independent ChartEx writer for the extended chart branch.",
-        "Route shape geometry, rich text, diagrams and Office 3-D payloads through the DrawingML exchange codecs."
+        "Route shape geometry, rich text, diagrams and Office 3-D payloads through the DrawingML exchange codecs.",
+        "Route media relationship and extension serialization through the shared media part codec."
       ]
     },
     {

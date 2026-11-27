@@ -7,9 +7,10 @@ use std::io::{Cursor, Read};
 use std::sync::Arc;
 
 use crate::PptxError;
+pub use crate::package_writer::PackageOut;
 pub use crate::relationships::RelsOut;
 pub use crate::relationships::{Rel, Rels, dir_of, file_of, relative, rels_path, resolve};
-use crate::xml::{self, A, W};
+use crate::xml;
 
 /// Largest single part we decompress (media included).
 pub const MAX_PART: u64 = 512 * 1024 * 1024;
@@ -311,126 +312,6 @@ pub fn sidecar_part(name: &str) -> bool {
         return false;
     }
     true
-}
-
-// ---------------------------------------------------------------------------------------------
-// Writing
-
-/// A package being written.
-pub struct PackageOut {
-    files: Vec<(String, Vec<u8>, bool)>,
-    defaults: Vec<(String, String)>,
-    overrides: Vec<(String, String)>,
-}
-
-impl Default for PackageOut {
-    fn default() -> Self {
-        PackageOut {
-            files: vec![],
-            defaults: vec![
-                (
-                    "rels".into(),
-                    "application/vnd.openxmlformats-package.relationships+xml".into(),
-                ),
-                ("xml".into(), "application/xml".into()),
-            ],
-            overrides: vec![],
-        }
-    }
-}
-
-impl PackageOut {
-    /// Add an XML part with its content type override.
-    pub fn xml_part(&mut self, name: &str, content_type: &str, data: Vec<u8>) {
-        self.overrides
-            .push((format!("/{name}"), content_type.to_string()));
-        self.files.push((name.to_string(), data, true));
-    }
-    pub fn rels(&mut self, part: &str, rels: &RelsOut) {
-        if rels.is_empty() {
-            return;
-        }
-        let path = rels_path(part);
-        if let Some(existing) = self.files.iter_mut().find(|(name, ..)| *name == path) {
-            existing.1 = rels.to_xml();
-        } else {
-            self.files.push((path, rels.to_xml(), true));
-        }
-    }
-    /// Add a part with no content type of its own (a relationships part).
-    pub fn raw(&mut self, name: &str, data: Vec<u8>) {
-        self.files.push((name.to_string(), data, true));
-    }
-    /// Add a binary part; its extension gets a Default content type.
-    pub fn binary(&mut self, name: &str, content_type: &str, data: Vec<u8>) {
-        let ext = name
-            .rsplit('.')
-            .next()
-            .unwrap_or("bin")
-            .to_ascii_lowercase();
-        if !self.defaults.iter().any(|(e, _)| *e == ext) {
-            self.defaults.push((ext, content_type.to_string()));
-        } else if !self
-            .defaults
-            .iter()
-            .any(|(e, c)| *e == ext && c == content_type)
-        {
-            self.overrides
-                .push((format!("/{name}"), content_type.to_string()));
-        }
-        self.files.push((name.to_string(), data, false));
-    }
-    fn into_inventory(self) -> Vec<(String, Vec<u8>, bool)> {
-        let mut ct = W::new();
-        ct.open(
-            "Types",
-            A::new().a("xmlns", joyoffice_opc::CONTENT_TYPES_NAMESPACE),
-        );
-        for (ext, value) in &self.defaults {
-            ct.empty(
-                "Default",
-                A::new().a("Extension", ext).a("ContentType", value),
-            );
-        }
-        for (part, value) in &self.overrides {
-            ct.empty(
-                "Override",
-                A::new().a("PartName", part).a("ContentType", value),
-            );
-        }
-        ct.close("Types");
-        let mut seen = std::collections::HashSet::new();
-        let mut files = Vec::with_capacity(self.files.len() + 1);
-        let types = "[Content_Types].xml";
-        files.push((types.into(), ct.finish(), true));
-        seen.insert(norm(types));
-        for (name, bytes, compress) in self.files {
-            if seen.insert(norm(&name)) {
-                files.push((name, bytes, compress));
-            } else {
-                log::warn!("pptx: part {name} written twice; keeping the first");
-            }
-        }
-        files
-    }
-
-    pub(super) fn editable_parts(self) -> Result<Package, PptxError> {
-        Package::from_parts(
-            self.into_inventory()
-                .into_iter()
-                .map(|(name, bytes, _)| (name, bytes))
-                .collect(),
-        )
-    }
-
-    pub fn finish(self) -> Result<Vec<u8>, PptxError> {
-        let entries = self.into_inventory();
-        crate::archive::write(
-            entries
-                .iter()
-                .map(|(name, bytes, compress)| (name.as_str(), bytes.as_slice(), *compress)),
-        )
-    }
 }
 
 #[cfg(test)]

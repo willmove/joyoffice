@@ -245,6 +245,12 @@ fn import_part(
     Ok(target)
 }
 
+fn shareable_media(mime: &str) -> bool {
+    ["image/", "audio/", "video/"]
+        .iter()
+        .any(|prefix| mime.starts_with(prefix))
+}
+
 pub(super) struct Pictures<'a> {
     source: &'a opc::Package,
     fingerprint: RandomState,
@@ -269,24 +275,24 @@ impl<'a> Pictures<'a> {
     ) -> Result<String, PptxError> {
         let Some((kind, bytes)) = generated.content_type(source).zip(generated.get(source)) else {
             return Err(error(
-                "generated picture part is missing data or a content type",
+                "generated media part is missing data or a content type",
             ));
         };
-        if !kind.starts_with("image/")
+        if !shareable_media(&kind)
             || bytes.len() > 32 << 20
             || generated.get(&opc::rels_path(source)).is_some()
         {
             return import_part(generated, source, parts, ct, &mut BTreeMap::new(), 0);
         }
-        // Index once per save, on the first edited picture. Only independent,
-        // byte-identical images of the same declared type can share a part.
+        // Index once per save, on the first generated resource. Only independent,
+        // byte-identical media of the same declared type can share a part.
         let index = self.parts.get_or_insert_with(|| {
             let mut index = HashMap::<_, Vec<_>>::new();
             for (path, data) in parts.iter() {
                 if data.len() <= 32 << 20
                     && self.source.original_name(path) == Some(path)
                     && let Some(kind) = self.source.content_type(path)
-                    && kind.starts_with("image/")
+                    && shareable_media(&kind)
                     && self.source.get(&opc::rels_path(path)).is_none()
                 {
                     let key = (kind, self.fingerprint.hash_one(data));
@@ -432,7 +438,7 @@ pub(super) fn shape(
     parts: &mut PartEdits<'_>,
     ct: &mut El,
     rels: &mut Vec<El>,
-    pictures: &mut Pictures<'_>,
+    assets: &mut assets::Assets<'_>,
     preserved_chart: bool,
 ) -> Result<(), PptxError> {
     if let Some(old) = old
@@ -529,7 +535,7 @@ pub(super) fn shape(
         return Err(error("edited linked resources need .joydeck Save As"));
     }
     let destination = if local == "blip" && relationship.kind == "image" {
-        pictures.target(pkg, &relationship.target, parts, ct)?
+        assets.picture(pkg, &relationship.target, parts, ct)?
     } else {
         import_part(
             pkg,

@@ -820,9 +820,7 @@ fn frame_close(w: &mut W) {
 }
 
 fn media(w: &mut W, x: &mut Exp, o: &mut Out, id: u32, s: &Shape, m: &joydeck_model::MediaClip) {
-    let kind = if m.video { "video" } else { "audio" };
-    let link = x.media_rel(o, m.media, kind);
-    let embed = x.media_rel_new(o, m.media, crate::opc::RT_MEDIA);
+    let references = crate::media_part::clip_refs(x, o, m);
     w.open0("p:pic");
     w.open0("p:nvPicPr");
     let mut s2 = s.clone();
@@ -841,54 +839,7 @@ fn media(w: &mut W, x: &mut Exp, o: &mut Out, id: u32, s: &Shape, m: &joydeck_mo
     w.empty("a:picLocks", A::new().a("noChangeAspect", "1"));
     w.close("p:cNvPicPr");
     w.open0("p:nvPr");
-    if let Some(ph) = &s.ph {
-        let _ = ph;
-    }
-    let tag = if m.video {
-        "a:videoFile"
-    } else {
-        "a:audioFile"
-    };
-    if let Some(l) = &link {
-        w.empty(tag, A::new().a("r:link", l));
-    }
-    if let Some(e) = &embed {
-        w.open0("p:extLst");
-        w.open(
-            "p:ext",
-            A::new().a("uri", "{DAA4B4D4-6D71-4841-9C94-3DE7FCFB9230}"),
-        );
-        w.open(
-            "p14:media",
-            A::new().a("xmlns:p14", crate::opc::NS_P14).a("r:embed", e),
-        );
-        if m.trim_start_ms > 0 || m.trim_end_ms > 0 {
-            w.empty(
-                "p14:trim",
-                A::new()
-                    .o("st", (m.trim_start_ms > 0).then_some(m.trim_start_ms))
-                    .o("end", (m.trim_end_ms > 0).then_some(m.trim_end_ms)),
-            );
-        }
-        if m.fade_in_ms > 0 || m.fade_out_ms > 0 {
-            w.empty(
-                "p14:fade",
-                A::new()
-                    .o("in", (m.fade_in_ms > 0).then_some(m.fade_in_ms))
-                    .o("out", (m.fade_out_ms > 0).then_some(m.fade_out_ms)),
-            );
-        }
-        if !m.bookmarks.is_empty() {
-            w.open0("p14:bmkLst");
-            for (n, t) in m.bookmarks.iter().take(1000) {
-                w.empty("p14:bmk", A::new().a("name", n).a("time", t));
-            }
-            w.close("p14:bmkLst");
-        }
-        w.close("p14:media");
-        w.close("p:ext");
-        w.close("p:extLst");
-    }
+    crate::media_part::write_clip(w, m, references);
     w.close("p:nvPr");
     w.close("p:nvPicPr");
     let poster = joydeck_model::style::PictureFill {
