@@ -160,6 +160,12 @@ impl Effect {
                 if radius.round() == 0.0 {
                     return Some(0);
                 }
+                if *radius >= 20.0 {
+                    // The wide native filter is separable on both axes. The recorded draw still
+                    // samples the original source window, including its softened inner edges.
+                    crate::plus_wide_blur::apply(image, *radius, *expand, work)?;
+                    return Some(0);
+                }
                 let pad = if *expand { radius.ceil() as usize } else { 0 };
                 // Windows GDI+ expands the horizontal profile in bitmap coordinates in
                 // both direct DrawImage and serialized EMF+ playback.
@@ -316,7 +322,7 @@ fn blurred(
     let support = if vertical {
         radius.floor()
     } else {
-        radius.round()
+        radius.ceil()
     } as usize;
     let samples = 2 * support + 1;
     let passes = 1 + usize::from(vertical);
@@ -342,13 +348,7 @@ fn blurred(
             .iter()
             .zip(premultiplied[at..at + row.len()].as_chunks_mut::<4>().0)
         {
-            let a = u16::from(pixel[3]);
-            *dest = [
-                (u16::from(pixel[0]) * a / 255) as u8,
-                (u16::from(pixel[1]) * a / 255) as u8,
-                (u16::from(pixel[2]) * a / 255) as u8,
-                pixel[3],
-            ];
+            *dest = crate::bitmap::premultiplied(*pixel);
         }
     }
     let mut temp = vec![0u8; size * 4];
@@ -362,12 +362,8 @@ fn blurred(
     } else {
         premultiplied = temp;
     }
-    for [r, g, b, a] in premultiplied.as_chunks_mut::<4>().0 {
-        if *a != 0 {
-            for c in [r, g, b] {
-                *c = ((u32::from(*c) * 255 + u32::from(*a) / 2) / u32::from(*a)).min(255) as u8;
-            }
-        }
+    for pixel in premultiplied.as_chunks_mut::<4>().0 {
+        *pixel = crate::bitmap::straight(*pixel);
     }
     Some(Rgba {
         w,
@@ -433,5 +429,92 @@ mod tests {
         assert!((197..=201).contains(&pixels[4][3]));
         assert!((26..=30).contains(&pixels[3][3]));
         assert_eq!(pixels[3], pixels[5]);
+    }
+
+    #[test]
+    fn gdi_plus_steps_switch_to_two_axes_at_twenty() {
+        // Native GDI+ ApplyEffect on the opaque step at texel 300. These probes have no resampling.
+        let cases = &[
+            (
+                19.5,
+                &[-18, -9, -3, -1, 0, 3, 9, 18],
+                &[5, 46, 101, 122, 133, 164, 216, 252],
+                0,
+                false,
+            ),
+            (
+                20.0,
+                &[-18, -9, -3, -1, 0, 3, 9, 18],
+                &[6, 48, 102, 122, 132, 163, 214, 251],
+                1,
+                true,
+            ),
+            (
+                32.0,
+                &[-27, -15, -4, -1, 0, 4, 15, 27],
+                &[8, 43, 104, 124, 130, 156, 216, 248],
+                1,
+                true,
+            ),
+            (
+                255.0,
+                &[-250, -150, -45, -1, 0, 45, 150, 250],
+                &[1, 27, 91, 126, 127, 164, 227, 253],
+                2,
+                true,
+            ),
+        ];
+        for &(radius, offsets, reference, tolerance, both) in cases {
+            for (w, h, vertical) in [(601, 1, false), (1, 601, true)] {
+                let px = (0..601)
+                    .flat_map(|i| [if i < 300 { 0 } else { 255 }, 0, 0, 255])
+                    .collect();
+                let mut image = Rgba {
+                    w,
+                    h,
+                    px,
+                    bottom_up: false,
+                };
+                let mut budget = EFFECT_WORK;
+                assert_eq!(
+                    Effect::Blur(radius, false).apply(&mut image, &mut budget),
+                    Some(0)
+                );
+                for (&i, &native) in offsets.iter().zip(reference) {
+                    let expected = if vertical && !both {
+                        if i < 0 { 0 } else { 255 }
+                    } else {
+                        native
+                    };
+                    let p = (300isize + i) as usize * 4;
+                    assert!(
+                        image.px[p].abs_diff(expected) <= tolerance,
+                        "{radius} {vertical} {i}: {} vs {expected}",
+                        image.px[p]
+                    );
+                    assert_eq!(image.px[p + 3], 255);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn filters_preserve_the_native_premultiplied_value_of_flat_color() {
+        for radius in [3.0, 20.0] {
+            let mut image = Rgba {
+                w: 76,
+                h: 76,
+                px: [250, 145, 73, 64].repeat(76 * 76),
+                bottom_up: false,
+            };
+            let mut budget = EFFECT_WORK;
+            assert_eq!(
+                Effect::Blur(radius, false).apply(&mut image, &mut budget),
+                Some(0)
+            );
+            for color in image.px.as_chunks::<4>().0 {
+                assert_eq!(crate::bitmap::premultiplied(*color), [63, 36, 18, 64]);
+            }
+        }
     }
 }

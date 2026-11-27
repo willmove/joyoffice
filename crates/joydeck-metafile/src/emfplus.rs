@@ -582,13 +582,13 @@ impl Plus {
         let font = self
             .font(usize::from(flags & 0xff))?
             .logical(self.dpi, self.page);
-        let color = self.brush_of(flags, bytes.u32(0)?)?.color();
+        let brush = self.brush_of(flags, bytes.u32(0)?)?;
         let format = match self.objects.get(bytes.u32(4)? as usize) {
             Some(Some(Obj::Format(format))) => *format,
             _ => Format::default(),
         };
         let (runs, clip) = crate::plus_text::layout(bytes, format, f64::from(-font.font.height))?;
-        self.play_text(canvas, font, color, runs, clip, IDENTITY);
+        self.play_text(canvas, font, &brush, runs, clip, IDENTITY);
         Some(())
     }
 
@@ -596,14 +596,15 @@ impl Plus {
         let font = self
             .font(usize::from(flags & 0xff))?
             .logical(self.dpi, self.page);
-        let color = self.brush_of(flags, bytes.u32(0)?)?.color();
+        let brush = self.brush_of(flags, bytes.u32(0)?)?;
         let (draw, xf) = crate::plus_text::driver(bytes, -font.font.height)?;
         match draw {
-            DriverString::Text(runs) => self.play_text(canvas, font, color, runs, None, xf),
+            DriverString::Text(runs) => self.play_text(canvas, font, &brush, runs, None, xf),
             DriverString::Glyphs { at, indexed } => {
                 let painter = self.painter();
                 painter.begin(canvas, xf);
-                canvas.set_text_style(color, font, 24);
+                canvas.set_text_style(brush.color(), font, 24);
+                canvas.set_text_brush(&brush, painter.rendering_origin);
                 canvas.indexed_text(at, indexed);
                 painter.end(canvas);
             }
@@ -615,7 +616,7 @@ impl Plus {
         &self,
         canvas: &mut Canvas,
         font: LogFont,
-        color: [u8; 4],
+        brush: &Fill,
         runs: Vec<Run>,
         clip: Option<[f64; 4]>,
         xf: Xform,
@@ -631,7 +632,7 @@ impl Plus {
                 run.text,
                 run.advances,
                 TextStyle {
-                    color,
+                    brush,
                     font: font.clone(),
                     align: run.align,
                     clip,
@@ -656,8 +657,8 @@ impl EitherPaint<'_> {
     }
 }
 
-struct TextStyle {
-    color: [u8; 4],
+struct TextStyle<'a> {
+    brush: &'a Fill,
     font: LogFont,
     align: u32,
     /// World clip rectangle `[l, t, r, b]`.
@@ -762,11 +763,12 @@ impl Painter {
         at: P,
         text: String,
         dx: Vec<f32>,
-        style: TextStyle,
+        style: TextStyle<'_>,
         pre: Xform,
     ) {
         self.begin(cv, pre);
-        cv.set_text_style(style.color, style.font, style.align);
+        cv.set_text_style(style.brush.color(), style.font, style.align);
+        cv.set_text_brush(style.brush, self.rendering_origin);
         let (opts, rect) = match style.clip {
             Some(c) => (ETO_CLIPPED, Some(c)),
             None => (0, None),

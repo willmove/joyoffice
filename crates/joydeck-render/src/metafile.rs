@@ -8,6 +8,8 @@ use kurbo::{Affine, BezPath, Rect, Shape as _};
 use skrifa::MetadataProvider as _;
 use vello_cpu::{RenderContext, peniko};
 
+use crate::metafile_text_paint::GlyphPaint;
+
 pub const DEFAULT_SIDE: u32 = 1024;
 const DEFAULT_EM: f64 = 12.0;
 
@@ -30,7 +32,13 @@ struct Glyph {
 }
 
 /// Draws a text item; `m` maps its text space to the output.
-pub(super) fn draw_text(ctx: &mut RenderContext, t: &Text, m: Affine) {
+pub(super) fn draw_text(
+    ctx: &mut RenderContext,
+    t: &Text,
+    m: Affine,
+    viewport: Rect,
+    budget: &mut usize,
+) {
     let db = FontDb::global();
     let font = &t.font;
     let family = if font.family.trim().is_empty() {
@@ -45,8 +53,12 @@ pub(super) fn draw_text(ctx: &mut RenderContext, t: &Text, m: Affine) {
         (false, true) => "Italic",
         (false, false) => "Regular",
     };
+    let mut paint = GlyphPaint::new(t);
     if let Some(indexed) = &t.indexed {
-        crate::metafile_glyphs::draw(ctx, t, m, family, style, indexed);
+        ctx.set_fill_rule(peniko::Fill::NonZero);
+        ctx.set_paint(rgba(t.color));
+        crate::metafile_glyphs::draw(t, m, family, style, indexed, |path| paint.path(ctx, path));
+        paint.finish(ctx, t, m, viewport, budget);
         return;
     }
     let face = db.document_face(family, style);
@@ -177,18 +189,7 @@ pub(super) fn draw_text(ctx: &mut RenderContext, t: &Text, m: Affine) {
         ctx.fill_path(&(at * Rect::new(0.0, -a, width, d).to_path(0.1)));
     }
     let color = rgba(t.color);
-    let copy = t.composition == joydeck_metafile::ImageComposition::SourceCopy;
     ctx.set_paint(color);
-    let paint = |ctx: &mut RenderContext, path: &BezPath| {
-        if copy {
-            super::metafile_scene::source_copy(ctx, |ctx| {
-                ctx.set_paint(color);
-                ctx.fill_path(path);
-            });
-        } else {
-            ctx.fill_path(path);
-        }
-    };
     for (g, _) in &shaped {
         let path = db.outline(&g.face, g.gid);
         if path.elements().is_empty() {
@@ -216,17 +217,11 @@ pub(super) fn draw_text(ctx: &mut RenderContext, t: &Text, m: Affine) {
         {
             continue;
         }
-        paint(ctx, &p);
+        paint.path(ctx, &p);
         if bold && g.face.weight < 600.0 {
             let stroke =
                 kurbo::Stroke::new(em * 0.025 * scale_of(at)).with_join(kurbo::Join::Round);
-            if copy {
-                let outline = kurbo::stroke(p.iter(), &stroke, &kurbo::StrokeOpts::default(), 0.25);
-                paint(ctx, &outline);
-            } else {
-                ctx.set_stroke(stroke);
-                ctx.stroke_path(&p);
-            }
+            paint.stroke(ctx, &p, stroke);
         }
     }
     // Underline and strike-out: the font's own positions and thickness.
@@ -258,8 +253,9 @@ pub(super) fn draw_text(ctx: &mut RenderContext, t: &Text, m: Affine) {
         ),
     ];
     for r in lines.into_iter().flatten() {
-        paint(ctx, &(at * r.to_path(0.1)));
+        paint.path(ctx, &(at * r.to_path(0.1)));
     }
+    paint.finish(ctx, t, m, viewport, budget);
 }
 
 /// Mean scale of an affine transform's linear part.

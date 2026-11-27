@@ -68,19 +68,27 @@ impl Brush {
     /// A pattern brush painting `img`. A monochrome brush paints its dark pixels in the text
     /// colour and its light ones in the background colour. None for an empty or oversized tile.
     pub fn pattern(img: Rgba, mono: bool) -> Option<Self> {
-        if img.w == 0
-            || img.h == 0
-            || img.w > MAX_TILE_SIDE
-            || img.h > MAX_TILE_SIDE
-            || img.px.len() != img.w * img.h * 4
+        if !img.px.len().is_multiple_of(4) {
+            return None;
+        }
+        Self::with_pattern(img.w, img.h, PatternPixels::Direct { rgba: img.px, mono })
+    }
+
+    pub fn indexed_pattern(w: usize, h: usize, depth: u8, indices: Vec<u8>) -> Option<Self> {
+        Self::with_pattern(w, h, PatternPixels::Indexed { depth, indices })
+    }
+
+    fn with_pattern(w: usize, h: usize, pixels: PatternPixels) -> Option<Self> {
+        if !(1..=MAX_TILE_SIDE).contains(&w)
+            || !(1..=MAX_TILE_SIDE).contains(&h)
+            || pixels.pixel_count() != w * h
         {
             return None;
         }
         let pattern = Arc::new(Pattern {
-            w: img.w,
-            h: img.h,
-            px: img.px,
-            mono,
+            w,
+            h,
+            pixels,
             plain: OnceLock::new(),
         });
         Some(Brush {
@@ -92,15 +100,36 @@ impl Brush {
     }
 }
 
-/// A pattern brush's tile, top-down RGBA.
+/// A pattern brush's tile in top-down order.
 #[derive(PartialEq, Debug)]
 pub(crate) struct Pattern {
     pub w: usize,
     pub h: usize,
-    pub px: Vec<u8>,
-    pub mono: bool,
+    pixels: PatternPixels,
     /// The tile as drawn when nothing recolours it, shared by every fill with this brush.
     pub plain: OnceLock<Arc<RawTile>>,
+}
+
+#[derive(PartialEq, Debug)]
+enum PatternPixels {
+    Direct { rgba: Vec<u8>, mono: bool },
+    Indexed { depth: u8, indices: Vec<u8> },
+}
+
+impl PatternPixels {
+    fn pixel_count(&self) -> usize {
+        match self {
+            Self::Direct { rgba, .. } => rgba.len() / 4,
+            Self::Indexed { indices, .. } => indices.len(),
+        }
+    }
+
+    fn bytes(&self) -> usize {
+        match self {
+            Self::Direct { rgba, .. } => rgba.len(),
+            Self::Indexed { indices, .. } => indices.len(),
+        }
+    }
 }
 
 /// Largest pattern tile side kept (GDI brushes are typically 8×8).
@@ -111,7 +140,8 @@ pub(crate) enum Obj {
     Pen(Pen),
     Brush(Brush),
     Font(Arc<LogFont>),
-    /// Palettes and regions: they take a table slot but draw nothing.
+    Palette(Vec<crate::wmf_palette::Entry>),
+    /// Unhandled objects occupy a table slot.
     Other,
 }
 
@@ -252,6 +282,7 @@ pub(crate) enum PlusClip {
 #[derive(Clone)]
 struct TextState {
     color: [u8; 4],
+    brush: Option<crate::TextBrush>,
     bk_color: [u8; 4],
     bk_opaque: bool,
     align: u32,
@@ -264,6 +295,7 @@ struct Saved {
     map: Mapping,
     pen: Pen,
     brush: Brush,
+    palette: Option<usize>,
     even_odd: bool,
     rop2: Rop2,
     composition: ImageComposition,
@@ -284,6 +316,7 @@ pub(crate) struct Canvas {
     objects: Vec<Option<Obj>>,
     pen: Pen,
     brush: Brush,
+    palette: Option<usize>,
     even_odd: bool,
     /// SETROP2 mix mode.
     rop2: Rop2,
@@ -318,11 +351,13 @@ impl Canvas {
                 color: [0, 0, 0, 255],
             },
             brush: Brush::new(BS_SOLID, [255, 255, 255, 255]),
+            palette: None,
             even_odd: true,
             rop2: Rop2::PEN,
             composition: ImageComposition::SourceOver,
             text: TextState {
                 color: [0, 0, 0, 255],
+                brush: None,
                 bk_color: [255, 255, 255, 255],
                 bk_opaque: true,
                 align: 0,
@@ -417,7 +452,12 @@ impl Canvas {
                             GlyphPlacement::Realized { .. } => 0,
                         }
                 });
-                t.text.len() + t.dx.len() * 4 + t.font.family.len() + 128 + glyphs
+                t.text.len()
+                    + t.dx.len() * 4
+                    + t.font.family.len()
+                    + 128
+                    + glyphs
+                    + t.brush.as_ref().map_or(0, crate::TextBrush::cost)
             }
         } + region_cost;
         if self.items.len() >= MAX_ITEMS || self.used.saturating_add(cost) > MAX_BYTES {
@@ -556,6 +596,11 @@ impl Canvas {
         self.text.font = Some(Arc::new(font));
     }
 
+    pub fn set_text_brush(&mut self, brush: &crate::plus_paint::Brush, origin: P) {
+        self.text.brush =
+            crate::TextBrush::new(brush, self.device_affine(), origin, self.pattern_px);
+    }
+
     /// Pushes an item already in device units (a nested metafile's drawing).
     pub fn push_device(&mut self, raw: Raw) {
         self.push(raw);
@@ -628,6 +673,7 @@ impl Canvas {
                 map: self.map,
                 pen: self.pen,
                 brush: self.brush.clone(),
+                palette: self.palette,
                 even_odd: self.even_odd,
                 rop2: self.rop2,
                 composition: self.composition,
@@ -654,6 +700,7 @@ impl Canvas {
         self.map = s.map;
         self.pen = s.pen;
         self.brush = s.brush;
+        self.palette = s.palette;
         self.even_odd = s.even_odd;
         self.rop2 = s.rop2;
         self.composition = s.composition;
@@ -709,7 +756,7 @@ impl Canvas {
             pattern: Some(p), ..
         }) = &obj
         {
-            let cost = p.px.len();
+            let cost = p.pixels.bytes();
             if self.used.saturating_add(cost) > MAX_BYTES {
                 self.full = true;
                 return;
@@ -739,8 +786,37 @@ impl Canvas {
     }
 
     pub fn delete_object(&mut self, i: u32) {
-        if let Some(s) = self.objects.get_mut(i as usize) {
+        let index = i as usize;
+        if self.palette == Some(index)
+            || self.saved.iter().any(|state| state.palette == Some(index))
+        {
+            return;
+        }
+        if let Some(s) = self.objects.get_mut(index) {
             *s = None;
+        }
+    }
+
+    pub fn select_palette(&mut self, handle: u16) {
+        let index = usize::from(handle);
+        if handle == 0x800f {
+            self.palette = None;
+        } else if matches!(self.objects.get(index), Some(Some(Obj::Palette(_)))) {
+            self.palette = Some(index);
+        }
+    }
+
+    pub fn selected_palette(&self) -> &[crate::wmf_palette::Entry] {
+        match self.palette.and_then(|index| self.objects.get(index)) {
+            Some(Some(Obj::Palette(entries))) => entries,
+            _ => &[],
+        }
+    }
+
+    pub fn selected_palette_mut(&mut self) -> Option<&mut Vec<crate::wmf_palette::Entry>> {
+        match self.objects.get_mut(self.palette?)? {
+            Some(Obj::Palette(entries)) => Some(entries),
+            _ => None,
         }
     }
 
@@ -753,7 +829,7 @@ impl Canvas {
             Some(Obj::Pen(p)) => self.pen = p,
             Some(Obj::Brush(b)) => self.brush = b,
             Some(Obj::Font(f)) => self.text.font = Some(f),
-            Some(Obj::Other) | None => {}
+            Some(Obj::Other | Obj::Palette(_)) | None => {}
         }
     }
 
@@ -823,7 +899,7 @@ impl Canvas {
             }
             BS_PATTERN | BS_DIBPATTERN | BS_DIBPATTERNPT => {
                 let p = b.pattern.as_ref()?;
-                if !p.mono {
+                if let PatternPixels::Direct { rgba, mono: false } = &p.pixels {
                     let cell = self.pattern_px;
                     return Some(Paint::Tile(
                         p.plain
@@ -831,7 +907,7 @@ impl Canvas {
                                 Arc::new(RawTile {
                                     w: p.w,
                                     h: p.h,
-                                    px: p.px.clone(),
+                                    px: rgba.clone(),
                                     cell,
                                     origin: (0.0, 0.0),
                                     sampled: false,
@@ -840,15 +916,28 @@ impl Canvas {
                             .clone(),
                     ));
                 }
-                let mut px = p.px.clone();
-                for c in px.as_chunks_mut::<4>().0 {
-                    let light = u16::from(c[0]) + u16::from(c[1]) + u16::from(c[2]) >= 384;
-                    *c = if light {
-                        self.text.bk_color
-                    } else {
-                        self.text.color
-                    };
-                }
+                let px = match &p.pixels {
+                    PatternPixels::Direct { rgba, .. } => rgba
+                        .as_chunks::<4>()
+                        .0
+                        .iter()
+                        .flat_map(|[r, g, b, _]| {
+                            let light = u16::from(*r) + u16::from(*g) + u16::from(*b) >= 384;
+                            if light {
+                                self.text.bk_color
+                            } else {
+                                self.text.color
+                            }
+                        })
+                        .collect(),
+                    PatternPixels::Indexed { depth, indices } => {
+                        let palette = self.selected_palette();
+                        indices
+                            .iter()
+                            .flat_map(|&i| crate::wmf_palette::color(palette, *depth, i))
+                            .collect()
+                    }
+                };
                 Some(Paint::Tile(Arc::new(RawTile {
                     w: p.w,
                     h: p.h,
@@ -1167,6 +1256,7 @@ impl Canvas {
                 dx,
                 font: lf.font,
                 color: self.text.color,
+                brush: self.text.brush.clone(),
                 composition: self.composition,
                 background: self.text.bk_opaque.then_some(self.text.bk_color),
                 h_align: placement.horizontal,
@@ -1194,6 +1284,7 @@ impl Canvas {
                 dx: Vec::new(),
                 font: font.font.clone(),
                 color: self.text.color,
+                brush: self.text.brush.clone(),
                 composition: self.composition,
                 background: None,
                 h_align: placement.horizontal,

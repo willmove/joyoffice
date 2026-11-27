@@ -2,17 +2,16 @@
 
 use joydeck_fonts::FontDb;
 use joydeck_metafile::{GlyphPlacement, IndexedGlyphs, Text};
-use kurbo::{Affine, Shape};
+use kurbo::{Affine, BezPath, Shape};
 use skrifa::{GlyphId, MetadataProvider, instance::Size, raw::TableProvider};
-use vello_cpu::{RenderContext, peniko};
 
 pub fn draw(
-    ctx: &mut RenderContext,
     text: &Text,
     transform: Affine,
     family: &str,
     style: &str,
     indexed: &IndexedGlyphs,
+    mut paint: impl FnMut(&BezPath),
 ) {
     if text.font.family.trim().is_empty() {
         return;
@@ -33,13 +32,9 @@ pub fn draw(
     let vertical = font.vmtx().ok();
     let em = f64::from(-text.font.height);
     let scale = em / face.upem.max(1.0);
-    let [r, g, b, a] = text.color;
-    let color = peniko::Color::from_rgba8(r, g, b, a);
     if !scale.is_finite() || scale <= 0.0 || !transform.is_finite() {
         return;
     }
-    ctx.set_fill_rule(peniko::Fill::NonZero);
-    ctx.set_paint(color);
     let mut next = (0.0, 0.0);
     let mut elements = 0usize;
     for (index, &glyph) in indexed.ids.iter().enumerate() {
@@ -80,7 +75,7 @@ pub fn draw(
         let path = (transform * Affine::translate(at) * Affine::scale(scale)) * outline.as_ref();
         let bounds = path.bounding_box();
         if bounds.is_finite() && bounds.width() <= 1e6 && bounds.height() <= 1e6 {
-            ctx.fill_path(&path);
+            paint(&path);
         }
     }
 }

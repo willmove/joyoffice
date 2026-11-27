@@ -15,6 +15,7 @@ const MIN_PATTERN_PIXEL: f64 = 1.5;
 const MAX_SCENE_WORK: usize = 1_000_000;
 const MAX_TRANSFER_PIXELS: usize = 80_000_000;
 const MAX_DESTINATION_READS: usize = 64;
+const MAX_GLYPH_BRUSH_SAMPLES: usize = 4_000_000;
 
 pub(super) fn rasterize(picture: &Picture, side: u32) -> Option<image::RgbaImage> {
     if !picture.has_size() {
@@ -36,6 +37,7 @@ pub(super) fn rasterize(picture: &Picture, side: u32) -> Option<image::RgbaImage
         remaining: MAX_SCENE_WORK,
         remaining_pixels: MAX_TRANSFER_PIXELS,
         remaining_reads: MAX_DESTINATION_READS,
+        remaining_brush_samples: MAX_GLYPH_BRUSH_SAMPLES,
         viewport,
         direct_clip: uses_destination(picture, 0),
     };
@@ -77,6 +79,7 @@ struct Playback {
     remaining: usize,
     remaining_pixels: usize,
     remaining_reads: usize,
+    remaining_brush_samples: usize,
     viewport: Rect,
     direct_clip: bool,
 }
@@ -290,7 +293,13 @@ impl Playback {
                 if let Some(bounds) = clip {
                     self.push_mask(ctx, &bounds.to_path(0.1));
                 }
-                draw_text(ctx, text, transform);
+                draw_text(
+                    ctx,
+                    text,
+                    transform,
+                    self.viewport,
+                    &mut self.remaining_brush_samples,
+                );
                 if clip.is_some() {
                     self.pop_mask(ctx);
                 }
@@ -568,7 +577,7 @@ fn uses_destination(picture: &Picture, depth: u8) -> bool {
         })
 }
 
-fn paint_image(
+pub(super) fn paint_image(
     ctx: &mut RenderContext,
     texture: Arc<Pixmap>,
     sampler: peniko::ImageSampler,
@@ -602,7 +611,7 @@ fn average(px: &[u8]) -> peniko::Color {
 }
 
 /// Straight RGBA rows to a premultiplied pixmap.
-fn premul(w: u32, h: u32, px: &[u8]) -> Option<Arc<Pixmap>> {
+pub(super) fn premul(w: u32, h: u32, px: &[u8]) -> Option<Arc<Pixmap>> {
     if w == 0
         || h == 0
         || w > u16::MAX as u32

@@ -18,7 +18,7 @@ type Color = [u8; 4];
 type Ramp = Vec<(f64, Color)>;
 type Factors = Vec<(f64, f64)>;
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Brush {
     Solid(Color),
     Hatch {
@@ -36,12 +36,13 @@ pub enum Brush {
     },
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 enum Gradient {
     Colors(Ramp),
     Factors { x: Factors, y: Factors },
 }
 
+#[derive(Debug, PartialEq)]
 pub struct Linear {
     rect: [f64; 4],
     ends: [Color; 2],
@@ -51,6 +52,7 @@ pub struct Linear {
     gamma: bool,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct Radial {
     center: P,
     bounds: [f64; 4],
